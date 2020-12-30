@@ -15,7 +15,34 @@ Finite::Finite(Accept* accept):
 Accept*
 Finite::scan(std::istream* in)
 {
-    return nullptr;
+    set<Finite*> current;
+    set<Finite*> found;
+    
+    current.insert(this);
+    closure(&current);
+    
+    while (in->peek() != EOF) {
+        char c = in->peek();
+        for (Finite* state : current) {
+            state->move(c, &found);
+        }
+        closure(&found);
+        
+        if (found.size() > 0) {
+            in->get();
+            current = found;
+            found.clear();
+        } else {
+            break;
+        }
+    }
+    
+    auto lowest = min_element(current.begin(), current.end(), lower);
+    if (lowest != current.end()) {
+        return (*lowest)->accept;
+    } else {
+        return nullptr;
+    }
 }
 
 void

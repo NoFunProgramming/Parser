@@ -1,3 +1,10 @@
+/**
+ * State in the finite automata.  Each state contains an array of outputs that
+ * determine the next states to move to after reading an input character.  After
+ * connecting the states, call scan from the start state to read and return the
+ * accepted match state from the stream.
+ */
+
 #ifndef finite_hpp
 #define finite_hpp
 
@@ -11,7 +18,11 @@ using std::vector;
 using std::set;
 using std::unique_ptr;
 
-/******************************************************************************/
+/**
+ * Marks a state as matching a specific pattern.  In addition to its name the
+ * class has a rank.  The rank is required as multiple final states are possible
+ * during reading and the state with the lowest rank is selected as the match.
+ */
 class Accept {
   public:
     Accept(const string& name, size_t rank);
@@ -19,7 +30,12 @@ class Accept {
     size_t rank;
 };
 
-/******************************************************************************/
+/**
+ * State in the finite automata.  Each state contains an array of outputs that
+ * determine the next states to move to after reading an input character.  Empty
+ * outputs, epsilon transitions, are allowed and are useful for passing by
+ * optional states.
+ */
 class Finite {
   public:
     Finite();
