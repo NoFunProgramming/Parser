@@ -18,6 +18,57 @@ Finite::scan(std::istream* in)
     return nullptr;
 }
 
+void
+Finite::closure(set<Finite*>* states)
+{
+    vector<Finite*> stack;
+    stack.insert(stack.end(), states->begin(), states->end());
+    
+    while (stack.size() > 0) {
+        Finite* check = stack.back();
+        stack.pop_back();
+        check->closure(states, &stack);
+    }
+}
+
+void
+Finite::closure(set<Finite*>* states, vector<Finite*>* stack)
+{
+    for (unique_ptr<Out>& out: outs) {
+        if (out->is_epsilon()) {
+            Finite* next = out->next;
+            if (next) {
+                auto found = states->insert(next);
+                if (found.second) {
+                    stack->push_back(next);
+                }
+            }
+        }
+    }
+}
+
+void
+Finite::move(char c, set<Finite*>* next)
+{
+    for (unique_ptr<Out>& out : outs) {
+        if (out->in_range(c) && out->next) {
+            next->insert(out->next);
+        }
+    }
+}
+
+bool
+Finite::lower(Finite* left, Finite* right)
+{
+    if (left->accept && right->accept) {
+        return left->accept->rank < right->accept->rank;
+    } else if (left->accept) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 Finite::Out::Out(char first, char last, Finite* next):
     next    (next),
     epsilon (false),

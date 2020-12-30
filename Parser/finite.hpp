@@ -49,6 +49,13 @@ class Finite {
   private:
     Accept* accept;
     vector<unique_ptr<Out>> outs;
+    
+    static void closure(set<Finite*>* states);
+    void closure(set<Finite*>* states, vector<Finite*>* stack);
+    
+    void move(char c, set<Finite*>* next);
+    
+    static bool lower(Finite* left, Finite* right);
 };
 
 #endif
