@@ -5,9 +5,11 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <memory>
 using std::string;
 using std::vector;
 using std::set;
+using std::unique_ptr;
 
 /******************************************************************************/
 class Accept {
@@ -25,8 +27,28 @@ class Finite {
 
     Accept* scan(std::istream* in);
     
-private:
-  Accept* accept;
+    class Out {
+      public:
+        Out(char first, char last, Finite* next);
+        Out(Finite* next);
+        
+        Finite* next;
+        bool is_epsilon();
+        bool in_range(char c);
+        
+      private:
+        bool epsilon;
+        char first;
+        char last;
+    };
+    
+    Out* add_out(char c, Finite* next);
+    Out* add_out(char first, char last, Finite* next);
+    Out* add_epsilon(Finite* next);
+    
+  private:
+    Accept* accept;
+    vector<unique_ptr<Out>> outs;
 };
 
 #endif
