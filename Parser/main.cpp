@@ -1,6 +1,37 @@
 /**
  * Identify words and numbers from an input stream using finite automata.
  *
+ */
+
+#include "finite.hpp"
+#include "regex.hpp"
+
+#include <iostream>
+#include <sstream>
+
+void
+test_regex()
+{
+    Accept number("number", 0);
+    Accept identifier("identifier", 1);
+    
+    unique_ptr<Regex> num = Regex::parse("[0-9]+", &number);
+    unique_ptr<Regex> id  = Regex::parse("[a-z]([a-z]|[0-9])*", &identifier);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
  * This program defines an automata with four states.  Two of the states are
  * accepting and mark the match of a word or number.  In addition to the start,
  * another state is for reading an optional negative sign in front of numbers.
@@ -9,14 +40,8 @@
  * from the start state, which moves between states while reading, to match
  * words and numbers.
  */
-
-#include "finite.hpp"
-
-#include <iostream>
-#include <sstream>
-
-int
-main(int argc, const char * argv[])
+void
+test_finite()
 {
     Accept word("word", 0);
     Accept number("number", 1);
@@ -43,6 +68,11 @@ main(int argc, const char * argv[])
             std::cout << "Found a " << accept->name << ".\n";
         }
     }
-    
-    return 0;
 }
+
+int
+main(int argc, const char * argv[])
+{
+    test_regex();
+}
+

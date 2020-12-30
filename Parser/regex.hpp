@@ -13,7 +13,7 @@ class Regex
 {
   public:
     Regex();
-    static unique_ptr<Regex> parse(istream& in, Accept* accept);
+    static unique_ptr<Regex> parse(const string& in, Accept* accept);
 
     Finite* get_start();
 
