@@ -72,6 +72,7 @@ Regex::parse_term(istream& in, vector<Finite::Out*>* outs)
         }
     }
 
+    outs->insert(outs->end(), fact_out.begin(), fact_out.end());
     return term;
 }
 

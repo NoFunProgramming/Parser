@@ -15,8 +15,28 @@ test_regex()
     Accept number("number", 0);
     Accept identifier("identifier", 1);
     
-    unique_ptr<Regex> num = Regex::parse("[0-9]+", &number);
-    unique_ptr<Regex> id  = Regex::parse("[a-z]([a-z]|[0-9])*", &identifier);
+    //unique_ptr<Regex> num = Regex::parse("[0-9]+", &number);
+    //unique_ptr<Regex> id  = Regex::parse("[a-z]([a-z]|[0-9])*", &identifier);
+    
+    unique_ptr<Regex> id  = Regex::parse("aaab", &identifier);
+    if (!id) {
+        std::cerr << "Unable to parse expression.\n";
+        return;
+    }
+    
+    std::stringstream in("aaab");
+    
+    while (in.peek() != EOF) {
+        in >> std::ws;
+        Accept* accept = id->get_start()->scan(&in);
+        if (accept) {
+            std::cout << "Found a " << accept->name << ".\n";
+        } else {
+            std::cout << "Did not match expression.\n";
+            break;
+        }
+    }
+    
 }
 
 
