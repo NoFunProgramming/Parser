@@ -15,7 +15,7 @@ Regex::parse(const string& in, Accept* accept)
     istringstream input(in);
     
     vector<Finite::Out*> outs;
-    result->start = result->parse_term(input, &outs);
+    result->start = result->parse_expr(input, &outs);
     
     if (result->start) {
         Finite* target = result->add_state(accept);
@@ -43,6 +43,29 @@ Regex::add_state(Accept* accept) {
 }
 
 Finite*
+Regex::parse_expr(istream& in, vector<Finite::Out*>* outs)
+{
+    Finite* expr = add_state();
+    
+    while (in.peek() != EOF)
+    {
+        Finite* term = parse_term(in, outs);
+        if (!term) {
+            return nullptr;
+        }
+
+        expr->add_epsilon(term);
+        if (in.peek() == '|') {
+            in.get();
+        } else {
+            break;
+        }
+    }
+    
+    return expr;
+}
+
+Finite*
 Regex::parse_term(istream& in, vector<Finite::Out*>* outs)
 {
     vector<Finite::Out*> fact_in;
@@ -55,7 +78,7 @@ Regex::parse_term(istream& in, vector<Finite::Out*>* outs)
     while (true)
     {
         int c = in.peek();
-        if (c == EOF) {
+        if (c == EOF || c == '|') {
             break;
         }
         

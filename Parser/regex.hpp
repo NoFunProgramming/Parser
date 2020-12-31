@@ -24,6 +24,7 @@ class Regex
     Finite* add_state();
     Finite* add_state(Accept* accept);
     
+    Finite* parse_expr(istream& in, vector<Finite::Out*>* outs);
     Finite* parse_term(istream& in, vector<Finite::Out*>* outs);
     Finite* parse_fact(istream& in, vector<Finite::Out*>* outs);
     Finite* parse_atom(istream& in, vector<Finite::Out*>* outs);
