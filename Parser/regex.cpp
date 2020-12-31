@@ -47,7 +47,7 @@ Regex::parse_term(istream& in, vector<Finite::Out*>* outs)
 {
     vector<Finite::Out*> fact_in;
     vector<Finite::Out*> fact_out;
-    Finite* term = parse_atom(in, &fact_out);
+    Finite* term = parse_fact(in, &fact_out);
     if (!term) {
         return nullptr;
     }
@@ -62,7 +62,7 @@ Regex::parse_term(istream& in, vector<Finite::Out*>* outs)
         fact_in = fact_out;
         fact_out.clear();
         
-        Finite* fact = parse_atom(in, &fact_out);
+        Finite* fact = parse_fact(in, &fact_out);
         if (!fact) {
             return nullptr;
         }
@@ -76,6 +76,49 @@ Regex::parse_term(istream& in, vector<Finite::Out*>* outs)
     return term;
 }
 
+Finite*
+Regex::parse_fact(istream& in, vector<Finite::Out*>* outs)
+{
+    vector<Finite::Out*> atom_outs;
+    Finite* atom = parse_atom(in, &atom_outs);
+    if (!atom) {
+        return nullptr;
+    }
+    
+    int c = in.peek();
+    if (c != '+' && c != '*' && c != '?') {
+        outs->insert(outs->end(), atom_outs.begin(), atom_outs.end());
+        return atom;
+    }
+    
+    Finite* state = add_state();
+    state->add_epsilon(atom);
+    Finite::Out* out2 = state->add_epsilon(nullptr);
+
+    outs->push_back(out2);
+    
+    switch (in.get()) {
+        case '+': {
+            for (Finite::Out* out : atom_outs) {
+                out->next = state;
+            }
+            return atom;
+        }
+        case '*': {
+            for (Finite::Out* out : atom_outs) {
+                out->next = state;
+            }
+            return state;
+        }
+        case '?': {
+            outs->insert(outs->end(), atom_outs.begin(), atom_outs.end());
+            return state;
+        }
+        default: {
+            return nullptr;
+        }
+    }
+}
 
 Finite*
 Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)

@@ -18,13 +18,13 @@ test_regex()
     //unique_ptr<Regex> num = Regex::parse("[0-9]+", &number);
     //unique_ptr<Regex> id  = Regex::parse("[a-z]([a-z]|[0-9])*", &identifier);
     
-    unique_ptr<Regex> id  = Regex::parse("aaab", &identifier);
+    unique_ptr<Regex> id  = Regex::parse("a?b+", &identifier);
     if (!id) {
         std::cerr << "Unable to parse expression.\n";
         return;
     }
     
-    std::stringstream in("aaab");
+    std::stringstream in("bbb");
     
     while (in.peek() != EOF) {
         in >> std::ws;
