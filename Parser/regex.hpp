@@ -28,6 +28,9 @@ class Regex
     Finite* parse_term(istream& in, vector<Finite::Out*>* outs);
     Finite* parse_fact(istream& in, vector<Finite::Out*>* outs);
     Finite* parse_atom(istream& in, vector<Finite::Out*>* outs);
+    
+    Finite* parse_atom_range(istream& in, vector<Finite::Out*>* outs);
+    Finite* parse_atom_escape(istream& in, vector<Finite::Out*>* outs);
 };
 
 #endif

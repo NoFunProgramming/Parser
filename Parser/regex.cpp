@@ -163,3 +163,44 @@ Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
         return nullptr;
     }
 }
+
+Finite*
+Regex::parse_atom_range(istream& in, vector<Finite::Out*>* outs)
+{
+    int first = in.get();
+    if (!isalpha(first) && !isdigit(first)) {
+        return nullptr;
+    }
+    if (in.get() != '-') {
+        return nullptr;
+    }
+    
+    int last = in.get();
+    if (!isalpha(last) && !isdigit(last)) {
+        return nullptr;
+    }
+    if (in.get() != ']') {
+        return nullptr;
+    }
+    
+    Finite* state = add_state();
+    Finite::Out* out = state->add_out(first, last, nullptr);
+    outs->push_back(out);
+    return state;
+}
+
+Finite*
+Regex::parse_atom_escape(istream& in, vector<Finite::Out*>* outs)
+{
+    int c = in.get();
+    
+    if (c == '[' || c == ']' || c == '(' || c == ')'
+            || c == '|' || c == '\\') {
+        Finite* state = add_state();
+        Finite::Out* out = state->add_out(c, nullptr);
+        outs->push_back(out);
+        return state;
+    } else {
+        return nullptr;
+    }
+}
