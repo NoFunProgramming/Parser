@@ -15,20 +15,22 @@ test_regex()
     Accept number("number", 0);
     Accept identifier("identifier", 1);
     
-    //unique_ptr<Regex> num = Regex::parse("[0-9]+", &number);
-    //unique_ptr<Regex> id  = Regex::parse("[a-z]([a-z]|[0-9])*", &identifier);
-    
-    unique_ptr<Regex> id  = Regex::parse("c+|ab+", &identifier);
+    unique_ptr<Regex> num = Regex::parse("[0-9]+", &number);
+    unique_ptr<Regex> id  = Regex::parse("[a-z]([a-z]|[0-9])*", &identifier);
     if (!id) {
         std::cerr << "Unable to parse expression.\n";
         return;
     }
     
-    std::stringstream in("abbb ccc");
+    Finite start;
+    start.add_epsilon(num->get_start());
+    start.add_epsilon(id->get_start());
+    
+    std::stringstream in("test var3 12");
     
     while (in.peek() != EOF) {
         in >> std::ws;
-        Accept* accept = id->get_start()->scan(&in);
+        Accept* accept = start.scan(&in);
         if (accept) {
             std::cout << "Found a " << accept->name << ".\n";
         } else {

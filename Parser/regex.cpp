@@ -78,7 +78,7 @@ Regex::parse_term(istream& in, vector<Finite::Out*>* outs)
     while (true)
     {
         int c = in.peek();
-        if (c == EOF || c == '|') {
+        if (c == EOF || c == ')' || c == '|') {
             break;
         }
         
@@ -157,6 +157,22 @@ Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
         Finite::Out* out = state->add_out(c, nullptr);
         outs->push_back(out);
         return state;
+    }
+    else if (c == '[') {
+        return parse_atom_range(in, outs);
+    }
+    else if (c == '\\') {
+        return parse_atom_escape(in, outs);
+    }
+    else if (c == '(') {
+        Finite* expr = parse_expr(in, outs);
+        if (!expr) {
+            return nullptr;
+        }
+        if (in.get() != ')') {
+            return nullptr;
+        }
+        return expr;
     }
     else {
         std::cerr << "Unexpected character.\n";
