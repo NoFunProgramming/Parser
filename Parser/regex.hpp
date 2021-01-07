@@ -31,6 +31,7 @@ class Regex
     
     Finite* parse_atom_range(istream& in, vector<Finite::Out*>* outs);
     Finite* parse_atom_escape(istream& in, vector<Finite::Out*>* outs);
+    Finite* parse_atom_hex(istream& in, vector<Finite::Out*>* outs);
 };
 
 #endif

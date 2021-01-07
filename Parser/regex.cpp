@@ -170,12 +170,19 @@ Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
             return nullptr;
         }
         if (in.get() != ')') {
+            cerr << "Expected ')' to end expression.\n";
             return nullptr;
         }
         return expr;
     }
     else {
-        std::cerr << "Unexpected character.\n";
+        if (c == EOF) {
+            cerr << "Unexpected end of file.\n";
+        } else if (isprint(c)) {
+            cerr << "Unexpected '" << (char)c << "' in expression.\n";
+        } else {
+            cerr << "Unexpected << c << in expression.\n";
+        }
         return nullptr;
     }
 }
@@ -185,17 +192,21 @@ Regex::parse_atom_range(istream& in, vector<Finite::Out*>* outs)
 {
     int first = in.get();
     if (!isalpha(first) && !isdigit(first)) {
+        cerr << "Expected a letter or number to start range.\n";
         return nullptr;
     }
     if (in.get() != '-') {
+        cerr << "Expected a '-' to separate range.\n";
         return nullptr;
     }
     
     int last = in.get();
     if (!isalpha(last) && !isdigit(last)) {
+        cerr << "Expected a letter or number to end range.\n";
         return nullptr;
     }
     if (in.get() != ']') {
+        cerr << "Expected a ']' to end range.\n";
         return nullptr;
     }
     
@@ -216,7 +227,24 @@ Regex::parse_atom_escape(istream& in, vector<Finite::Out*>* outs)
         Finite::Out* out = state->add_out(c, nullptr);
         outs->push_back(out);
         return state;
-    } else {
+    }
+    else {
+        if (c == EOF) {
+            cerr << "Unexpected end of file.\n";
+        } else if (isprint(c)) {
+            cerr << "Unknown escape sequence '" << (char)c << "'.\n";
+        } else {
+            cerr << "Unexpected control character.\n";
+        }
         return nullptr;
     }
 }
+
+Finite*
+Regex::parse_atom_hex(istream& in, vector<Finite::Out*>* outs)
+{
+    if (isdigit(in.peek()) {
+        char first = in.get();
+    }
+}
+
