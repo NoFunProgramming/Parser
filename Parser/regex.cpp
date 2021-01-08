@@ -3,6 +3,7 @@
 #include <sstream>
 using std::make_unique;
 using std::istringstream;
+using std::cerr;
 
 Regex::Regex() :
     start(nullptr) {}
@@ -159,7 +160,12 @@ Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
         return state;
     }
     else if (c == '[') {
-        return parse_atom_range(in, outs);
+        if (in.peek() == '^') {
+            in.get();
+            return parse_atom_not(in, outs);
+        } else {
+            return parse_atom_range(in, outs);
+        }
     }
     else if (c == '\\') {
         return parse_atom_escape(in, outs);
@@ -217,6 +223,35 @@ Regex::parse_atom_range(istream& in, vector<Finite::Out*>* outs)
 }
 
 Finite*
+Regex::parse_atom_not(istream& in, vector<Finite::Out*>* outs)
+{
+    int first = in.get();
+    if (!isalpha(first) && !isdigit(first)) {
+        cerr << "Expected a letter or number after not.\n";
+        return nullptr;
+    }
+    int last = first;
+    if (in.peek() == '-') {
+        in.get();
+        last = in.get();
+        if (!isalpha(last) && !isdigit(last)) {
+            cerr << "Expected a letter or number to end range.\n";
+            return nullptr;
+        }
+    }
+    if (in.get() != ']') {
+        cerr << "Expected a ']' to end range.\n";
+        return nullptr;
+    }
+    
+    Finite* state = add_state();
+    Finite::Out* out = state->add_not(first, last, nullptr);
+    outs->push_back(out);
+    return state;
+}
+
+
+Finite*
 Regex::parse_atom_escape(istream& in, vector<Finite::Out*>* outs)
 {
     int c = in.get();
@@ -239,12 +274,3 @@ Regex::parse_atom_escape(istream& in, vector<Finite::Out*>* outs)
         return nullptr;
     }
 }
-
-Finite*
-Regex::parse_atom_hex(istream& in, vector<Finite::Out*>* outs)
-{
-    if (isdigit(in.peek()) {
-        char first = in.get();
-    }
-}
-

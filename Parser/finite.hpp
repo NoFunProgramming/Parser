@@ -46,6 +46,7 @@ class Finite {
     class Out {
       public:
         Out(char first, char last, Finite* next);
+        Out(char first, char last, bool inside, Finite* next);
         Out(Finite* next);
         
         Finite* next;
@@ -54,12 +55,14 @@ class Finite {
         
       private:
         bool epsilon;
+        bool inside;
         char first;
         char last;
     };
     
     Out* add_out(char c, Finite* next);
     Out* add_out(char first, char last, Finite* next);
+    Out* add_not(char first, char last, Finite* next);
     Out* add_epsilon(Finite* next);
     
   private:

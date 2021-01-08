@@ -99,12 +99,21 @@ Finite::lower(Finite* left, Finite* right)
 Finite::Out::Out(char first, char last, Finite* next):
     next    (next),
     epsilon (false),
+    inside  (true),
+    first   (first),
+    last    (last){}
+
+Finite::Out::Out(char first, char last, bool inside, Finite* next):
+    next    (next),
+    epsilon (false),
+    inside  (inside),
     first   (first),
     last    (last){}
 
 Finite::Out::Out(Finite* next):
     next    (next),
     epsilon (true),
+    inside  (true),
     first   ('\0'),
     last    ('\0'){}
 
@@ -117,8 +126,10 @@ bool
 Finite::Out::in_range(char c) {
     if (epsilon) {
         return false;
-    } else {
+    } else if (inside) {
         return (c >= first && c <= last);
+    } else {
+        return (c < first || c > last);
     }
 }
 
@@ -133,6 +144,13 @@ Finite::add_out(char first, char last, Finite* next) {
     outs.emplace_back(make_unique<Out>(first, last, next));
     return outs.back().get();
 }
+
+Finite::Out*
+Finite::add_not(char first, char last, Finite* next) {
+    outs.emplace_back(make_unique<Out>(first, last, false, next));
+    return outs.back().get();
+}
+
 
 Finite::Out*
 Finite::add_epsilon(Finite* next) {
