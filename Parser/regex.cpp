@@ -43,6 +43,7 @@ Regex::add_state(Accept* accept) {
     return states.back().get();
 }
 
+/** Parses the lowest precedence operator, the vertical bar. */
 Finite*
 Regex::parse_expr(istream& in, vector<Finite::Out*>* outs)
 {
@@ -66,6 +67,7 @@ Regex::parse_expr(istream& in, vector<Finite::Out*>* outs)
     return expr;
 }
 
+/** Parses a list of character terminal that are in a row between bars. */
 Finite*
 Regex::parse_term(istream& in, vector<Finite::Out*>* outs)
 {
@@ -100,6 +102,7 @@ Regex::parse_term(istream& in, vector<Finite::Out*>* outs)
     return term;
 }
 
+/** Parses the + * ? operators for repeated characters. */
 Finite*
 Regex::parse_fact(istream& in, vector<Finite::Out*>* outs)
 {
@@ -144,6 +147,7 @@ Regex::parse_fact(istream& in, vector<Finite::Out*>* outs)
     }
 }
 
+/** Parses a single character or a range of characters. */
 Finite*
 Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
 {
@@ -192,6 +196,7 @@ Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
         return nullptr;
     }
 }
+
 
 Finite*
 Regex::parse_atom_range(istream& in, vector<Finite::Out*>* outs)
@@ -249,7 +254,6 @@ Regex::parse_atom_not(istream& in, vector<Finite::Out*>* outs)
     outs->push_back(out);
     return state;
 }
-
 
 Finite*
 Regex::parse_atom_escape(istream& in, vector<Finite::Out*>* outs)

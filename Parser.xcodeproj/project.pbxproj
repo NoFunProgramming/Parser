@@ -10,6 +10,7 @@
 		9613FD07259C6248005AC19B /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9613FD06259C6248005AC19B /* main.cpp */; };
 		9680CBA1259CF961006E19A4 /* regex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9680CB9F259CF961006E19A4 /* regex.cpp */; };
 		96B7D325259CDAAA00196100 /* finite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96B7D323259CDAAA00196100 /* finite.cpp */; };
+		96BD9AFF25A96E110014EC35 /* lexer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BD9AFD25A96E110014EC35 /* lexer.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -32,6 +33,8 @@
 		9680CBA0259CF961006E19A4 /* regex.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = regex.hpp; sourceTree = "<group>"; };
 		96B7D323259CDAAA00196100 /* finite.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = finite.cpp; sourceTree = "<group>"; };
 		96B7D324259CDAAA00196100 /* finite.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = finite.hpp; sourceTree = "<group>"; };
+		96BD9AFD25A96E110014EC35 /* lexer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lexer.cpp; sourceTree = "<group>"; };
+		96BD9AFE25A96E110014EC35 /* lexer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = lexer.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +73,8 @@
 				96B7D323259CDAAA00196100 /* finite.cpp */,
 				9680CBA0259CF961006E19A4 /* regex.hpp */,
 				9680CB9F259CF961006E19A4 /* regex.cpp */,
+				96BD9AFE25A96E110014EC35 /* lexer.hpp */,
+				96BD9AFD25A96E110014EC35 /* lexer.cpp */,
 			);
 			path = Parser;
 			sourceTree = "<group>";
@@ -132,6 +137,7 @@
 			files = (
 				96B7D325259CDAAA00196100 /* finite.cpp in Sources */,
 				9680CBA1259CF961006E19A4 /* regex.cpp in Sources */,
+				96BD9AFF25A96E110014EC35 /* lexer.cpp in Sources */,
 				9613FD07259C6248005AC19B /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

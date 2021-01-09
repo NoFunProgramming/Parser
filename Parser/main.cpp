@@ -1,13 +1,41 @@
-/**
- * Identify words and numbers from an input stream using finite automata.
- *
- */
-
 #include "finite.hpp"
 #include "regex.hpp"
+#include "lexer.hpp"
 
 #include <iostream>
 #include <sstream>
+
+void
+test_lexer()
+{
+    Accept num("number", 0);
+    Accept id("identifier", 1);
+
+    Lexer lexer;
+    lexer.add(&num, "[0-9]+");
+    lexer.add(&id, "[a-z]([a-z]|[0-9])*");
+
+    lexer.solve();
+    lexer.write(std::cout);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void
 test_regex()
@@ -40,17 +68,6 @@ test_regex()
     }
     
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 /**
