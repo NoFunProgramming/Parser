@@ -1,3 +1,8 @@
+/**
+ * Converts a regular expression into a finite automata for matching patterns in
+ * an input string.
+ */
+
 #ifndef regex_hpp
 #define regex_hpp
 

@@ -1,8 +1,9 @@
 /**
- * State in the finite automata.  Each state contains an array of outputs that
- * determine the next states to move to after reading an input character.  After
- * connecting the states, call scan from the start state to read and return the
- * accepted match state from the stream.
+ * Defines a state for implementing a finite automata to match patterns within
+ * an input string.  Outputs are added to each state to define the next states
+ * to move to after reading an input character.  After connecting the states,
+ * call scan from the start state to read and return the accepted match state
+ * from the input.
  */
 
 #ifndef finite_hpp
@@ -19,9 +20,9 @@ using std::set;
 using std::unique_ptr;
 
 /**
- * Marks a state as matching a specific pattern.  In addition to its name the
- * class has a rank.  The rank is required as multiple final states are possible
- * during reading and the state with the lowest rank is selected as the match.
+ * Marks a state as matching a specific pattern.  The rank is required as
+ * multiple final states are possible during reading and the state with the
+ * lowest rank is selected as the match.
  */
 class Accept {
   public:
@@ -32,14 +33,16 @@ class Accept {
 
 /**
  * State in the finite automata.  Each state contains an array of outputs that
- * determine the next states to move to after reading an input character.  Empty
- * outputs, epsilon transitions, are allowed and are useful for passing by
- * optional states.
+ * determine the next states to move to after reading an input character.  The
+ * presences of an accept object indicates the match of a pattern when in this
+ * state.
  */
 class Finite {
   public:
     Finite();
     Finite(Accept* accept);
+    
+    Accept* get_accept();
 
     /**
      * Simulates a NFA.  Will continually read from an input stream, following
@@ -49,6 +52,11 @@ class Finite {
      */
     Accept* scan(std::istream* in);
     
+    /**
+     * Each state contains an array of outputs that determine the next states
+     * to move to after reading an input character.  Empty outputs, epsilon
+     * transitions, are allowed and are useful for passing by optional states.
+     */
     class Out {
       public:
         Out(char first, char last, Finite* next);
@@ -71,9 +79,7 @@ class Finite {
     Out* add_out(char first, char last, Finite* next);
     Out* add_not(char first, char last, Finite* next);
     Out* add_epsilon(Finite* next);
-    
-    Accept* get_accept();
-    
+        
     /** Finds output targets with the given character in its range. */
     void move(char c, set<Finite*>* next);
     
