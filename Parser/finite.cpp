@@ -12,6 +12,8 @@ Finite::Finite():
 Finite::Finite(Accept* accept):
     accept(accept){}
 
+Accept* Finite::get_accept() { return accept; }
+
 Accept*
 Finite::scan(std::istream* in)
 {
@@ -96,6 +98,7 @@ Finite::lower(Finite* left, Finite* right)
     }
 }
 
+/** Constructs a new output. */
 Finite::Out::Out(char first, char last, Finite* next):
     next    (next),
     epsilon (false),
@@ -151,10 +154,8 @@ Finite::add_not(char first, char last, Finite* next) {
     return outs.back().get();
 }
 
-
 Finite::Out*
 Finite::add_epsilon(Finite* next) {
     outs.emplace_back(make_unique<Out>(next));
     return outs.back().get();
 }
-

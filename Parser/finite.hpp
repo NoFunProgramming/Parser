@@ -41,6 +41,12 @@ class Finite {
     Finite();
     Finite(Accept* accept);
 
+    /**
+     * Simulates a NFA.  Will continually read from an input stream, following
+     * the outputs base on each character, until no new states are found.  If
+     * there are multiple final states, the Accept with the lowest rank will be
+     * returned.
+     */
     Accept* scan(std::istream* in);
     
     class Out {
@@ -60,21 +66,26 @@ class Finite {
         char last;
     };
     
+    /** Builds and returns a new output but retains ownership. */
     Out* add_out(char c, Finite* next);
     Out* add_out(char first, char last, Finite* next);
     Out* add_not(char first, char last, Finite* next);
     Out* add_epsilon(Finite* next);
     
-  private:
-    Accept* accept;
-    vector<unique_ptr<Out>> outs;
+    Accept* get_accept();
     
+    /** Finds output targets with the given character in its range. */
+    void move(char c, set<Finite*>* next);
+    
+    /** Follows empty transitions until no new states are found. */
     static void closure(set<Finite*>* states);
     void closure(set<Finite*>* states, vector<Finite*>* stack);
     
-    void move(char c, set<Finite*>* next);
-    
     static bool lower(Finite* left, Finite* right);
+    
+  private:
+    Accept* accept;
+    vector<unique_ptr<Out>> outs;        
 };
 
 #endif

@@ -3,8 +3,15 @@
 
 #include "regex.hpp"
 
+#include <set>
+#include <map>
+#include <vector>
 #include <iostream>
 using std::ostream;
+using std::vector;
+using std::unique_ptr;
+using std::set;
+using std::map;
 
 class Lexer
 {
@@ -15,6 +22,44 @@ class Lexer
     void solve();
 
     void write(ostream& out);
+    
+  private:
+    vector<unique_ptr<Regex>> exprs;
+    
+    class State {
+      public:
+        State();
+        void add_finite(Finite* finite);
+        void add_finite(set<Finite*>& finites);
+        void add_next(int first, int last, State* next);
+        
+        void move(char c, set<Finite*>* next);
+        void solve_closure();
+        void solve_accept();
+        
+        struct Compare {
+            bool operator() (const unique_ptr<State>& left,
+                             const unique_ptr<State>& right) const {
+                return left->items < right->items;
+            }
+        };
+        
+        struct Range {
+            Range(int first, int last);
+            int first;
+            int last;
+            bool operator<(const Range& other) const;
+        };
+        
+      private:
+        set<Finite*> items;
+        Accept* accept;
+        
+        map<Range, State*> nexts;
+    };
+    
+    State* initial;
+    set<unique_ptr<State>, State::Compare> states;
 };
 
 #endif

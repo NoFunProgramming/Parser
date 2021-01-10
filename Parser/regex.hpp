@@ -11,14 +11,17 @@ using std::unique_ptr;
 
 /**
  * Regex contains a finite automata that matches a pattern defined by a regular
- * expression.  The static parse method will return a new Regex object if the
- * input string is a valid, otherwise a null pointer is returned.
+ * expression.
  */
 class Regex
 {
   public:
-    Regex();
+    /**
+     * Returns a new Regex object if the input string is a valid, otherwise a
+     * null pointer is returned.
+     */
     static unique_ptr<Regex> parse(const string& in, Accept* accept);
+    Regex();
 
     Finite* get_start() { return start; }
 
@@ -40,7 +43,10 @@ class Regex
     Finite* parse_fact(istream& in, vector<Finite::Out*>* outs);
     Finite* parse_atom(istream& in, vector<Finite::Out*>* outs);
     
-    
+    /**
+     * Additional methods to find characters in a range, outside of a range, or
+     * look for a control character in the input.
+     */
     Finite* parse_atom_range(istream& in, vector<Finite::Out*>* outs);
     Finite* parse_atom_not(istream& in, vector<Finite::Out*>* outs);
     Finite* parse_atom_escape(istream& in, vector<Finite::Out*>* outs);
