@@ -126,6 +126,12 @@ Lexer::State::solve_accept()
     }
 }
 
+void
+Lexer::State::write(ostream& out)
+{
+    
+}
+
 Lexer::State::Range::Range(int first, int last):
     first(first), last(last) {}
 

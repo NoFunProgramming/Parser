@@ -37,6 +37,8 @@ class Lexer
         void solve_closure();
         void solve_accept();
         
+        void write(ostream& out);
+        
         struct Compare {
             bool operator() (const unique_ptr<State>& left,
                              const unique_ptr<State>& right) const {

@@ -2,10 +2,12 @@
 
 using std::make_unique;
 
+/******************************************************************************/
 Accept::Accept(const string& name, size_t rank):
     name(name),
     rank(rank){}
 
+/******************************************************************************/
 Finite::Finite():
     accept(nullptr){}
 
@@ -98,6 +100,31 @@ Finite::lower(Finite* left, Finite* right)
     }
 }
 
+Finite::Out*
+Finite::add_out(char c, Finite* next) {
+    outs.emplace_back(make_unique<Out>(c, c, next));
+    return outs.back().get();
+}
+
+Finite::Out*
+Finite::add_out(char first, char last, Finite* next) {
+    outs.emplace_back(make_unique<Out>(first, last, next));
+    return outs.back().get();
+}
+
+Finite::Out*
+Finite::add_not(char first, char last, Finite* next) {
+    outs.emplace_back(make_unique<Out>(first, last, false, next));
+    return outs.back().get();
+}
+
+Finite::Out*
+Finite::add_epsilon(Finite* next) {
+    outs.emplace_back(make_unique<Out>(next));
+    return outs.back().get();
+}
+
+/******************************************************************************/
 /** Constructs a new output. */
 Finite::Out::Out(char first, char last, Finite* next):
     next    (next),
@@ -134,28 +161,4 @@ Finite::Out::in_range(char c) {
     } else {
         return (c < first || c > last);
     }
-}
-
-Finite::Out*
-Finite::add_out(char c, Finite* next) {
-    outs.emplace_back(make_unique<Out>(c, c, next));
-    return outs.back().get();
-}
-
-Finite::Out*
-Finite::add_out(char first, char last, Finite* next) {
-    outs.emplace_back(make_unique<Out>(first, last, next));
-    return outs.back().get();
-}
-
-Finite::Out*
-Finite::add_not(char first, char last, Finite* next) {
-    outs.emplace_back(make_unique<Out>(first, last, false, next));
-    return outs.back().get();
-}
-
-Finite::Out*
-Finite::add_epsilon(Finite* next) {
-    outs.emplace_back(make_unique<Out>(next));
-    return outs.back().get();
 }
