@@ -28,7 +28,9 @@ class Lexer
     
     class State {
       public:
-        State();
+        State(size_t id);
+        size_t id;
+        
         void add_finite(Finite* finite);
         void add_finite(set<Finite*>& finites);
         void add_next(int first, int last, State* next);
@@ -37,8 +39,10 @@ class Lexer
         void solve_closure();
         void solve_accept();
         
+        void write_proto(ostream& out);
+        void write_struct(ostream& out);
         void write(ostream& out);
-        
+
         struct Compare {
             bool operator() (const unique_ptr<State>& left,
                              const unique_ptr<State>& right) const {
@@ -51,6 +55,7 @@ class Lexer
             int first;
             int last;
             bool operator<(const Range& other) const;
+            void write(ostream& out) const;
         };
         
       private:

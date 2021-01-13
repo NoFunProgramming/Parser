@@ -13,11 +13,19 @@ test_lexer()
 
     Lexer lexer;
     lexer.add(&num, "[0-9]+");
-    lexer.add(&id, "[a-z]([a-z]|[0-9])*");
+    lexer.add(&id, "[a-e]([a-e]|[0-9])*");
 
     lexer.solve();
     lexer.write(std::cout);
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -112,6 +120,6 @@ test_finite()
 int
 main(int argc, const char * argv[])
 {
-    test_regex();
+    test_lexer();
 }
 

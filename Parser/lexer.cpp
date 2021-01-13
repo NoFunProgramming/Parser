@@ -21,7 +21,7 @@ Lexer::add(Accept* accept, const string& regex)
 void
 Lexer::solve()
 {
-    unique_ptr<State> first = make_unique<State>();
+    unique_ptr<State> first = make_unique<State>(states.size());
     for (auto& expr : exprs) {
         first->add_finite(expr->get_start());
     }
@@ -56,7 +56,7 @@ Lexer::solve()
             }
             
             if (found.size() > 0) {
-                auto state = std::make_unique<State>();
+                auto state = std::make_unique<State>(states.size());
                 state->add_finite(found);
                 state->solve_closure();
                 
@@ -75,10 +75,25 @@ Lexer::solve()
 void
 Lexer::write(ostream& out)
 {
-    
+    out << "class State {\n";
+    out << "    State* (*next)(int c);\n";
+    out << "    const char* accept;\n";
+    out << "};\n\n";
+    for (auto& state : states) {
+        state->write_proto(out);
+    }
+    out << "\n";
+    for (auto& state : states) {
+        state->write_struct(out);
+    }
+    out << "\n";
+    for (auto& state : states) {
+        state->write(out);
+    }
 }
 
-Lexer::State::State():
+Lexer::State::State(size_t id):
+    id(id),
     accept(nullptr) {}
 
 void
@@ -127,9 +142,34 @@ Lexer::State::solve_accept()
 }
 
 void
+Lexer::State::write_proto(ostream& out) {
+    out << "State* next" << id << "(int c);\n";
+}
+
+void
+Lexer::State::write_struct(ostream& out) {
+    out << "State state" << id;
+    out << "(&next" << id;
+    if (accept) {
+        out << ", \"" << accept->name << "\"";
+    }
+    out << ");\n";
+}
+
+void
 Lexer::State::write(ostream& out)
 {
-    
+    out << "State*\n";
+    out << "next" << id << "(int c) {\n";
+    for (auto next : nexts) {
+        out << "    if (";
+        next.first.write(out);
+        out << ") {\n";
+        out << "        return state" << next.second->id << ";\n";
+        out << "    }\n";
+    }
+    out << "    return nullptr;\n";
+    out << "}\n\n";
 }
 
 Lexer::State::Range::Range(int first, int last):
@@ -138,4 +178,11 @@ Lexer::State::Range::Range(int first, int last):
 bool
 Lexer::State::Range::operator<(const Range& other) const {
     return last < other.first;
+}
+
+void
+Lexer::State::Range::write(ostream& out) const {
+    out << "(c >= '" << (char)first << "')";
+    out << " && ";
+    out << "(c <= '" << (char)last << "')";
 }
