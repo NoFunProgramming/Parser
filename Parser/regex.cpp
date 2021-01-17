@@ -5,9 +5,15 @@ using std::make_unique;
 using std::istringstream;
 using std::cerr;
 
+/******************************************************************************/
 Regex::Regex() :
     start(nullptr) {}
 
+/**
+ * Builds the NFA for the given regular expression using subset construction.
+ * All unconnected outputs from the final automaton are connect to a provided
+ * accept condition.
+ */
 unique_ptr<Regex>
 Regex::parse(const string& in, Accept* accept)
 {
@@ -31,6 +37,13 @@ Regex::parse(const string& in, Accept* accept)
     return result;
 }
 
+Finite* Regex::get_start() { return start; }
+
+/**
+ * Builds a new state and retains ownership.  No memory leaks occur if any
+ * exceptions or errors occur during subset construction, as the states vector
+ * contains all fragments of the automaton.
+ */
 Finite*
 Regex::add_state() {
     states.emplace_back(make_unique<Finite>());
@@ -67,7 +80,7 @@ Regex::parse_expr(istream& in, vector<Finite::Out*>* outs)
     return expr;
 }
 
-/** Parses a list of character terminal that are in a row between bars. */
+/** Parses a list of character terminals that are in a row between bars. */
 Finite*
 Regex::parse_term(istream& in, vector<Finite::Out*>* outs)
 {
@@ -102,7 +115,7 @@ Regex::parse_term(istream& in, vector<Finite::Out*>* outs)
     return term;
 }
 
-/** Parses the + * ? operators for repeated characters. */
+/** Parses the operators, + * ?, for repeated characters. */
 Finite*
 Regex::parse_fact(istream& in, vector<Finite::Out*>* outs)
 {
@@ -147,7 +160,7 @@ Regex::parse_fact(istream& in, vector<Finite::Out*>* outs)
     }
 }
 
-/** Parses a single character or a range of characters. */
+/** Parses a single or a range of characters. */
 Finite*
 Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
 {
@@ -197,7 +210,7 @@ Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
     }
 }
 
-
+/** Parses a range of characters, [a-z]. */
 Finite*
 Regex::parse_atom_range(istream& in, vector<Finite::Out*>* outs)
 {
@@ -227,6 +240,7 @@ Regex::parse_atom_range(istream& in, vector<Finite::Out*>* outs)
     return state;
 }
 
+/** Parses not within range of characters, [^a] or [^a-z]. */
 Finite*
 Regex::parse_atom_not(istream& in, vector<Finite::Out*>* outs)
 {
@@ -255,6 +269,7 @@ Regex::parse_atom_not(istream& in, vector<Finite::Out*>* outs)
     return state;
 }
 
+/** Parses an escape sequence, \[ \(, to match control characters. */
 Finite*
 Regex::parse_atom_escape(istream& in, vector<Finite::Out*>* outs)
 {

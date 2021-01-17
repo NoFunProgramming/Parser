@@ -1,9 +1,8 @@
-/**
- * Defines a state for implementing a finite automata to match patterns within
- * an input string.  Outputs are added to each state to define the next states
- * to move to after reading an input character.  After connecting the states,
- * call scan from the start state to read and return the accepted match state
- * from the input.
+/*******************************************************************************
+ * Finite automata for finding patterns in strings.  Outputs are added to each
+ * finite state to define the next states to move to after reading an input
+ * character.  After connecting the states, call scan from the start state to
+ * read and return the accepted match from the input string.
  */
 
 #ifndef finite_hpp
@@ -19,7 +18,7 @@ using std::vector;
 using std::set;
 using std::unique_ptr;
 
-/**
+/*******************************************************************************
  * Marks a state as matching a specific pattern.  The rank is required as
  * multiple final states are possible during reading and the state with the
  * lowest rank is selected as the match.
@@ -31,11 +30,10 @@ class Accept {
     size_t rank;
 };
 
-/**
+/*******************************************************************************
  * State in the finite automata.  Each state contains an array of outputs that
- * determine the next states to move to after reading an input character.  The
- * presences of an accept object indicates the match of a pattern when in this
- * state.
+ * determines the next states to move to after reading an input character.  The
+ * presences of an accept object indicates a match when in this state.
  */
 class Finite {
   public:
@@ -45,10 +43,10 @@ class Finite {
     Accept* get_accept();
 
     /**
-     * Simulates a NFA.  Will continually read from an input stream, following
-     * the outputs base on each character, until no new states are found.  If
-     * there are multiple final states, the Accept with the lowest rank will be
-     * returned.
+     * Checks an input stream for a pattern starting from this state.  Scan
+     * continually reads from an input stream, following the outputs for each
+     * character, until no new states are found.  At that point scan will return
+     * of lowest ranked accept of the last found states.
      */
     Accept* scan(std::istream* in);
     
@@ -74,7 +72,7 @@ class Finite {
         char last;
     };
     
-    /** Builds and returns a new output but retains ownership. */
+    /** Builds and returns new outputs, but retains ownership. */
     Out* add_out(char c, Finite* next);
     Out* add_out(char first, char last, Finite* next);
     Out* add_not(char first, char last, Finite* next);
@@ -87,6 +85,7 @@ class Finite {
     static void closure(set<Finite*>* states);
     void closure(set<Finite*>* states, vector<Finite*>* stack);
     
+    /** Compare states to find the lowest rank. */
     static bool lower(Finite* left, Finite* right);
     
   private:

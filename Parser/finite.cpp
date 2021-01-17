@@ -16,6 +16,11 @@ Finite::Finite(Accept* accept):
 
 Accept* Finite::get_accept() { return accept; }
 
+/**
+ * Simulates a NFA.  Will continually read from an input stream, following
+ * the outputs base on each character, until no new states are found.  At that
+ * point scan will return of lowest ranked accept of the last found states.
+ */
 Accept*
 Finite::scan(std::istream* in)
 {
@@ -100,6 +105,7 @@ Finite::lower(Finite* left, Finite* right)
     }
 }
 
+/** Builds and returns new outputs, but retains ownership. */
 Finite::Out*
 Finite::add_out(char c, Finite* next) {
     outs.emplace_back(make_unique<Out>(c, c, next));
@@ -125,7 +131,6 @@ Finite::add_epsilon(Finite* next) {
 }
 
 /******************************************************************************/
-/** Constructs a new output. */
 Finite::Out::Out(char first, char last, Finite* next):
     next    (next),
     epsilon (false),
