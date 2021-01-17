@@ -85,7 +85,7 @@ Lexer::solve()
                 State* next = inserted.first->get();
                 current->add_next(first, last, next);
                 
-                /** Check newly found states for other sets of NFA states. */
+                /** Check newly found state for other possible DFA states. */
                 if (inserted.second) {
                     next->solve_accept();
                     pending.push_back(next);
@@ -182,8 +182,8 @@ Lexer::State::solve_accept()
 
 /**
  * Writes the source code for a single state of the lexer.  The source code
- * define a structure and a method which returns either a new state in the DFA
- * or a null pointer.
+ * defines a structure and a method for each state.  The method takes an input
+ * character and returns either a new state in the DFA or a null pointer.
  */
 void
 Lexer::State::write_proto(ostream& out) {

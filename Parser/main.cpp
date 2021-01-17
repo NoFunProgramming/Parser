@@ -5,6 +5,17 @@
 #include <iostream>
 #include <sstream>
 
+/*******************************************************************************
+ * Writes the source code for a lexer.  This class combines multiple regular
+ * expressions into a single deterministic finite automaton (DFA).  After adding
+ * all expressions, call solve and then write to generate the source code.
+ *
+ * The output source code will define a structure for each state in DFA. This
+ * structure contains a method that take a character and returns either the next
+ * state in the DFA or a null pointer.  The null indicates that the pattern
+ * matching is complete and the accepted value, if any, for the current state is
+ * the type of token identified in the string.
+ */
 void
 test_lexer()
 {
@@ -19,32 +30,13 @@ test_lexer()
     lexer.write(std::cout);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/*******************************************************************************
+ * Converts regular expressions into finite automata for finding patterns in
+ * strings.  After building, the Regex object will contain a non-deterministic
+ * finite automaton (NFA).  Define a start state and connect it to the first
+ * state of each NFA.  Calling scan from this new start will return the
+ * accepted pattern, defined by a regular expession, found in the string.
+ */
 void
 test_regex()
 {
@@ -53,11 +45,11 @@ test_regex()
     
     unique_ptr<Regex> num = Regex::parse("[0-9]+", &number);
     unique_ptr<Regex> id  = Regex::parse("[a-z]([a-z]|[0-9])*", &identifier);
-    if (!id) {
+    if (!num || !id) {
         std::cerr << "Unable to parse expression.\n";
         return;
     }
-    
+
     Finite start;
     start.add_epsilon(num->get_start());
     start.add_epsilon(id->get_start());
@@ -77,15 +69,11 @@ test_regex()
     
 }
 
-
-/**
- * This program defines an automata with four states.  Two of the states are
- * accepting and mark the match of a word or number.  In addition to the start,
- * another state is for reading an optional negative sign in front of numbers.
- * Outputs from each state determine the next active states based on the
- * characters read from the stream.  After connecting the states scan the input
- * from the start state, which moves between states while reading, to match
- * words and numbers.
+/*******************************************************************************
+ * Defines an automaton to match tokens in a string.  Outputs from each state
+ * determine the next active states based on the characters read from the
+ * stream.  After connecting the states scan the input from the start state,
+ * which moves between states while reading, to match words and numbers.
  */
 void
 test_finite()
@@ -117,9 +105,12 @@ test_finite()
     }
 }
 
+/******************************************************************************/
 int
 main(int argc, const char * argv[])
 {
+    test_finite();
+    test_regex();
     test_lexer();
 }
 
