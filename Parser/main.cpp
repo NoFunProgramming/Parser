@@ -1,9 +1,24 @@
 #include "finite.hpp"
 #include "regex.hpp"
 #include "lexer.hpp"
+#include "parser.hpp"
 
 #include <iostream>
 #include <sstream>
+
+/******************************************************************************/
+void
+test_grammar()
+{
+    Parser parser;
+    
+    std::stringstream in("test: 'a' 'b' | 'c' 'd' ; other: 'e' 'f'");
+    
+    parser.read_grammar(in);
+    
+    parser.print(std::cout);
+}
+
 
 /*******************************************************************************
  * Writes the source code for a lexer.  This class combines multiple regular
@@ -109,8 +124,9 @@ test_finite()
 int
 main(int argc, const char * argv[])
 {
-    test_finite();
-    test_regex();
-    test_lexer();
+    //test_finite();
+    //test_regex();
+    //test_lexer();
+    test_grammar();
 }
 
