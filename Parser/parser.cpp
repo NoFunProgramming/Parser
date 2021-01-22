@@ -28,6 +28,67 @@ Parser::print_grammar(ostream& out) const
     }
 }
 
+void
+Parser::solve()
+{
+    solve_first();
+    solve_follows();
+    
+    auto state = make_unique<State>();
+    state->add(State::Item(first, 0, &Symbol::Endmark));
+    state->closure();
+    
+    start = state.get();
+    states.insert(std::move(state));
+
+    vector<State*> checking;
+    checking.push_back(start);
+
+    while (checking.size() > 0)
+    {
+        State* state = checking.back();
+        checking.pop_back();
+
+        for (auto& term : terms) {
+            Symbol* sym = term.second.get();
+            unique_ptr<State> next = state->solve_next(sym);
+//            Symbol sym = Symbol(term.second.get());
+//            unique_ptr<State> next = state->solve_next(sym, states.size());
+            if (next) {
+                auto found = states.insert(std::move(next));
+                State* target = found.first->get();
+                state->add_next(sym, target);
+                if (found.second) {
+                    checking.push_back(target);
+                }
+            }
+        }
+
+        for (auto& nonterm : nonterms) {
+            Symbol* sym = nonterm.second.get();
+            unique_ptr<State> next = state->solve_next(sym);
+//            Symbol sym = Symbol(nonterm.second.get());
+//            unique_ptr<State> next = state->solve_next(sym, states.size());
+            if (next) {
+                auto found = states.insert(std::move(next));
+                State* target = found.first->get();
+                state->add_next(sym, target);
+                if (found.second) {
+                    checking.push_back(target);
+                }
+            }
+        }
+    }
+//
+//    State::Item accept(first, first->product.size(), Symbol::End());
+//
+//    for (auto& state : states) {
+//        state->solve_actions(accept, actions);
+//        state->solve_gotos();
+//    }
+
+}
+
 Term*
 Parser::read_term(istream& in)
 {

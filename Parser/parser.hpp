@@ -2,6 +2,7 @@
 #define parser_hpp
 
 #include "symbols.hpp"
+#include "state.hpp"
 
 #include <map>
 #include <string>
@@ -28,6 +29,8 @@ class Parser
     bool read_grammar(istream& in);
     void print_grammar(ostream& out) const;
     
+    void solve();
+    
   private:
     /**
      * While reading in a grammar the parser a unique set of terminal and
@@ -52,6 +55,9 @@ class Parser
      */
     void solve_first();
     void solve_follows();
+    
+    set<unique_ptr<State>, State::Compare> states;
+    State* start;
 };
 
 #endif
