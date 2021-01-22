@@ -16,7 +16,7 @@ test_grammar()
     
     parser.read_grammar(in);
     
-    parser.print(std::cout);
+    parser.print_grammar(std::cout);
 }
 
 

@@ -1,9 +1,13 @@
 #include "parser.hpp"
 
+#include <iostream>
+using std::cerr;
+
 using std::make_unique;
 
 /******************************************************************************/
-Parser::Parser() {}
+Parser::Parser():
+    first(nullptr){}
 
 bool
 Parser::read_grammar(istream& in)
@@ -16,7 +20,7 @@ Parser::read_grammar(istream& in)
 }
 
 void
-Parser::print(ostream& out) const
+Parser::print_grammar(ostream& out) const
 {
     for (auto& nonterm : nonterms) {
         nonterm.second->print(out);
@@ -24,15 +28,64 @@ Parser::print(ostream& out) const
     }
 }
 
+Term*
+Parser::read_term(istream& in)
+{
+    if (in.get() != '\'') {
+        cerr << "Expected quote to start terminal.\n";
+        return nullptr;
+    }
+    string name;
+    while (isalpha(in.peek())) {
+        name.push_back(in.get());
+    }
+    if (in.get() != '\'') {
+        cerr << "Expected quote to end terminal.\n";
+        return nullptr;
+    }
+    
+    if (name.size() < 1) {
+        cerr << "Terminals require at least one character.\n";
+    }
+    
+    if (terms.count(name) == 0) {
+        terms[name] = make_unique<Term>(name);
+    }
+    return terms[name].get();
+}
+
+Nonterm*
+Parser::read_nonterm(istream& in)
+{
+    string name;
+    while (isalpha(in.peek())) {
+        name.push_back(in.get());
+    }
+
+    if (name.size() < 1) {
+        cerr << "Nonterminals require at least one character.\n";
+    }
+
+    if (nonterms.count(name) == 0) {
+        nonterms[name] = make_unique<Nonterm>(name);
+    }
+    return nonterms[name].get();
+}
+
 bool
 Parser::read_rules(istream& in)
 {
     Nonterm* nonterm = read_nonterm(in);
+    if (!nonterm) {
+        cerr << "Unable to read nonterminal name.\n";
+    }
     if (in.get() != ':') {
+        cerr << "Nontermianals end with a colon.\n";
         return false;
     }
     
     Nonterm::Rule* rule = nonterm->add_rule();
+    
     while (in.peek() != EOF) {
         read_product(in, rule);
         if (in.peek() == ';') {
@@ -56,42 +109,46 @@ Parser::read_product(istream& in, Nonterm::Rule* rule)
         }
         else if (in.peek() == '\'') {
             Symbol* sym = read_term(in);
+            if (!sym) {
+                return false;
+            }
             rule->add(sym);
         }
         else {
             Symbol* sym = read_nonterm(in);
+            if (!sym) {
+                return false;
+            }
             rule->add(sym);
         }
     }
     return true;
 }
 
-Term*
-Parser::read_term(istream& in)
+void
+Parser::solve_first()
 {
-    if (in.get() != '\'') {
-        return nullptr;
-    }
-    string name;
-    while (isalpha(in.peek())) {
-        name.push_back(in.get());
-    }
-    if (in.get() != '\'') {
-        return nullptr;
-    }
-    
-    terms[name] = make_unique<Term>(name);
-    return terms[name].get();
+    bool found = false;
+    do {
+        found = false;
+        for (auto& nonterm : nonterms) {
+            nonterm.second->solve_first(&found);
+        }
+    } while (found);
 }
 
-Nonterm*
-Parser::read_nonterm(istream& in)
+void
+Parser::solve_follows()
 {
-    string name;
-    while (isalpha(in.peek())) {
-        name.push_back(in.get());
+    if (first) {
+        first->nonterm->insert_follows(&Symbol::Endmark);
     }
-    
-    nonterms[name] = make_unique<Nonterm>(name);
-    return nonterms[name].get();
+
+    bool found = false;
+    do {
+        found = false;
+        for (auto& nonterm : nonterms) {
+            nonterm.second->solve_follows(&found);
+        }
+    } while (found);
 }

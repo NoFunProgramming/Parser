@@ -1,5 +1,7 @@
 #include "symbols.hpp"
 
+Symbol Symbol::Endmark;
+
 /******************************************************************************/
 Term::Term(const string& name):
     name(name){}
@@ -11,11 +13,12 @@ Term::print(ostream& out) const {
 
 /******************************************************************************/
 Nonterm::Nonterm(const string& name):
-    name(name) {}
+    name(name),
+has_empty(false){}
 
 Nonterm::Rule*
 Nonterm::add_rule() {
-    rules.emplace_back(std::make_unique<Rule>());
+    rules.emplace_back(std::make_unique<Rule>(this));
     return rules.back().get();
 }
 
@@ -33,7 +36,91 @@ Nonterm::print(ostream& out) const
     }
 }
 
+void
+Nonterm::solve_first(bool *found)
+{
+    size_t before = firsts.size();
+    bool before_eps = has_empty;
+    for (auto& rule : rules) {
+        insert_firsts(rule->product.begin(), rule->product.end());
+    }
+    if ((firsts.size() > before) || (has_empty && !before_eps)) {
+        *found = true;
+    }
+}
+
+void
+Nonterm::solve_follows(bool *found)
+{
+    for (auto& rule : rules) {
+        auto sym = rule->product.begin();
+        for (; sym < rule->product.end(); sym++ ) {
+            Nonterm* nonterm = dynamic_cast<Nonterm*>(*sym);
+            if (nonterm) {
+            //if (sym->is_nonterm()) {
+            //    Nonterm* nonterm = sym->get_nonterm();
+                size_t before = nonterm->follows.size();
+
+                bool epsilon = false;
+                nonterm->insert_follows(sym + 1, rule->product.end(), &epsilon);
+                if (epsilon) {
+                    nonterm->follows.insert(rule->nonterm->follows.begin(),
+                                            rule->nonterm->follows.end());
+                }
+                if (nonterm->follows.size() > before) {
+                    *found = true;
+                }
+            }
+        }
+    }
+}
+
+void
+Nonterm::insert_follows(Symbol* symbol) {
+    follows.insert(symbol);
+}
+
+void
+Nonterm::insert_firsts(vector<Symbol*>::iterator symbol,
+                       vector<Symbol*>::iterator end)
+{
+    for (; symbol < end; symbol++) {
+        Nonterm* nonterm = dynamic_cast<Nonterm*>(*symbol);
+        if (nonterm) {
+            firsts.insert(nonterm->firsts.begin(), nonterm->firsts.end());
+            if (!nonterm->has_empty)
+                return;
+        } else {
+            firsts.insert(*symbol);
+            return;
+        }
+    }
+    has_empty = true;
+}
+
+void
+Nonterm::insert_follows(vector<Symbol*>::iterator symbol,
+                        vector<Symbol*>::iterator end,
+                        bool* epsilon)
+{
+    for (; symbol < end; symbol++) {
+        Nonterm* nonterm = dynamic_cast<Nonterm*>(*symbol);
+        if (nonterm) {
+            follows.insert(nonterm->firsts.begin(), nonterm->firsts.end());
+            if (!nonterm->has_empty)
+                return;
+        } else {
+            follows.insert(*symbol);
+            return;
+        }
+    }
+    *epsilon = true;
+}
+
 /******************************************************************************/
+Nonterm::Rule::Rule(Nonterm* nonterm):
+    nonterm(nonterm){}
+
 void
 Nonterm::Rule::add(Symbol* sym) {
     product.push_back(sym);
