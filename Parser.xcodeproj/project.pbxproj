@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9613FD07259C6248005AC19B /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9613FD06259C6248005AC19B /* main.cpp */; };
+		9639743C25BAA74800445D0A /* state.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9639743A25BAA74800445D0A /* state.cpp */; };
 		9680CBA1259CF961006E19A4 /* regex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9680CB9F259CF961006E19A4 /* regex.cpp */; };
 		96B7D325259CDAAA00196100 /* finite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96B7D323259CDAAA00196100 /* finite.cpp */; };
 		96BD9AFF25A96E110014EC35 /* lexer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BD9AFD25A96E110014EC35 /* lexer.cpp */; };
@@ -30,6 +31,8 @@
 /* Begin PBXFileReference section */
 		9613FD03259C6248005AC19B /* Parser */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Parser; sourceTree = BUILT_PRODUCTS_DIR; };
 		9613FD06259C6248005AC19B /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		9639743A25BAA74800445D0A /* state.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = state.cpp; sourceTree = "<group>"; };
+		9639743B25BAA74800445D0A /* state.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = state.hpp; sourceTree = "<group>"; };
 		963F0EEC259E539600E5D128 /* readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = readme.md; sourceTree = "<group>"; };
 		9680CB9F259CF961006E19A4 /* regex.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = regex.cpp; sourceTree = "<group>"; };
 		9680CBA0259CF961006E19A4 /* regex.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = regex.hpp; sourceTree = "<group>"; };
@@ -83,6 +86,8 @@
 				96BD9AFD25A96E110014EC35 /* lexer.cpp */,
 				96BE754A25B4D2D1000DC07F /* symbols.hpp */,
 				96BE754925B4D2D1000DC07F /* symbols.cpp */,
+				9639743B25BAA74800445D0A /* state.hpp */,
+				9639743A25BAA74800445D0A /* state.cpp */,
 				96BE754525B4C3DA000DC07F /* parser.hpp */,
 				96BE754425B4C3DA000DC07F /* parser.cpp */,
 			);
@@ -146,6 +151,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				96BE754625B4C3DA000DC07F /* parser.cpp in Sources */,
+				9639743C25BAA74800445D0A /* state.cpp in Sources */,
 				96B7D325259CDAAA00196100 /* finite.cpp in Sources */,
 				9680CBA1259CF961006E19A4 /* regex.cpp in Sources */,
 				96BD9AFF25A96E110014EC35 /* lexer.cpp in Sources */,
