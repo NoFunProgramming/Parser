@@ -58,7 +58,7 @@ class Lexer
     void solve();
 
     /** After solving for the DFA, call write to generate the source code. */
-    void write(ostream& out);
+    void write(ostream& out) const;
     
   private:
     vector<unique_ptr<Regex>> exprs;

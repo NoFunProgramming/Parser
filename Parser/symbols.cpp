@@ -1,19 +1,30 @@
 #include "symbols.hpp"
 
-Symbol Symbol::Endmark;
+/******************************************************************************/
+Symbol::Symbol(const string& name):
+    name(name){}
+
+Symbol Symbol::Endmark("$");
 
 /******************************************************************************/
 Term::Term(const string& name):
-    name(name){}
+    Symbol(name),
+    id(0){}
 
 void
 Term::print(ostream& out) const {
     out << "'" << name << "'";
 }
 
+void
+Term::write(ostream& out) const {
+    out << "term_" << name;
+}
+
 /******************************************************************************/
 Nonterm::Nonterm(const string& name):
-    name(name),
+    id(0),
+    Symbol(name),
 has_empty(false){}
 
 Nonterm::Rule*
@@ -23,7 +34,12 @@ Nonterm::add_rule() {
 }
 
 void
-Nonterm::print(ostream& out) const
+Nonterm::print(ostream& out) const {
+    out << name;
+}
+
+void
+Nonterm::print_rules(ostream& out) const
 {
     for (auto& rule : rules) {
         if (rule.get() == rules.begin()->get()) {
@@ -33,6 +49,26 @@ Nonterm::print(ostream& out) const
         }
         rule->print(out);
         out << "\n";
+    }
+}
+
+void
+Nonterm::print_firsts(ostream& out) const
+{
+    print(out);
+    out << ": ";
+    for (auto sym : firsts) {
+        sym->print(out);
+    }
+}
+
+void
+Nonterm::print_follows(ostream& out) const
+{
+    print(out);
+    out << ": ";
+    for (auto sym : follows) {
+        sym->print(out);
     }
 }
 
@@ -119,6 +155,7 @@ Nonterm::insert_follows(vector<Symbol*>::iterator symbol,
 
 /******************************************************************************/
 Nonterm::Rule::Rule(Nonterm* nonterm):
+    id(0),
     nonterm(nonterm){}
 
 void

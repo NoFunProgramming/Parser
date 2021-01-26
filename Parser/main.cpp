@@ -12,13 +12,23 @@ test_grammar()
 {
     Parser parser;
     
-    std::stringstream in("test: 'a' 'b' | 'c' 'd' ; other: 'e' 'f'");
+    string test =
+        "'a'"
+        ""
+        "E: T EP;"
+        "EP: 'a' E EP | ;"
+        //"T: F TP;"
+        //"TP: 'm' F TP | ;"
+        //"F: 'l' E 'r' | 'id';"
+    ;
+    
+    std::stringstream in(test);
     
     parser.read_grammar(in);
-    
-    parser.print_grammar(std::cout);
+    parser.solve();
+    //parser.print_grammar(std::cout);
+    parser.write(std::cout);
 }
-
 
 /*******************************************************************************
  * Writes the source code for a lexer.  This class combines multiple regular

@@ -103,9 +103,9 @@ Lexer::solve()
  * for the current state is the type of token identified.
  */
 void
-Lexer::write(ostream& out)
+Lexer::write(ostream& out) const
 {
-    out << "class State {\n";
+    out << "struct State {\n";
     out << "    State* (*next)(int c);\n";
     out << "    const char* accept;\n";
     out << "};\n\n";
@@ -193,11 +193,11 @@ Lexer::State::write_proto(ostream& out) {
 void
 Lexer::State::write_struct(ostream& out) {
     out << "State state" << id;
-    out << "(&next" << id;
+    out << " = {&next" << id;
     if (accept) {
         out << ", \"" << accept->name << "\"";
     }
-    out << ");\n";
+    out << "};\n";
 }
 
 void
@@ -209,7 +209,7 @@ Lexer::State::write(ostream& out)
         out << "    if (";
         next.first.write(out);
         out << ") {\n";
-        out << "        return state" << next.second->id << ";\n";
+        out << "        return &state" << next.second->id << ";\n";
         out << "    }\n";
     }
     out << "    return nullptr;\n";

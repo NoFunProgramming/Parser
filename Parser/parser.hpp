@@ -2,6 +2,7 @@
 #define parser_hpp
 
 #include "symbols.hpp"
+#include "lexer.hpp"
 #include "state.hpp"
 
 #include <map>
@@ -29,25 +30,38 @@ class Parser
     bool read_grammar(istream& in);
     void print_grammar(ostream& out) const;
     
+    /**
+     * After reading in the grammar, solve for all possible parse states.
+     */
     void solve();
     
+    /**
+     * After solving for all possible parse states, write the source code for
+     * the parser.
+     */
+    void write(ostream& out) const;
+
   private:
     /**
-     * While reading in a grammar the parser a unique set of terminal and
-     * nonterminal names.  The parser stores production rules as vectors of
-     * pointers to these terminal and nonterminal symbols.
+     * While reading in a grammar, the parser builds the a set of unique
+     * terminal and nonterminal names.  The parser stores production rules as
+     * vectors of pointers to these terminal and nonterminal symbols.
      */
     map<string, unique_ptr<Term>> terms;
     map<string, unique_ptr<Nonterm>> nonterms;
     Nonterm::Rule* first;
     
     /** Reads and then interns unique terminal and nonterminal names. */
-    Term* read_term(istream& in);
-    Nonterm* read_nonterm(istream& in);
+    Term* intern_term(istream& in);
+    Nonterm* intern_nonterm(istream& in);
      
     /** Recursive decent parser for reading grammar rules. */
+    bool read_term(istream& in);
     bool read_rules(istream& in);
     bool read_product(istream& in, Nonterm::Rule* rule);
+    
+    /** Include a lexer to scan an input string for terminals. */
+    Lexer lexer;
 
     /**
      * The first step to finding all possible parse states is finding all
@@ -55,8 +69,19 @@ class Parser
      */
     void solve_first();
     void solve_follows();
-    
-    set<unique_ptr<State>, State::Compare> states;
+
+    /**
+     * Set of all possible parse states.  The compare method is for the set to
+     * determines if the next parse state for a given symbol has already been
+     * found.
+     */
+    struct Compare {
+        bool operator() (const unique_ptr<State>& lhs,
+                         const unique_ptr<State>& rhs) const {
+            return *lhs < *rhs;
+        }
+    };
+    set<unique_ptr<State>, Compare> states;
     State* start;
 };
 

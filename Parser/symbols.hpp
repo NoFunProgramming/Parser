@@ -17,9 +17,16 @@ using std::unique_ptr;
 class Symbol
 {
   public:
+    Symbol(const string& name);
     static Symbol Endmark;
     
+    virtual const string& get_ident() const { return name; }
+    
     virtual void print(ostream& out) const { out << "$"; }
+    virtual void write(ostream& out) const { out << "$"; }
+    
+  protected:
+    string name;
 };
 
 /*******************************************************************************
@@ -29,11 +36,10 @@ class Term : public Symbol
 {
   public:
     Term(const string& name);
+    size_t id;
     
     virtual void print(ostream& out) const;
-  
-  private:
-    string name;
+    virtual void write(ostream& out) const;
 };
 
 /*******************************************************************************
@@ -43,6 +49,7 @@ class Nonterm : public Symbol
 {
   public:
     Nonterm(const string& name);
+    size_t id;
     
     /**
      * All nonterminals have one or more production rules which define the
@@ -53,6 +60,7 @@ class Nonterm : public Symbol
         Rule(Nonterm* nonterm);
         void add(Symbol* sym);
         void print(ostream& out) const;
+        size_t id;
         Nonterm* nonterm;
         vector<Symbol*> product;
     };
@@ -61,6 +69,9 @@ class Nonterm : public Symbol
     
     /** Prints the grammar in BNF form. */
     virtual void print(ostream& out) const;
+    virtual void print_rules(ostream& out) const;
+    virtual void print_firsts(ostream& out) const;
+    virtual void print_follows(ostream& out) const;
 
     /**
      * The first step to finding all possible parse states is finding all
@@ -70,8 +81,7 @@ class Nonterm : public Symbol
     void solve_follows(bool* found);
     void insert_follows(Symbol* symbol);
 
-  private:
-    string name;
+  //private:
     vector<unique_ptr<Rule>> rules;
     
     /**
