@@ -2,9 +2,10 @@
 
 /******************************************************************************/
 Symbol::Symbol(const string& name):
+    id(10),
     name(name){}
 
-Symbol Symbol::Endmark("$");
+Symbol Symbol::Endmark("endmark");
 
 /******************************************************************************/
 Term::Term(const string& name):
@@ -18,7 +19,7 @@ Term::print(ostream& out) const {
 
 void
 Term::write(ostream& out) const {
-    out << "term_" << name;
+    out << "term" << id;
 }
 
 /******************************************************************************/
@@ -36,6 +37,11 @@ Nonterm::add_rule() {
 void
 Nonterm::print(ostream& out) const {
     out << name;
+}
+
+void
+Nonterm::write(ostream& out) const {
+    out << "nonterm" << id;
 }
 
 void

@@ -112,33 +112,53 @@ static string header =
 void
 Parser::write(ostream& out) const
 {
+    size_t id = 0;
+    for (auto& term : terms) {
+        term.second->id = id++;
+        out << "Term term" << term.second->id << ";\n";
+    }
+    out << "\n";
+    
     lexer.write(out);
-//    out << header;
-//    size_t id = 0;
-//    for (auto& term : terms) {
-//        term.second->id = id++;
-//        out << "Term term" << term.second->id << ";\n";
-//    }
-//    id = 0;
-//    for (auto& nonterm : nonterms) {
-//        nonterm.second->id = id++;
-//        out << "Nonterm nonterm" << nonterm.second->id << ";\n";
-//    }
-//    id = 0;
-//    for (auto& nonterm : nonterms) {
-//        for (auto& rule : nonterm.second->rules) {
-//            rule->id = id++;
-//            out << "Rule rule" << rule->id << ";\n";
-//        }
-//    }
-//    id = 0;
-//    for (auto& state : states) {
-//        state->id = id++;
-//        state->write_shift(out);
-//        state->write_accept(out);
-//        state->write_reduce(out);
-//        state->write_declare(out);
-//    }
+    
+    out << "Symbol endmark;\n";
+    id = 0;
+    for (auto& nonterm : nonterms) {
+        nonterm.second->id = id++;
+        out << "Nonterm nonterm" << nonterm.second->id << ";\n";
+    }
+    out << "\n";
+    
+    id = 0;
+    for (auto& nonterm : nonterms) {
+        for (auto& rule : nonterm.second->rules) {
+            rule->id = id++;
+            out << "Rule rule" << rule->id;
+            out << " = {" << rule->product.size() << ", &";
+            rule->nonterm->write(out);
+            out << "};\n";
+        }
+    }
+    out << "\n";
+    
+    id = 0;
+    for (auto& state : states) {
+        state->id = id++;
+        state->write_declare(out);
+    }
+    out << "\n";
+    
+    for (auto& state : states) {
+        state->write_shift(out);
+        state->write_accept(out);
+        state->write_reduce(out);
+        state->write_next(out);
+    }
+    out << "\n";
+
+    for (auto& state : states) {
+        state->write_define(out);
+    }
 }
 
 Term*
@@ -163,11 +183,11 @@ Parser::intern_term(istream& in)
     }
     
     if (terms.count(name) == 0) {
+        Accept* accept = new Accept(name, terms.size());
+        lexer.add(accept, name);
         terms[name] = make_unique<Term>(name);
     }
     
-    Accept* accept = new Accept(name, terms.size());
-    lexer.add(accept, name);
     
     return terms[name].get();
 }

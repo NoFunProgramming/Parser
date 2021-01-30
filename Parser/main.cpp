@@ -13,10 +13,9 @@ test_grammar()
     Parser parser;
     
     string test =
-        "'a'"
-        ""
-        "E: T EP;"
-        "EP: 'a' E EP | ;"
+        "EP: E;"
+        "E: 'a' 'b' 'c';"
+        //"EP: 'a' E EP | ;"
         //"T: F TP;"
         //"TP: 'm' F TP | ;"
         //"F: 'l' E 'r' | 'id';"

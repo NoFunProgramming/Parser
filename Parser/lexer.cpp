@@ -105,21 +105,21 @@ Lexer::solve()
 void
 Lexer::write(ostream& out) const
 {
-    out << "struct State {\n";
-    out << "    State* (*next)(int c);\n";
-    out << "    const char* accept;\n";
-    out << "};\n\n";
     for (auto& state : states) {
-        state->write_proto(out);
+        out << "extern Node node" << state->id << ";\n";
     }
     out << "\n";
+//    for (auto& state : states) {
+//        state->write_proto(out);
+//    }
+//    out << "\n";
+    for (auto& state : states) {
+        state->write(out);
+    }
     for (auto& state : states) {
         state->write_struct(out);
     }
     out << "\n";
-    for (auto& state : states) {
-        state->write(out);
-    }
 }
 
 /******************************************************************************/
@@ -187,15 +187,18 @@ Lexer::State::solve_accept()
  */
 void
 Lexer::State::write_proto(ostream& out) {
-    out << "State* next" << id << "(int c);\n";
+    out << "Node* scan_next" << id << "(int c);\n";
 }
 
 void
 Lexer::State::write_struct(ostream& out) {
-    out << "State state" << id;
-    out << " = {&next" << id;
+    out << "Node node" << id;
+    out << " = {&scan" << id;
     if (accept) {
-        out << ", \"" << accept->name << "\"";
+        //out << ", \"" << accept->name << "\"";
+        out << ", &term" << accept->rank;
+    } else {
+        out << ", nullptr";
     }
     out << "};\n";
 }
@@ -203,13 +206,13 @@ Lexer::State::write_struct(ostream& out) {
 void
 Lexer::State::write(ostream& out)
 {
-    out << "State*\n";
-    out << "next" << id << "(int c) {\n";
+    out << "Node*\n";
+    out << "scan" << id << "(int c) {\n";
     for (auto next : nexts) {
         out << "    if (";
         next.first.write(out);
         out << ") {\n";
-        out << "        return &state" << next.second->id << ";\n";
+        out << "        return &node" << next.second->id << ";\n";
         out << "    }\n";
     }
     out << "    return nullptr;\n";

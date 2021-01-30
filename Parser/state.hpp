@@ -56,12 +56,14 @@ class State
     
     void solve_actions(Item accept);
     void solve_gotos();
-    
+        
     void write(ostream& out) const;
     void write_declare(ostream& out) const;
+    void write_define(ostream& out) const;
     void write_shift(ostream& out) const;
     void write_accept(ostream& out) const;
     void write_reduce(ostream& out) const;
+    void write_next(ostream& out) const;
     
     const string& get_name() { return name; }
     

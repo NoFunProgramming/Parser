@@ -118,22 +118,55 @@ State::operator<(const State& other) const {
 void
 State::write(ostream& out) const
 {
-    write_shift(out);
-    write_reduce(out);
+    out << "state" << id;
 }
 
 void
 State::write_declare(ostream& out) const
 {
-//    out << "State* shift" << id << "(Symbol* sym);\n";
-//    out << "Rule* accept" << id << "(Symbol* sym);\n";
-//    out << "Rule* reduce" << id << "(Symbol* sym);\n";
-    out << "State state"  << id << " = {";
-    out << "&shift" << id;
-    out << ", &accept" << id;
-    out << ", &reduce" << id;
-    out << "};\n\n";
+    out << "extern State state"  << id << ";\n";
 }
+
+void
+State::write_define(ostream& out) const
+{
+//    if (actions->shift.size() > 0) {
+//        out << "Shift shift" << id << "[];\n";
+//    }
+//    if (actions->accept.size() > 0) {
+//        out << "Rule* accept" << id << "(Symbol* sym);\n";
+//    }
+//    if (actions->reduce.size() > 0) {
+//        out << "Rule* reduce" << id << "(Symbol* sym);\n";
+//    }
+//    if (nexts.size() > 0) {
+//        out << ", &next" << id;
+//    }
+//
+    out << "State state"  << id << " = {";
+    if (actions->shift.size() > 0) {
+        out << "shift" << id;
+    } else {
+        out << "nullptr";
+    }
+    if (actions->accept.size() > 0) {
+        out << ", accept" << id;
+    } else {
+        out << ", nullptr";
+    }
+    if (actions->reduce.size() > 0) {
+        out << ", reduce" << id;
+    } else {
+        out << ", nullptr";
+    }
+    if (nexts.size() > 0) {
+        out << ", next" << id;
+    } else {
+        out << ", nullptr";
+    }
+    out << "};\n";
+}
+
 
 void
 State::firsts(const vector<Symbol*>& symbols, set<Symbol*>* firsts)
@@ -155,37 +188,69 @@ State::firsts(const vector<Symbol*>& symbols, set<Symbol*>* firsts)
 void
 State::write_shift(ostream& out) const
 {
-    out << "State* shift" << id << "(Symbol* sym) {\n";
-//    for (auto& i : actions->shift) {
-//        out << "    if (sym == &" << i.first->get_ident() << ") {\n";
-//        out << "        return &" << i.second->get_ident();
-//        out << ";\n";
-//        out << "    }\n";
-//    }
-    out << "    return nullptr;\n";
-    out << "}\n";
+    if (actions->shift.size() ==  0)
+        return;
+
+    out << "Shift shift" << id << "[] = {\n";
+    for (auto& act : actions->shift) {
+        out << "    {&";
+        act.first->write(out);
+        out << ", &";
+        act.second->write(out);
+        out << "},\n";
+    }
+    out << "};\n";
 }
 
 void
 State::write_accept(ostream& out) const
 {
-    out << "Rule* accept" << id << "(Symbol* sym) {\n";
-    out << "    return nullptr;\n";
-    out << "}\n";
+    if (actions->accept.size() ==  0)
+        return;
+    
+    out << "Accept accept" << id << "[] = {\n";
+    for (auto& act : actions->accept) {
+        out << "    {&";
+        act.first->write(out);
+        out << ", &";
+        act.second->write(out);
+        out << "},\n";
+    }
+    out << "};\n";
 }
 
 void
 State::write_reduce(ostream& out) const
 {
-    out << "Rule* reduce" << id << "(Symbol* sym) {\n";
-//    for (auto& i : actions->reduce) {
-//        out << "    if (sym == &" << i.first->get_ident() << ") {\n";
-//        out << "        return &rule" << i.second->id;
-//        out << ";\n";
-//        out << "    }\n";
-//    }
-    out << "    return nullptr;\n";
-    out << "}\n";
+    if (actions->reduce.size() ==  0)
+        return;
+    
+    out << "Reduce reduce" << id << "[] = {\n";
+    for (auto& act : actions->reduce) {
+        out << "    {&";
+        act.first->write(out);
+        out << ", &";
+        act.second->write(out);
+        out << "},\n";
+    }
+    out << "};\n";
+}
+
+void
+State::write_next(ostream& out) const
+{
+    if (nexts.size() ==  0)
+        return;
+
+    out << "Next next" << id << "[] = {\n";
+    for (auto& next : nexts) {
+        out << "    {&";
+        next.first->write(out);
+        out << ", &";
+        next.second->write(out);
+        out << "},\n";
+    }
+    out << "};\n";
 }
 
 /******************************************************************************/

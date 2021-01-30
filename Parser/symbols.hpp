@@ -23,8 +23,10 @@ class Symbol
     virtual const string& get_ident() const { return name; }
     
     virtual void print(ostream& out) const { out << "$"; }
-    virtual void write(ostream& out) const { out << "$"; }
+    virtual void write(ostream& out) const { out << name; }
     
+    size_t id;
+        
   protected:
     string name;
 };
@@ -51,6 +53,9 @@ class Nonterm : public Symbol
     Nonterm(const string& name);
     size_t id;
     
+    virtual void write(ostream& out) const;
+
+    
     /**
      * All nonterminals have one or more production rules which define the
      * symbols that reduce to a given nonterminal.
@@ -60,6 +65,7 @@ class Nonterm : public Symbol
         Rule(Nonterm* nonterm);
         void add(Symbol* sym);
         void print(ostream& out) const;
+        void write(ostream& out) const { out << "rule" << id; }
         size_t id;
         Nonterm* nonterm;
         vector<Symbol*> product;
