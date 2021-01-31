@@ -49,7 +49,7 @@ Parser::solve()
     solve_follows();
     
     auto state = make_unique<State>(states.size());
-    state->add(State::Item(first, 0, &Symbol::Endmark));
+    state->add(State::Item(first->rules.front().get(), 0, &Symbol::Endmark));
     state->closure();
     
     start = state.get();
@@ -90,7 +90,8 @@ Parser::solve()
         }
     }
 
-    State::Item accept(first, first->product.size(), &Symbol::Endmark);
+    Nonterm::Rule* rule = first->rules.front().get();
+    State::Item accept(rule, rule->product.size(), &Symbol::Endmark);
 
     for (auto& state : states) {
         state->solve_actions(accept);
@@ -144,7 +145,7 @@ Parser::write(ostream& out) const
     id = 0;
     for (auto& state : states) {
         state->id = id++;
-        state->write_declare(out);
+        out << "extern State state"  << state->id << ";\n";
     }
     out << "\n";
     
@@ -183,12 +184,13 @@ Parser::intern_term(istream& in)
     }
     
     if (terms.count(name) == 0) {
+        // TODO Add a parse for just a string of characters.
+        // TODO Store all of the accept values.
         Accept* accept = new Accept(name, terms.size());
         lexer.add(accept, name);
         terms[name] = make_unique<Term>(name);
     }
-    
-    
+        
     return terms[name].get();
 }
 
@@ -225,52 +227,57 @@ Parser::read_rules(istream& in)
 {
     Nonterm* nonterm = intern_nonterm(in);
     if (!nonterm) {
-        cerr << "Unable to read nonterminal name.\n";
+        cerr << "Rule must start with a nonterminal.\n";
     }
     if (in.get() != ':') {
         cerr << "Nontermianals end with a colon.\n";
         return false;
     }
-    
-    Nonterm::Rule* rule = nonterm->add_rule();
     if (!first) {
-        first = rule;
+        first = nonterm;
     }
+
+    vector<Symbol*> syms;
     
     while (in.peek() != EOF) {
-        read_product(in, rule);
+        read_product(in, &syms);
         if (in.peek() == ';') {
             in.get();
+            nonterm->add_rule(syms);
             break;
         } else if (in.peek() == '|') {
             in.get();
-            rule = nonterm->add_rule();
+            nonterm->add_rule(syms);
+            syms.clear();
         }
     }
     return true;
 }
 
 bool
-Parser::read_product(istream& in, Nonterm::Rule* rule)
+Parser::read_product(istream& in, vector<Symbol*>* syms)
 {
     while (in.peek() != EOF) {
         in >> std::ws;
         if (in.peek() == ';' || in.peek() == '|') {
             break;
         }
-        else if (in.peek() == '\'') {
+        
+        if (in.peek() == '\'') {
             Symbol* sym = intern_term(in);
-            if (!sym) {
+            if (sym) {
+                syms->push_back(sym);
+            } else {
                 return false;
             }
-            rule->add(sym);
         }
         else {
             Symbol* sym = intern_nonterm(in);
-            if (!sym) {
+            if (sym) {
+                syms->push_back(sym);
+            } else {
                 return false;
             }
-            rule->add(sym);
         }
     }
     return true;
@@ -292,7 +299,8 @@ void
 Parser::solve_follows()
 {
     if (first) {
-        first->nonterm->insert_follows(&Symbol::Endmark);
+        Nonterm::Rule* rule = first->rules.front().get();
+        rule->nonterm->insert_follows(&Symbol::Endmark);
     }
 
     bool found = false;

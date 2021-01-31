@@ -24,8 +24,8 @@ class Parser
     Parser();
     
     /**
-     * Each nonterminal defines one or more rules seperated by vertical bars and
-     * terminated with a semicolon.
+     * Reads in the grammar which define the parser.  Each nonterminal has one
+     * or more rules seperated by vertical bars and terminated with a semicolon.
      */
     bool read_grammar(istream& in);
     void print_grammar(ostream& out) const;
@@ -49,7 +49,7 @@ class Parser
      */
     map<string, unique_ptr<Term>> terms;
     map<string, unique_ptr<Nonterm>> nonterms;
-    Nonterm::Rule* first;
+    Nonterm* first;
     
     /** Reads and then interns unique terminal and nonterminal names. */
     Term* intern_term(istream& in);
@@ -58,7 +58,7 @@ class Parser
     /** Recursive decent parser for reading grammar rules. */
     bool read_term(istream& in);
     bool read_rules(istream& in);
-    bool read_product(istream& in, Nonterm::Rule* rule);
+    bool read_product(istream& in, vector<Symbol*>* syms);
     
     /** Include a lexer to scan an input string for terminals. */
     Lexer lexer;

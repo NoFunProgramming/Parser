@@ -14,9 +14,9 @@ class State
     size_t id;
     const string& get_ident() const;
     
-    /**
-     * Each state is a set of possible parse states.
-     */
+    bool operator<(const State& other) const;
+    
+    /** Each state is a set of possible parse states. */
     class Item {
       public:
         Item(Nonterm::Rule* rule, size_t mark, Symbol* ahead);
@@ -40,12 +40,9 @@ class State
     void add(Item item);
     void closure();
 
-    /**
-     * Actions for shift or reducing based on the state and next symbol.
-     */
+    /** Shift or reduce based on the state and next symbol. */
     class Actions {
       public:
-        // TODO Change shift to terminals.
         map<Symbol*, State*> shift;
         map<Symbol*, Nonterm::Rule*> accept;
         map<Symbol*, Nonterm::Rule*> reduce;
@@ -56,7 +53,8 @@ class State
     
     void solve_actions(Item accept);
     void solve_gotos();
-        
+
+    /** Write the states source code. */
     void write(ostream& out) const;
     void write_declare(ostream& out) const;
     void write_define(ostream& out) const;
@@ -64,21 +62,14 @@ class State
     void write_accept(ostream& out) const;
     void write_reduce(ostream& out) const;
     void write_next(ostream& out) const;
-    
-    const string& get_name() { return name; }
-    
-    bool operator<(const State& other) const;
-    
+            
   private:
-    string name;
     set<Item> items;
     map<Symbol*, State*> nexts;
     map<Symbol*, State*> gotos;
-    //State::Actions* actions;
     unique_ptr<Actions> actions;
     
     static void firsts(const vector<Symbol*>& symbols, set<Symbol*>* firsts);
-    
 };
 
 #endif

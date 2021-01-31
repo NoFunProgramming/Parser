@@ -53,8 +53,9 @@ class Nonterm : public Symbol
     Nonterm(const string& name);
     size_t id;
     
+    void add_rule(const vector<Symbol*>& syms);
+    
     virtual void write(ostream& out) const;
-
     
     /**
      * All nonterminals have one or more production rules which define the
@@ -65,7 +66,7 @@ class Nonterm : public Symbol
         Rule(Nonterm* nonterm);
         void add(Symbol* sym);
         void print(ostream& out) const;
-        void write(ostream& out) const { out << "rule" << id; }
+        void write(ostream& out) const;
         size_t id;
         Nonterm* nonterm;
         vector<Symbol*> product;

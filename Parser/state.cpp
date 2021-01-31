@@ -3,13 +3,7 @@
 using std::make_unique;
 
 State::State(size_t id):
-    id(id),
-    name("state"){}
-
-const string&
-State::get_ident() const {
-    return name;
-}
+    id(id){}
 
 void
 State::add(State::Item item) {
@@ -30,9 +24,7 @@ State::closure()
         Nonterm* nonterm = item.next_nonterm();
         if (nonterm) {
             for (auto& rule : nonterm->rules) {
-                vector<Symbol*> product;
-                vector<Symbol*> check = item.advance().rest();
-                product.insert(product.end(), check.begin(), check.end());
+                vector<Symbol*> product = item.advance().rest();
                 product.push_back(item.ahead);
 
                 set<Symbol*> terms;
@@ -49,10 +41,26 @@ State::closure()
     }
 }
 
+void
+State::firsts(const vector<Symbol*>& symbols, set<Symbol*>* firsts)
+{
+    for (Symbol* sym : symbols) {
+        Nonterm* nonterm = dynamic_cast<Nonterm*>(sym);
+        if (nonterm) {
+            firsts->insert(nonterm->firsts.begin(), nonterm->firsts.end());
+            if (!nonterm->has_empty) {
+                return;
+            }
+        } else {
+            firsts->insert(sym);
+            return;
+        }
+    }
+}
+
 unique_ptr<State>
 State::solve_next(Symbol* symbol)
 {
-    // TODO Set the identifier.
     unique_ptr<State> state = make_unique<State>(0);
     for (auto item : items) {
         if (item.is_next(symbol))
@@ -94,9 +102,9 @@ State::solve_actions(Item accept)
         }
     }
 
-    //actions->reduce();
-    //    auto found = previous.insert(std::move(actions));
-    //    this->actions = found.first->get();
+    //  actions->reduce();
+    //  auto found = previous.insert(std::move(actions));
+    //  this->actions = found.first->get();
 }
 
 void
@@ -115,35 +123,21 @@ State::operator<(const State& other) const {
     return items < other.items;
 }
 
+/******************************************************************************/
 void
-State::write(ostream& out) const
-{
+State::write(ostream& out) const {
     out << "state" << id;
 }
 
 void
-State::write_declare(ostream& out) const
-{
-    out << "extern State state"  << id << ";\n";
+State::write_declare(ostream& out) const {
+    out << "extern State "; write(out); out << ";\n";
 }
 
 void
 State::write_define(ostream& out) const
 {
-//    if (actions->shift.size() > 0) {
-//        out << "Shift shift" << id << "[];\n";
-//    }
-//    if (actions->accept.size() > 0) {
-//        out << "Rule* accept" << id << "(Symbol* sym);\n";
-//    }
-//    if (actions->reduce.size() > 0) {
-//        out << "Rule* reduce" << id << "(Symbol* sym);\n";
-//    }
-//    if (nexts.size() > 0) {
-//        out << ", &next" << id;
-//    }
-//
-    out << "State state"  << id << " = {";
+    out << "State "; write(out); out << " = {";
     if (actions->shift.size() > 0) {
         out << "shift" << id;
     } else {
@@ -165,24 +159,6 @@ State::write_define(ostream& out) const
         out << ", nullptr";
     }
     out << "};\n";
-}
-
-
-void
-State::firsts(const vector<Symbol*>& symbols, set<Symbol*>* firsts)
-{
-    for (Symbol* sym : symbols) {
-        Nonterm* nonterm = dynamic_cast<Nonterm*>(sym);
-        if (nonterm) {
-            firsts->insert(nonterm->firsts.begin(), nonterm->firsts.end());
-            if (!nonterm->has_empty) {
-                return;
-            }
-        } else {
-            firsts->insert(sym);
-            return;
-        }
-    }
 }
 
 void
@@ -260,7 +236,8 @@ State::Item::Item(Nonterm::Rule* rule, size_t mark, Symbol* ahead):
     ahead   (ahead){}
 
 State::Item
-State::Item::advance() {
+State::Item::advance()
+{
     if (mark == rule->product.size()) {
         throw std::exception();
     }
@@ -268,7 +245,8 @@ State::Item::advance() {
 }
 
 vector<Symbol*>
-State::Item::rest() {
+State::Item::rest()
+{
     vector<Symbol*> result;
     result.insert(result.end(),
                   rule->product.begin() + mark,

@@ -2,15 +2,15 @@
 
 /******************************************************************************/
 Symbol::Symbol(const string& name):
-    id(10),
-    name(name){}
+    id      (10),
+    name    (name){}
 
 Symbol Symbol::Endmark("endmark");
 
 /******************************************************************************/
 Term::Term(const string& name):
-    Symbol(name),
-    id(0){}
+    Symbol  (name),
+    id      (0){}
 
 void
 Term::print(ostream& out) const {
@@ -24,9 +24,18 @@ Term::write(ostream& out) const {
 
 /******************************************************************************/
 Nonterm::Nonterm(const string& name):
-    id(0),
-    Symbol(name),
-has_empty(false){}
+    id      (0),
+    Symbol  (name),
+    has_empty(false){}
+
+void
+Nonterm::add_rule(const vector<Symbol*>& syms)
+{
+    Rule* rule = add_rule();
+    for (auto sym : syms) {
+        rule->product.push_back(sym);
+    }
+}
 
 Nonterm::Rule*
 Nonterm::add_rule() {
@@ -34,15 +43,8 @@ Nonterm::add_rule() {
     return rules.back().get();
 }
 
-void
-Nonterm::print(ostream& out) const {
-    out << name;
-}
-
-void
-Nonterm::write(ostream& out) const {
-    out << "nonterm" << id;
-}
+void Nonterm::print(ostream& out) const { out << name; }
+void Nonterm::write(ostream& out) const { out << "nonterm" << id; }
 
 void
 Nonterm::print_rules(ostream& out) const
@@ -61,8 +63,7 @@ Nonterm::print_rules(ostream& out) const
 void
 Nonterm::print_firsts(ostream& out) const
 {
-    print(out);
-    out << ": ";
+    print(out); out << ": ";
     for (auto sym : firsts) {
         sym->print(out);
     }
@@ -71,8 +72,7 @@ Nonterm::print_firsts(ostream& out) const
 void
 Nonterm::print_follows(ostream& out) const
 {
-    print(out);
-    out << ": ";
+    print(out); out << ": ";
     for (auto sym : follows) {
         sym->print(out);
     }
@@ -99,8 +99,6 @@ Nonterm::solve_follows(bool *found)
         for (; sym < rule->product.end(); sym++ ) {
             Nonterm* nonterm = dynamic_cast<Nonterm*>(*sym);
             if (nonterm) {
-            //if (sym->is_nonterm()) {
-            //    Nonterm* nonterm = sym->get_nonterm();
                 size_t before = nonterm->follows.size();
 
                 bool epsilon = false;
@@ -178,4 +176,9 @@ Nonterm::Rule::print(ostream& out) const
         }
         sym->print(out);
     }
+}
+
+void
+Nonterm::Rule::write(ostream& out) const {
+    out << "rule" << id;
 }
