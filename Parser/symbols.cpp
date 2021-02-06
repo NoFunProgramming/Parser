@@ -7,44 +7,42 @@ Symbol::Symbol(const string& name):
 
 Symbol Symbol::Endmark("endmark");
 
-/******************************************************************************/
-Term::Term(const string& name):
-    Symbol  (name),
-    id      (0){}
-
 void
-Term::print(ostream& out) const {
+Symbol::print(ostream& out) const {
     out << "'" << name << "'";
 }
 
 void
-Term::write(ostream& out) const {
+Symbol::write(ostream& out) const {
     out << "term" << id;
 }
 
 /******************************************************************************/
 Nonterm::Nonterm(const string& name):
-    id      (0),
     Symbol  (name),
     has_empty(false){}
 
 void
-Nonterm::add_rule(const vector<Symbol*>& syms)
+Nonterm::add_rule(const vector<Symbol*>& syms, const string& reduce)
 {
-    Rule* rule = add_rule();
+    rules.emplace_back(std::make_unique<Rule>(this));
+    Rule* rule = rules.back().get();
     for (auto sym : syms) {
         rule->product.push_back(sym);
     }
-}
-
-Nonterm::Rule*
-Nonterm::add_rule() {
-    rules.emplace_back(std::make_unique<Rule>(this));
-    return rules.back().get();
+    rule->reduce = reduce;
 }
 
 void Nonterm::print(ostream& out) const { out << name; }
 void Nonterm::write(ostream& out) const { out << "nonterm" << id; }
+
+void
+Nonterm::write_rules(ostream& out) const
+{
+    for (auto& rule : rules) {
+        rule->write_rule(out);
+    }
+}
 
 void
 Nonterm::print_rules(ostream& out) const
@@ -55,7 +53,12 @@ Nonterm::print_rules(ostream& out) const
         } else {
             out << "  | ";
         }
-        rule->print(out);
+        for (auto sym : rule->product) {
+            if (sym != rule->product.front()) {
+                out << " ";
+            }
+            sym->print(out);
+        }
         out << "\n";
     }
 }
@@ -116,11 +119,6 @@ Nonterm::solve_follows(bool *found)
 }
 
 void
-Nonterm::insert_follows(Symbol* symbol) {
-    follows.insert(symbol);
-}
-
-void
 Nonterm::insert_firsts(vector<Symbol*>::iterator symbol,
                        vector<Symbol*>::iterator end)
 {
@@ -159,26 +157,31 @@ Nonterm::insert_follows(vector<Symbol*>::iterator symbol,
 
 /******************************************************************************/
 Nonterm::Rule::Rule(Nonterm* nonterm):
-    id(0),
-    nonterm(nonterm){}
+    nonterm(nonterm), id(0){}
 
 void
-Nonterm::Rule::add(Symbol* sym) {
-    product.push_back(sym);
-}
-
-void
-Nonterm::Rule::print(ostream& out) const
+Nonterm::Rule::write_rule(ostream& out) const
 {
+    out << "unique_ptr<" << nonterm->type << "> " << reduce << "(";
+    
+    bool first = true;
     for (auto sym : product) {
-        if (sym != product.front()) {
-            out << " ";
+        Nonterm* nonterm = dynamic_cast<Nonterm*>(sym);
+        if (nonterm) {
+            if (!first) {
+                out << ", ";
+            }
+            out << "unique_ptr<" << nonterm->type << ">&";
+            first = false;
+        } else {
+            if (!sym->type.empty()) {
+                if (!first) {
+                    out << ", ";
+                }
+                out << sym->type;
+                first = false;
+            }
         }
-        sym->print(out);
     }
-}
-
-void
-Nonterm::Rule::write(ostream& out) const {
-    out << "rule" << id;
+    out << ");\n";
 }

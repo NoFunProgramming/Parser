@@ -28,7 +28,6 @@ class Parser
      * or more rules seperated by vertical bars and terminated with a semicolon.
      */
     bool read_grammar(istream& in);
-    void print_grammar(ostream& out) const;
     
     /**
      * After reading in the grammar, solve for all possible parse states.
@@ -40,6 +39,7 @@ class Parser
      * the parser.
      */
     void write(ostream& out) const;
+    void print_grammar(ostream& out) const;
 
   private:
     /**
@@ -47,20 +47,28 @@ class Parser
      * terminal and nonterminal names.  The parser stores production rules as
      * vectors of pointers to these terminal and nonterminal symbols.
      */
-    map<string, unique_ptr<Term>> terms;
+    map<string, unique_ptr<Symbol>> terms;
     map<string, unique_ptr<Nonterm>> nonterms;
     Nonterm* first;
     
     /** Reads and then interns unique terminal and nonterminal names. */
-    Term* intern_term(istream& in);
+    Symbol* intern_term(istream& in);
     Nonterm* intern_nonterm(istream& in);
      
     /** Recursive decent parser for reading grammar rules. */
     bool read_term(istream& in);
     bool read_rules(istream& in);
     bool read_product(istream& in, vector<Symbol*>* syms);
+        
+    /** Recursive decent parser for reading grammar rules. */
+    bool read_term_name(istream& in, string* name);
+    bool read_nonterm_name(istream& in, string* type);
     
-    /** Include a lexer to scan an input string for terminals. */
+    bool read_type(istream& in, string* type);
+    bool read_regex(istream& in, string* regex);
+    bool read_action(istream& in, string* action);
+        
+    /** Lexer to scan an input for terminals. */
     Lexer lexer;
 
     /**

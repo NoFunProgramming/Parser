@@ -13,12 +13,14 @@ test_grammar()
     Parser parser;
     
     string test =
-        "EP: E;"
-        "E: 'a' 'b' 'c';"
-        //"EP: 'a' E EP | ;"
-        //"T: F TP;"
-        //"TP: 'm' F TP | ;"
-        //"F: 'l' E 'r' | 'id';"
+        "'num'<int>   [0-9]+    &scan_num;"
+        ""
+        "add<Value>: mul        &reduce_add"
+        "    | add 'a' mul      &reduce_add_mul"
+        "    ;"
+        "mul<Value>: 'num'      &reduce_mul"
+        "    | mul 'm' 'num'    &reduce_mul_num"
+        "    ;"
     ;
     
     std::stringstream in(test);

@@ -23,10 +23,10 @@ State::closure()
 
         Nonterm* nonterm = item.next_nonterm();
         if (nonterm) {
+            vector<Symbol*> product = item.advance().rest();
+            product.push_back(item.ahead);
+            
             for (auto& rule : nonterm->rules) {
-                vector<Symbol*> product = item.advance().rest();
-                product.push_back(item.ahead);
-
                 set<Symbol*> terms;
                 firsts(product, &terms);
                 for (auto term : terms) {
@@ -86,7 +86,7 @@ State::solve_actions(Item accept)
     actions = make_unique<Actions>();
 
     for (auto item : items) {
-        Term* term = item.next_term();
+        Symbol* term = item.next();
         if (term) {
             auto found = nexts.find(term);
             if (found != nexts.end()) {
@@ -153,7 +153,7 @@ State::write_define(ostream& out) const
     } else {
         out << ", nullptr";
     }
-    if (nexts.size() > 0) {
+    if (gotos.size() > 0) {
         out << ", next" << id;
     } else {
         out << ", nullptr";
@@ -188,9 +188,7 @@ State::write_accept(ostream& out) const
     for (auto& act : actions->accept) {
         out << "    {&";
         act.first->write(out);
-        out << ", &";
-        act.second->write(out);
-        out << "},\n";
+        out << ", &rule" << act.second->id << "},\n";
     }
     out << "};\n";
 }
@@ -205,9 +203,7 @@ State::write_reduce(ostream& out) const
     for (auto& act : actions->reduce) {
         out << "    {&";
         act.first->write(out);
-        out << ", &";
-        act.second->write(out);
-        out << "},\n";
+        out << ", &rule" << act.second->id << "},\n";
     }
     out << "};\n";
 }
@@ -215,11 +211,11 @@ State::write_reduce(ostream& out) const
 void
 State::write_next(ostream& out) const
 {
-    if (nexts.size() ==  0)
+    if (gotos.size() ==  0)
         return;
 
     out << "Next next" << id << "[] = {\n";
-    for (auto& next : nexts) {
+    for (auto& next : gotos) {
         out << "    {&";
         next.first->write(out);
         out << ", &";
@@ -268,24 +264,24 @@ State::Item::is_next(Symbol* symbol) {
     }
 }
 
-Term*
-State::Item::next_term()
+Symbol*
+State::Item::next()
 {
     if (mark < rule->product.size()) {
-        Symbol* symbol = rule->product[mark];
-        return dynamic_cast<Term*>(symbol);
+        return rule->product[mark];
+    } else {
+        return nullptr;
     }
-    return nullptr;
 }
 
 Nonterm*
 State::Item::next_nonterm()
 {
     if (mark < rule->product.size()) {
-        Symbol* symbol = rule->product[mark];
-        return dynamic_cast<Nonterm*>(symbol);
+        return dynamic_cast<Nonterm*>(rule->product[mark]);
+    } else {
+        return nullptr;
     }
-    return nullptr;
 }
 
 bool

@@ -30,7 +30,7 @@ class State
         bool is_end();
         bool is_next(Symbol* symbol);
         
-        Term* next_term();
+        Symbol* next();
         Nonterm* next_nonterm();
         
         bool operator==(const Item& other) const;

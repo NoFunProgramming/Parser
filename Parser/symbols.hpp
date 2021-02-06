@@ -18,27 +18,11 @@ class Symbol
 {
   public:
     Symbol(const string& name);
-    static Symbol Endmark;
-    
-    virtual const string& get_ident() const { return name; }
-    
-    virtual void print(ostream& out) const { out << "$"; }
-    virtual void write(ostream& out) const { out << name; }
-    
-    size_t id;
-        
-  protected:
     string name;
-};
-
-/*******************************************************************************
- * Terminals of the grammar.
- */
-class Term : public Symbol
-{
-  public:
-    Term(const string& name);
+    string type;
     size_t id;
+
+    static Symbol Endmark;
     
     virtual void print(ostream& out) const;
     virtual void write(ostream& out) const;
@@ -51,12 +35,7 @@ class Nonterm : public Symbol
 {
   public:
     Nonterm(const string& name);
-    size_t id;
-    
-    void add_rule(const vector<Symbol*>& syms);
-    
-    virtual void write(ostream& out) const;
-    
+  
     /**
      * All nonterminals have one or more production rules which define the
      * symbols that reduce to a given nonterminal.
@@ -64,41 +43,26 @@ class Nonterm : public Symbol
     class Rule {
       public:
         Rule(Nonterm* nonterm);
-        void add(Symbol* sym);
-        void print(ostream& out) const;
-        void write(ostream& out) const;
-        size_t id;
         Nonterm* nonterm;
         vector<Symbol*> product;
+        string reduce;
+        size_t id;
+        void write_rule(ostream& out) const;
     };
     
-    Rule* add_rule();
+    void add_rule(const vector<Symbol*>& syms, const string& reduce);
+    vector<unique_ptr<Rule>> rules;
     
-    /** Prints the grammar in BNF form. */
-    virtual void print(ostream& out) const;
-    virtual void print_rules(ostream& out) const;
-    virtual void print_firsts(ostream& out) const;
-    virtual void print_follows(ostream& out) const;
-
     /**
      * The first step to finding all possible parse states is finding all
      * terminals that could be first in or follow every nonterminal.
      */
-    void solve_first(bool* found);
-    void solve_follows(bool* found);
-    void insert_follows(Symbol* symbol);
-
-  //private:
-    vector<unique_ptr<Rule>> rules;
-    
-    /**
-     * Set of all terminals that could be the first one in or follow any
-     * production of this nonterminal.  The following methods add all terminals
-     * that could be first in part of a string of symbols.
-     */
+    bool has_empty;
     set<Symbol*> firsts;
     set<Symbol*> follows;
-    bool has_empty;
+    
+    void solve_first(bool* found);
+    void solve_follows(bool* found);
     
     void insert_firsts(vector<Symbol*>::iterator symbol,
                        vector<Symbol*>::iterator end);
@@ -106,6 +70,17 @@ class Nonterm : public Symbol
     void insert_follows(vector<Symbol*>::iterator symbol,
                         vector<Symbol*>::iterator end,
                         bool* epsilon);
+    
+    /** Prints the grammar in BNF form. */
+    virtual void print(ostream& out) const;
+    
+    void print_rules(ostream& out) const;
+    void print_firsts(ostream& out) const;
+    void print_follows(ostream& out) const;
+    
+    virtual void write(ostream& out) const;
+    
+    void write_rules(ostream& out) const;
 };
 
 #endif
