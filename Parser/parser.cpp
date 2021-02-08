@@ -12,11 +12,13 @@ Parser::Parser():
 bool
 Parser::read_grammar(istream& in)
 {
-    while (in.peek() != EOF) {
+    while (true) {
         in >> std::ws;
         if (in.peek() == EOF) {
             break;
-        } else if (in.peek() == '\'') {
+        }
+        
+        if (in.peek() == '\'') {
             if (!read_term(in)) {
                 return false;
             }
@@ -141,7 +143,7 @@ Parser::write(ostream& out) const
     out << "\n";
 
     for (auto& nonterm : nonterms) {
-        nonterm.second->write_rules(out);
+        nonterm.second->write_actions(out);
     }
     out << "\n";
 }
@@ -163,6 +165,9 @@ Parser::print_grammar(ostream& out) const
     }
 }
 
+/**
+ * Reading the definition a new terminal.
+ */
 Symbol*
 Parser::intern_term(istream& in)
 {
@@ -238,86 +243,6 @@ Parser::read_term(istream& in)
         lexer.add(accept, term->name);
     }
 
-    return true;
-}
-
-bool
-Parser::read_term_name(istream& in, string* name)
-{
-    if (in.get() != '\'') {
-        cerr << "Expected quote to start terminal.\n";
-        return false;
-    }
-    while (isalpha(in.peek())) {
-        name->push_back(in.get());
-    }
-    if (in.get() != '\'') {
-        cerr << "Expected quote to end terminal.\n";
-        return false;
-    }
-    if (name->empty()) {
-        cerr << "Terminals require at least one character.\n";
-        return false;
-    }
-    return true;
-}
-
-bool
-Parser::read_nonterm_name(istream& in, string* name)
-{
-    while (isalpha(in.peek())) {
-        name->push_back(in.get());
-    }
-    if (name->empty()) {
-        cerr << "Nonterminals require at least one character.\n";
-        return false;
-    }
-    return true;
-}
-
-/**
- * Reading attributes of a new terminal or nonterminal defined within by the
- * grammar.  Each attribute has its own valid range of characters.
- */
-bool
-Parser::read_type(istream& in, string* type)
-{
-    in >> std::ws;
-    if (in.peek() == '<') {
-        in.get();
-        while (isalpha(in.peek())) {
-            type->push_back(in.get());
-        }
-        if (in.get() != '>') {
-            cerr << "Expected '>' after terminal type.\n";
-            return false;
-        }
-    }
-    return true;
-}
-
-bool
-Parser::read_regex(istream& in, string* regex)
-{
-    in >> std::ws;
-    if (in.peek() != '&' && in.peek() != ';') {
-        while (in.peek() != ' ' && in.peek() != ';') {
-            regex->push_back(in.get());
-        }
-    }
-    return true;
-}
-
-bool
-Parser::read_action(istream& in, string* action)
-{
-    in >> std::ws;
-    if (in.peek() == '&') {
-        in.get();
-        while (isalpha(in.peek()) || in.peek() == '_') {
-            action->push_back(in.get());
-        }
-    }
     return true;
 }
 
@@ -398,8 +323,91 @@ Parser::read_product(istream& in, vector<Symbol*>* syms)
 }
 
 /**
- * Solve for the first and the follows terminals.
+ * Reading the name of a new terminal or nonterminal defined within by the
+ * grammar.  Each name has its own valid range of characters.
  */
+bool
+Parser::read_term_name(istream& in, string* name)
+{
+    if (in.get() != '\'') {
+        cerr << "Expected quote to start terminal.\n";
+        return false;
+    }
+    while (isalpha(in.peek())) {
+        name->push_back(in.get());
+    }
+    if (in.get() != '\'') {
+        cerr << "Expected quote to end terminal.\n";
+        return false;
+    }
+    if (name->empty()) {
+        cerr << "Terminals require at least one character.\n";
+        return false;
+    }
+    return true;
+}
+
+bool
+Parser::read_nonterm_name(istream& in, string* name)
+{
+    while (isalpha(in.peek())) {
+        name->push_back(in.get());
+    }
+    if (name->empty()) {
+        cerr << "Nonterminals require at least one character.\n";
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Reading attributes of a new terminal or nonterminal defined within by the
+ * grammar.  Each attribute has its own valid range of characters.
+ */
+bool
+Parser::read_type(istream& in, string* type)
+{
+    in >> std::ws;
+    if (in.peek() == '<') {
+        in.get();
+        while (isalpha(in.peek())) {
+            type->push_back(in.get());
+        }
+        if (in.get() != '>') {
+            cerr << "Expected '>' after terminal type.\n";
+            return false;
+        }
+    }
+    return true;
+}
+
+bool
+Parser::read_regex(istream& in, string* regex)
+{
+    in >> std::ws;
+    if (in.peek() != '&' && in.peek() != ';') {
+        while (in.peek() != ' ' && in.peek() != ';') {
+            regex->push_back(in.get());
+        }
+    }
+    return true;
+}
+
+bool
+Parser::read_action(istream& in, string* action)
+{
+    in >> std::ws;
+    if (in.peek() == '&') {
+        in.get();
+        while (isalpha(in.peek()) || in.peek() == '_') {
+            action->push_back(in.get());
+        }
+    }
+    return true;
+}
+
+
+/** Solve for the first and the follows terminals. */
 void
 Parser::solve_first()
 {

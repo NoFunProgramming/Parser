@@ -2,8 +2,8 @@
 
 /******************************************************************************/
 Symbol::Symbol(const string& name):
-    id      (10),
-    name    (name){}
+    name(name),
+    id  (0){}
 
 Symbol Symbol::Endmark("endmark");
 
@@ -18,44 +18,136 @@ Symbol::write(ostream& out) const {
 }
 
 /******************************************************************************/
-Nonterm::Nonterm(const string& name):
-    Symbol  (name),
-    has_empty(false){}
+Nonterm::Nonterm(const string& name): Symbol(name),
+    empty_first(false){}
 
 void
-Nonterm::add_rule(const vector<Symbol*>& syms, const string& reduce)
+Nonterm::add_rule(const vector<Symbol*>& syms, const string& action)
 {
-    rules.emplace_back(std::make_unique<Rule>(this));
+    rules.emplace_back(std::make_unique<Rule>(this, action));
     Rule* rule = rules.back().get();
-    for (auto sym : syms) {
-        rule->product.push_back(sym);
-    }
-    rule->reduce = reduce;
+    
+    rule->product.insert(rule->product.end(), syms.begin(), syms.end());
 }
 
-void Nonterm::print(ostream& out) const { out << name; }
-void Nonterm::write(ostream& out) const { out << "nonterm" << id; }
+/******************************************************************************/
+void
+Nonterm::solve_first(bool *found) {
+    for (auto& rule : rules) {
+        insert_firsts(rule.get(), found);
+    }
+}
 
 void
-Nonterm::write_rules(ostream& out) const
+Nonterm::insert_firsts(Rule* rule, bool* found)
+{
+    for (auto sym : rule->product) {
+        Nonterm* nonterm = dynamic_cast<Nonterm*>(sym);
+        if (nonterm) {
+            for (auto first : nonterm->firsts) {
+                auto inserted = firsts.insert(first);
+                if (inserted.second) {
+                    *found = true;
+                }
+            }
+            if (!nonterm->empty_first) {
+                return;
+            }
+        } else {
+            auto inserted = firsts.insert(sym);
+            if (inserted.second) {
+                *found = true;
+            }
+            return;
+        }
+    }
+    if (!empty_first) {
+        empty_first = true;
+        *found = true;
+    }
+}
+
+/******************************************************************************/
+void
+Nonterm::solve_follows(bool *found)
 {
     for (auto& rule : rules) {
-        rule->write_rule(out);
+        auto sym = rule->product.begin();
+        auto end = rule->product.end();
+        
+        for (; sym < end; sym++) {
+            Nonterm* nonterm = dynamic_cast<Nonterm*>(*sym);
+            if (nonterm) {
+                bool empty = false;
+                nonterm->insert_follows(sym + 1, end, &empty, found);
+                if (empty) {
+                    nonterm->insert_follows(rule->nonterm->follows, found);
+                }
+            }
+        }
     }
+}
+
+void
+Nonterm::insert_follows(set<Symbol*>& syms, bool* found)
+{
+    for (Symbol* sym : syms) {
+        auto in = follows.insert(sym);
+        if (in.second) {
+            *found = true;
+        }
+    }
+}
+
+void
+Nonterm::insert_follows(vector<Symbol*>::iterator sym,
+                        vector<Symbol*>::iterator end,
+                        bool* epsilon, bool* found)
+{
+    for (; sym < end; sym++) {
+        Nonterm* nonterm = dynamic_cast<Nonterm*>(*sym);
+        if (nonterm) {
+            insert_follows(nonterm->firsts, found);
+            if (!nonterm->empty_first) {
+                *epsilon = false;
+                return;
+            }
+        } else {
+            auto in = follows.insert(*sym);
+            if (in.second) {
+                *found = true;
+            }
+            *epsilon = false;
+            return;
+        }
+    }
+    *epsilon = true;
+}
+
+/******************************************************************************/
+void
+Nonterm::print(ostream& out) const {
+    out << name;
 }
 
 void
 Nonterm::print_rules(ostream& out) const
 {
+    bool bar = false;
     for (auto& rule : rules) {
-        if (rule.get() == rules.begin()->get()) {
+        if (!bar) {
             out << name << ": ";
+            bar = true;
         } else {
             out << "  | ";
         }
+        
+        bool space = false;
         for (auto sym : rule->product) {
-            if (sym != rule->product.front()) {
+            if (space) {
                 out << " ";
+            } else {
+                space = true;
             }
             sym->print(out);
         }
@@ -64,122 +156,59 @@ Nonterm::print_rules(ostream& out) const
 }
 
 void
-Nonterm::print_firsts(ostream& out) const
-{
-    print(out); out << ": ";
+Nonterm::print_firsts(ostream& out) const {
+    print(out);
+    out << ": ";
     for (auto sym : firsts) {
         sym->print(out);
     }
 }
 
 void
-Nonterm::print_follows(ostream& out) const
-{
-    print(out); out << ": ";
+Nonterm::print_follows(ostream& out) const {
+    print(out);
+    out << ": ";
     for (auto sym : follows) {
         sym->print(out);
     }
 }
 
 void
-Nonterm::solve_first(bool *found)
-{
-    size_t before = firsts.size();
-    bool before_eps = has_empty;
+Nonterm::write(ostream& out) const {
+    out << "nonterm" << id;
+}
+
+void
+Nonterm::write_actions(ostream& out) const {
     for (auto& rule : rules) {
-        insert_firsts(rule->product.begin(), rule->product.end());
+        rule->write_action(out);
     }
-    if ((firsts.size() > before) || (has_empty && !before_eps)) {
-        *found = true;
-    }
-}
-
-void
-Nonterm::solve_follows(bool *found)
-{
-    for (auto& rule : rules) {
-        auto sym = rule->product.begin();
-        for (; sym < rule->product.end(); sym++ ) {
-            Nonterm* nonterm = dynamic_cast<Nonterm*>(*sym);
-            if (nonterm) {
-                size_t before = nonterm->follows.size();
-
-                bool epsilon = false;
-                nonterm->insert_follows(sym + 1, rule->product.end(), &epsilon);
-                if (epsilon) {
-                    nonterm->follows.insert(rule->nonterm->follows.begin(),
-                                            rule->nonterm->follows.end());
-                }
-                if (nonterm->follows.size() > before) {
-                    *found = true;
-                }
-            }
-        }
-    }
-}
-
-void
-Nonterm::insert_firsts(vector<Symbol*>::iterator symbol,
-                       vector<Symbol*>::iterator end)
-{
-    for (; symbol < end; symbol++) {
-        Nonterm* nonterm = dynamic_cast<Nonterm*>(*symbol);
-        if (nonterm) {
-            firsts.insert(nonterm->firsts.begin(), nonterm->firsts.end());
-            if (!nonterm->has_empty)
-                return;
-        } else {
-            firsts.insert(*symbol);
-            return;
-        }
-    }
-    has_empty = true;
-}
-
-void
-Nonterm::insert_follows(vector<Symbol*>::iterator symbol,
-                        vector<Symbol*>::iterator end,
-                        bool* epsilon)
-{
-    for (; symbol < end; symbol++) {
-        Nonterm* nonterm = dynamic_cast<Nonterm*>(*symbol);
-        if (nonterm) {
-            follows.insert(nonterm->firsts.begin(), nonterm->firsts.end());
-            if (!nonterm->has_empty)
-                return;
-        } else {
-            follows.insert(*symbol);
-            return;
-        }
-    }
-    *epsilon = true;
 }
 
 /******************************************************************************/
-Nonterm::Rule::Rule(Nonterm* nonterm):
-    nonterm(nonterm), id(0){}
+Nonterm::Rule::Rule(Nonterm* nonterm, const string& action):
+    nonterm (nonterm),
+    action  (action),
+    id      (0){}
 
 void
-Nonterm::Rule::write_rule(ostream& out) const
+Nonterm::Rule::write_action(ostream& out) const
 {
-    out << "unique_ptr<" << nonterm->type << "> " << reduce << "(";
+    out << "unique_ptr<" << nonterm->type << "> " << action << "(";
     
-    bool first = true;
+    bool comma = false;
     for (auto sym : product) {
-        Nonterm* nonterm = dynamic_cast<Nonterm*>(sym);
-        if (nonterm) {
-            if (!first) {
+        if (!sym->type.empty()) {
+            if (comma) {
                 out << ", ";
+            } else {
+                comma = true;
             }
-            out << "unique_ptr<" << nonterm->type << ">&";
-            first = false;
-        } else {
-            if (!sym->type.empty()) {
-                if (!first) {
-                    out << ", ";
-                }
+            Nonterm* nonterm = dynamic_cast<Nonterm*>(sym);
+            if (nonterm) {
+                out << "unique_ptr<" << nonterm->type << ">&";
+            } else {
                 out << sym->type;
-                first = false;
             }
         }
     }

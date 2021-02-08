@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Main class for building a language parser.
+ */
+
 #ifndef parser_hpp
 #define parser_hpp
 
@@ -16,28 +20,21 @@ using std::unique_ptr;
 
 /*******************************************************************************
  * Builds a language parser.  The class reads in grammar rules and outputs
- * source code that parses a regular language.
+ * source code that parses a regular language. Each nonterminal has one
+ * or more rules seperated by vertical bars and terminated with a semicolon.
  */
 class Parser
 {
   public:
     Parser();
     
-    /**
-     * Reads in the grammar which define the parser.  Each nonterminal has one
-     * or more rules seperated by vertical bars and terminated with a semicolon.
-     */
+    /** Read in the grammar that defines the parser. */
     bool read_grammar(istream& in);
     
-    /**
-     * After reading in the grammar, solve for all possible parse states.
-     */
+    /** After reading, solve for all possible parse states. */
     void solve();
     
-    /**
-     * After solving for all possible parse states, write the source code for
-     * the parser.
-     */
+    /** After solving, write the source code for the parser. */
     void write(ostream& out) const;
     void print_grammar(ostream& out) const;
 
@@ -50,20 +47,21 @@ class Parser
     map<string, unique_ptr<Symbol>> terms;
     map<string, unique_ptr<Nonterm>> nonterms;
     Nonterm* first;
-    
-    /** Reads and then interns unique terminal and nonterminal names. */
-    Symbol* intern_term(istream& in);
-    Nonterm* intern_nonterm(istream& in);
-     
+         
     /** Recursive decent parser for reading grammar rules. */
     bool read_term(istream& in);
     bool read_rules(istream& in);
     bool read_product(istream& in, vector<Symbol*>* syms);
+    
+    /** Reads and then interns unique terminal and nonterminal names. */
+    Symbol* intern_term(istream& in);
+    Nonterm* intern_nonterm(istream& in);
         
     /** Recursive decent parser for reading grammar rules. */
     bool read_term_name(istream& in, string* name);
     bool read_nonterm_name(istream& in, string* type);
     
+    /** Attributes of the grammar rules. */
     bool read_type(istream& in, string* type);
     bool read_regex(istream& in, string* regex);
     bool read_action(istream& in, string* action);
@@ -73,7 +71,7 @@ class Parser
 
     /**
      * The first step to finding all possible parse states is finding all
-     * terminals that could be first in or follow every nonterminal.
+     * terminals that could be first in a rule or follows nonterminal.
      */
     void solve_first();
     void solve_follows();

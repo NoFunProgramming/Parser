@@ -20,6 +20,7 @@ class State
     class Item {
       public:
         Item(Nonterm::Rule* rule, size_t mark, Symbol* ahead);
+        
         Nonterm::Rule* rule;
         size_t mark;
         Symbol* ahead;
@@ -27,9 +28,6 @@ class State
         Item advance();
         vector<Symbol*> rest();
                 
-        bool is_end();
-        bool is_next(Symbol* symbol);
-        
         Symbol* next();
         Nonterm* next_nonterm();
         
@@ -39,6 +37,8 @@ class State
     
     void add(Item item);
     void closure();
+    
+    
 
     /** Shift or reduce based on the state and next symbol. */
     class Actions {

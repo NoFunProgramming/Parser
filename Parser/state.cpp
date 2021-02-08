@@ -25,7 +25,8 @@ State::closure()
         if (nonterm) {
             vector<Symbol*> product = item.advance().rest();
             product.push_back(item.ahead);
-            
+
+            // TODO Check the calculation of terms.
             for (auto& rule : nonterm->rules) {
                 set<Symbol*> terms;
                 firsts(product, &terms);
@@ -48,7 +49,7 @@ State::firsts(const vector<Symbol*>& symbols, set<Symbol*>* firsts)
         Nonterm* nonterm = dynamic_cast<Nonterm*>(sym);
         if (nonterm) {
             firsts->insert(nonterm->firsts.begin(), nonterm->firsts.end());
-            if (!nonterm->has_empty) {
+            if (!nonterm->empty_first) {
                 return;
             }
         } else {
@@ -63,7 +64,7 @@ State::solve_next(Symbol* symbol)
 {
     unique_ptr<State> state = make_unique<State>(0);
     for (auto item : items) {
-        if (item.is_next(symbol))
+        if (item.next() == symbol)
             state->items.insert(item.advance());
     }
     state->closure();
@@ -93,7 +94,7 @@ State::solve_actions(Item accept)
                 actions->shift[term] = found->second;
             }
         }
-        else if (item.is_end()) {
+        else if (!item.next()) {
             if (item == accept) {
                 actions->accept[&Symbol::Endmark] = item.rule;
             } else {
@@ -232,8 +233,7 @@ State::Item::Item(Nonterm::Rule* rule, size_t mark, Symbol* ahead):
     ahead   (ahead){}
 
 State::Item
-State::Item::advance()
-{
+State::Item::advance() {
     if (mark == rule->product.size()) {
         throw std::exception();
     }
@@ -241,8 +241,7 @@ State::Item::advance()
 }
 
 vector<Symbol*>
-State::Item::rest()
-{
+State::Item::rest() {
     vector<Symbol*> result;
     result.insert(result.end(),
                   rule->product.begin() + mark,
@@ -250,23 +249,8 @@ State::Item::rest()
     return result;
 }
 
-bool
-State::Item::is_end() {
-    return rule->product.size() == mark;
-}
-
-bool
-State::Item::is_next(Symbol* symbol) {
-    if (mark < rule->product.size()) {
-        return symbol == rule->product[mark];
-    } else {
-        return false;
-    }
-}
-
 Symbol*
-State::Item::next()
-{
+State::Item::next() {
     if (mark < rule->product.size()) {
         return rule->product[mark];
     } else {
@@ -275,8 +259,7 @@ State::Item::next()
 }
 
 Nonterm*
-State::Item::next_nonterm()
-{
+State::Item::next_nonterm() {
     if (mark < rule->product.size()) {
         return dynamic_cast<Nonterm*>(rule->product[mark]);
     } else {
@@ -285,29 +268,23 @@ State::Item::next_nonterm()
 }
 
 bool
-State::Item::operator==(const Item& other) const
-{
+State::Item::operator==(const Item& other) const {
     if (rule != other.rule) {
         return false;
-    }
-    else if (ahead != other.ahead) {
+    } else if (ahead != other.ahead) {
         return false;
-    }
-    else {
+    } else {
         return mark == other.mark;
     }
 }
 
 bool
-State::Item::operator<(const Item& other) const
-{
+State::Item::operator<(const Item& other) const {
     if (rule != other.rule) {
         return rule < other.rule;
-    }
-    else if (ahead != other.ahead) {
+    } else if (ahead != other.ahead) {
         return ahead < other.ahead;
-    }
-    else {
+    } else {
         return mark < other.mark;
     }
 }
