@@ -2,6 +2,7 @@
 
 using std::make_unique;
 
+/******************************************************************************/
 State::State(size_t id):
     id(id){}
 
@@ -87,8 +88,8 @@ State::solve_actions(Item accept)
     actions = make_unique<Actions>();
 
     for (auto item : items) {
-        Symbol* term = item.next();
-        if (term && !dynamic_cast<Nonterm*>(term)) {
+        Term* term = dynamic_cast<Term*>(item.next());
+        if (term) {
             auto found = nexts.find(term);
             if (found != nexts.end()) {
                 actions->shift[term] = found->second;
@@ -139,12 +140,12 @@ State::print(ostream& out) const
     }
 }
 
-/******************************************************************************/
 void
 State::write(ostream& out) const {
     out << "state" << id;
 }
 
+/******************************************************************************/
 void
 State::write_declare(ostream& out) const {
     out << "extern State "; write(out); out << ";\n";
@@ -189,10 +190,10 @@ State::write_shift(ostream& out) const
         act.first->write(out);
         out << ", &";
         act.second->write(out);
-        out << "},";
-        out << " \\\\ ";
+        out << "}, // ";
         act.first->print(out);
-        out << " -> State " << id;
+        out << " -> ";
+        act.second->print(out);
         out << "\n";
     }
     out << "};\n";
@@ -208,10 +209,12 @@ State::write_accept(ostream& out) const
     for (auto& act : actions->accept) {
         out << "    {&";
         act.first->write(out);
-        out << ", &rule" << act.second->id << "},";
-        out << " \\\\ ";
+        out << ", &";
+        act.second->write(out);
+        out << "}, // ";
         act.first->print(out);
-        out << " -> Rule " << id;
+        out << " -> ";
+        act.second->print(out);
         out << "\n";
     }
     out << "};\n";
@@ -227,28 +230,34 @@ State::write_reduce(ostream& out) const
     for (auto& act : actions->reduce) {
         out << "    {&";
         act.first->write(out);        
-        out << ", &rule" << act.second->id << "},";
-        out << " \\\\ ";
+        out << ", &";
+        act.second->write(out);
+        out << "}, // ";
         act.first->print(out);
-        out << " -> Rule " << id;
+        out << " -> ";
+        act.second->print(out);
         out << "\n";
     }
     out << "};\n";
 }
 
 void
-State::write_next(ostream& out) const
+State::write_goto(ostream& out) const
 {
     if (gotos.size() ==  0)
         return;
 
-    out << "Next next" << id << "[] = {\n";
-    for (auto& next : gotos) {
+    out << "Go go" << id << "[] = {\n";
+    for (auto& go : gotos) {
         out << "    {&";
-        next.first->write(out);
+        go.first->write(out);
         out << ", &";
-        next.second->write(out);
-        out << "},\n";
+        go.second->write(out);
+        out << "}, //";
+        go.first->print(out);
+        out << " -> ";
+        go.second->write(out);
+        out << "\n";
     }
     out << "};\n";
 }
@@ -320,6 +329,9 @@ State::Item::operator<(const Item& other) const {
 void
 State::Item::print(ostream& out) const
 {
+    rule->nonterm->print(out);
+    out << ": ";
+    
     bool first = true;    
     for (size_t i = 0; i < rule->product.size(); i++) {
         if (i == mark) {

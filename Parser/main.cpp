@@ -29,9 +29,9 @@ test_grammar()
     
     parser.read_grammar(in);
     parser.solve();
-    //parser.print_grammar(std::cout);
-    parser.print_states(std::cout);
-    parser.write(std::cout);
+    parser.print_grammar(std::cout);
+    //parser.print_states(std::cout);
+    //parser.write(std::cout);
 }
 
 /*******************************************************************************

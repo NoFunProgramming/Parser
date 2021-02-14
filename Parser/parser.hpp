@@ -84,11 +84,11 @@ class Parser
      * and nonterminal names.  The parser can then store production rules as
      * vectors of pointers to these terminal and nonterminal symbols.
      */
-    map<string, unique_ptr<Symbol>> terms;
+    map<string, unique_ptr<Term>> terms;
     map<string, unique_ptr<Nonterm>> nonterms;
     vector<Nonterm*> all;
     Nonterm* first;
-    Symbol* endmark;
+    Endmark endmark;
          
     /** Recursive decent parser for reading grammar rules. */
     bool read_term(istream& in);
@@ -96,7 +96,7 @@ class Parser
     bool read_product(istream& in, vector<Symbol*>* syms);
     
     /** Reads and add to, or finds in, the set of symbol names. */
-    Symbol* intern_term(istream& in);
+    Term* intern_term(istream& in);
     Nonterm* intern_nonterm(istream& in);
         
     /** Recursive decent parser for reading grammar rules. */

@@ -1,25 +1,42 @@
 #include "symbols.hpp"
 
 /******************************************************************************/
-Symbol::Symbol(const string& name):
+Term::Term(const string& name, size_t rank):
     name(name),
     type(""),
-    id  (0){}
-
-//Symbol Symbol::Endmark("endmark");
+    rank(rank){}
 
 void
-Symbol::print(ostream& out) const {
+Term::print(ostream& out) const {
     out << "'" << name << "'";
 }
 
 void
-Symbol::write(ostream& out) const {
-    out << "term" << id;
+Term::write(ostream& out) const {
+    out << "term" << rank;
+}
+
+void
+Term::write_declare(ostream& out) const {
+    out << "term" << rank;
 }
 
 /******************************************************************************/
-Nonterm::Nonterm(const string& name): Symbol(name),
+void
+Endmark::print(ostream& out) const {
+    out << "$";
+}
+
+void
+Endmark::write(ostream& out) const {
+    out << "endmark";
+}
+
+/******************************************************************************/
+Nonterm::Nonterm(const string& name):
+    name(name),
+    type(""),
+    rank(0),
     empty_first(false){}
 
 void
@@ -29,7 +46,7 @@ Nonterm::print(ostream& out) const {
 
 void
 Nonterm::write(ostream& out) const {
-    out << "nonterm" << id;
+    out << "nonterm" << rank;
 }
 
 void
@@ -199,6 +216,27 @@ Nonterm::Rule::Rule(Nonterm* nonterm, const string& action):
     id      (0){}
 
 void
+Nonterm::Rule::print(ostream& out) const
+{
+    out << nonterm->name << ":";
+
+    bool space = false;
+    for (auto sym : product) {
+        if (space) {
+            out << " ";
+        } else {
+            space = true;
+        }
+        sym->print(out);
+    }
+}
+
+void
+Nonterm::Rule::write(ostream& out) const {
+    out << "rule" << id;
+}
+
+void
 Nonterm::Rule::write_action(ostream& out) const
 {
     if (!nonterm->type.empty()) {
@@ -210,18 +248,23 @@ Nonterm::Rule::write_action(ostream& out) const
     
     bool comma = false;
     for (auto sym : product) {
-        if (!sym->type.empty()) {
+        Term* term = dynamic_cast<Term*>(sym);
+        if (term && !term->type.empty()) {
             if (comma) {
                 out << ", ";
             } else {
                 comma = true;
             }
-            Nonterm* nonterm = dynamic_cast<Nonterm*>(sym);
-            if (nonterm) {
-                out << "unique_ptr<" << nonterm->type << ">&";
+            out << term->type;
+        }
+        Nonterm* nonterm = dynamic_cast<Nonterm*>(sym);
+        if (nonterm && !nonterm->type.empty()) {
+            if (comma) {
+                out << ", ";
             } else {
-                out << sym->type;
+                comma = true;
             }
+            out << "unique_ptr<" << nonterm->type << ">&";
         }
     }
     out << ");\n";

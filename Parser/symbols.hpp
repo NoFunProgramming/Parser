@@ -20,36 +20,57 @@ using std::ostream;
 using std::unique_ptr;
 
 /*******************************************************************************
- * Symbols for defining a regular language.  Every symbol has a name identifier
- * and an optional associated type.  The type defines the return value of the
- * action method of the symbol.  Endmark is a special terminal and indicates
- * the end of an input string.
+ * Symbols for defining a regular language.  This is the base class for all
+ * types of symbols, such as terminals and nonterminals.
  */
 class Symbol
 {
   public:
-    Symbol(const string& name);
+    virtual void print(ostream& out) const = 0;
+    virtual void write(ostream& out) const = 0;
+};
+
+/*******************************************************************************
+ * Terminals are the smallest unit of the grammar and often represent a specific
+ * pattern of characters, such as a integer.
+ */
+class Term : public Symbol
+{
+  public:
+    Term(const string& name, size_t rank);
     string name;
     string type;
-    size_t id;
+    size_t rank;
 
-    //static Symbol Endmark;
-    
+    virtual void print(ostream& out) const;
+    virtual void write(ostream& out) const;
+    virtual void write_declare(ostream& out) const;
+};
+
+/*******************************************************************************
+ * Endmark is a special terminal and indicates the end of an input string.
+ */
+class Endmark : public Symbol
+{
+  public:
     virtual void print(ostream& out) const;
     virtual void write(ostream& out) const;
 };
 
 /*******************************************************************************
- * Nonterminals of the grammar.  To form the language, every nonterminals of the
+ * Nonterminals of the grammar.  To form the language, every nonterminal of the
  * grammar represent a sequnce of symbols, either terminals or nonterminals.
  * These nonterminals have additional properties, such as the first and
- * following terminals which are used to generate a parser.
+ * following terminals which are used to solve for the states of a parser.
  */
 class Nonterm : public Symbol
 {
   public:
     Nonterm(const string& name);
-    
+    string name;
+    string type;
+    size_t rank;
+
     virtual void print(ostream& out) const;
     virtual void write(ostream& out) const;
   
@@ -57,7 +78,7 @@ class Nonterm : public Symbol
      * All nonterminals have one or more production rules, vectors of symbols,
      * that list the symbol sequence that defines a given nonterminal.  Each
      * rule can also have an action that is to occur each time the parser
-     * matches a rule and reduces its string of symbols to a nonterminal.
+     * matches a rule and reduces its sequence of symbols to a nonterminal.
      */
     class Rule {
       public:
@@ -67,6 +88,8 @@ class Nonterm : public Symbol
         string action;
         size_t id;
         
+        virtual void print(ostream& out) const;
+        virtual void write(ostream& out) const;
         void write_action(ostream& out) const;
     };
     

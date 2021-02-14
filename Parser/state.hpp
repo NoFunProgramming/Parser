@@ -18,7 +18,9 @@ class State
   public:
     State(size_t id);
     size_t id;
-    const string& get_ident() const;
+    
+    void print(ostream& out) const;
+    void write(ostream& out) const;
     
     bool operator<(const State& other) const;
     
@@ -54,32 +56,27 @@ class State
     /** Shift or reduce based on the state and next symbol. */
     class Actions {
       public:
-        map<Symbol*, State*> shift;
+        map<Term*, State*> shift;
         map<Symbol*, Nonterm::Rule*> accept;
         map<Symbol*, Nonterm::Rule*> reduce;
     };
-        
-    
+
     void solve_actions(Item accept);
     void solve_gotos();
     
-    void print(ostream& out) const;
-
     /** Write the states source code. */
-    void write(ostream& out) const;
     void write_declare(ostream& out) const;
     void write_define(ostream& out) const;
     void write_shift(ostream& out) const;
     void write_accept(ostream& out) const;
     void write_reduce(ostream& out) const;
-    void write_next(ostream& out) const;
+    void write_goto(ostream& out) const;
             
   private:
     set<Item> items;
     map<Symbol*, State*> nexts;
     map<Symbol*, State*> gotos;
     unique_ptr<Actions> actions;
-    
     
     static void firsts(const vector<Symbol*>& symbols, set<Symbol*>* firsts);
 };
