@@ -1,6 +1,9 @@
 #include "lexer.hpp"
 
+#include <sstream>
 using std::make_unique;
+using std::istringstream;
+using std::cerr;
 
 /******************************************************************************/
 Lexer::Lexer():
@@ -24,6 +27,19 @@ Lexer::add(Accept* accept, const string& regex)
     return true;
 }
 
+bool
+Lexer::add_series(Accept* accept, const string& series)
+{
+    unique_ptr<Literal> expr = Literal::parse(series, accept);
+    if (!expr) {
+        std::cerr << "Unable to parse character series.\n";
+        return false;
+    }
+    
+    literals.push_back(std::move(expr));
+    return true;
+}
+
 /**
  * Converts the multiple non-deterministic finite automaton (NFA) defined by
  * regular expressions into a single deterministic finite automaton (DFA).
@@ -42,6 +58,10 @@ Lexer::solve()
     for (auto& expr : exprs) {
         first->add_finite(expr->get_start());
     }
+    for (auto& expr : literals) {
+        first->add_finite(expr->get_start());
+    }
+    
     first->solve_closure();
     first->solve_accept();
     initial = first.get();
@@ -235,4 +255,74 @@ Lexer::State::Range::write(ostream& out) const
     out << "(c >= '" << (char)first << "')";
     out << " && ";
     out << "(c <= '" << (char)last << "')";
+}
+
+/******************************************************************************/
+Lexer::Literal::Literal():
+    start(nullptr) {}
+
+Finite* Lexer::Literal::get_start() { return start; }
+
+unique_ptr<Lexer::Literal>
+Lexer::Literal::parse(const string& in, Accept* accept)
+{
+    unique_ptr<Literal> result(make_unique<Literal>());
+    
+    istringstream input(in);
+    
+    result->start = result->parse_term(input, accept);
+    
+    if (!result->start) {
+        std::cerr << "Unable to parse expression '" << in << "'.\n";
+        result.reset();
+    }
+
+    return result;
+}
+
+/**
+ * Builds a new state and retains ownership.  No memory leaks occur if any
+ * exceptions or errors occur during subset construction, as the states vector
+ * contains all fragments of the automaton.
+ */
+Finite*
+Lexer::Literal::add_state() {
+    states.emplace_back(make_unique<Finite>());
+    return states.back().get();
+}
+
+Finite*
+Lexer::Literal::add_state(Accept* accept) {
+    states.emplace_back(make_unique<Finite>(accept));
+    return states.back().get();
+}
+
+
+Finite*
+Lexer::Literal::parse_term(istream& in, Accept* accept)
+{
+    Finite* fact = add_state();
+    Finite* term = fact;
+    
+    while (true)
+    {
+        int c = in.get();
+        if (!isprint(c)) {
+            cerr << "Expected a printable character.\n";
+            return nullptr;
+        }
+        
+        if (in.peek() == EOF) {
+            Finite* next = add_state(accept);
+            term->add_out(c, next);
+            break;
+        }
+        else {
+            Finite* next = add_state();
+            term->add_out(c, next);
+            term = next;
+        }
+    }
+    
+    return term;
 }

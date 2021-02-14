@@ -88,7 +88,7 @@ State::solve_actions(Item accept)
 
     for (auto item : items) {
         Symbol* term = item.next();
-        if (term) {
+        if (term && !dynamic_cast<Nonterm*>(term)) {
             auto found = nexts.find(term);
             if (found != nexts.end()) {
                 actions->shift[term] = found->second;
@@ -96,7 +96,7 @@ State::solve_actions(Item accept)
         }
         else if (!item.next()) {
             if (item == accept) {
-                actions->accept[&Symbol::Endmark] = item.rule;
+                actions->accept[item.ahead] = item.rule;
             } else {
                 actions->reduce[item.ahead] = item.rule;
             }
@@ -122,6 +122,21 @@ State::solve_gotos()
 bool
 State::operator<(const State& other) const {
     return items < other.items;
+}
+
+/******************************************************************************/
+void
+State::print(ostream& out) const
+{
+    out << "State " << id << "\n";
+    for (auto& item : items) {
+        item.print(out);
+        out << "\n";
+    }
+    for (auto next : nexts) {
+        next.first->print(out);
+        out <<  " -> " << next.second->id << "\n";
+    }
 }
 
 /******************************************************************************/
@@ -174,7 +189,11 @@ State::write_shift(ostream& out) const
         act.first->write(out);
         out << ", &";
         act.second->write(out);
-        out << "},\n";
+        out << "},";
+        out << " \\\\ ";
+        act.first->print(out);
+        out << " -> State " << id;
+        out << "\n";
     }
     out << "};\n";
 }
@@ -189,7 +208,11 @@ State::write_accept(ostream& out) const
     for (auto& act : actions->accept) {
         out << "    {&";
         act.first->write(out);
-        out << ", &rule" << act.second->id << "},\n";
+        out << ", &rule" << act.second->id << "},";
+        out << " \\\\ ";
+        act.first->print(out);
+        out << " -> Rule " << id;
+        out << "\n";
     }
     out << "};\n";
 }
@@ -203,8 +226,12 @@ State::write_reduce(ostream& out) const
     out << "Reduce reduce" << id << "[] = {\n";
     for (auto& act : actions->reduce) {
         out << "    {&";
-        act.first->write(out);
-        out << ", &rule" << act.second->id << "},\n";
+        act.first->write(out);        
+        out << ", &rule" << act.second->id << "},";
+        out << " \\\\ ";
+        act.first->print(out);
+        out << " -> Rule " << id;
+        out << "\n";
     }
     out << "};\n";
 }
@@ -234,10 +261,11 @@ State::Item::Item(Nonterm::Rule* rule, size_t mark, Symbol* ahead):
 
 State::Item
 State::Item::advance() {
-    if (mark == rule->product.size()) {
-        throw std::exception();
+    if (mark < rule->product.size()) {
+        return Item(rule, mark + 1, ahead);
+    } else {
+        return Item(rule, mark, ahead);
     }
-    return Item(rule, mark + 1, ahead);
 }
 
 vector<Symbol*>
@@ -289,3 +317,36 @@ State::Item::operator<(const Item& other) const {
     }
 }
 
+void
+State::Item::print(ostream& out) const
+{
+    bool first = true;    
+    for (size_t i = 0; i < rule->product.size(); i++) {
+        if (i == mark) {
+            if (!first) {
+                out << " ";
+            } else {
+                first = false;
+            }
+            out << ".";
+        }
+        if (!first) {
+            out << " ";
+        } else {
+            first = false;
+        }
+        rule->product[i]->print(out);
+    }
+    
+    if (mark == rule->product.size()) {
+        if (!first) {
+            out << " ";
+        } else {
+            first = false;
+        }
+        out << ".";
+    }
+    
+    out << " , ";
+    ahead->print(out);
+}

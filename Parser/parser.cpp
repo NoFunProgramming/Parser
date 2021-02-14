@@ -36,11 +36,14 @@ Parser::solve()
 {
     lexer.solve();
     
+    terms["$"] = make_unique<Symbol>("$");
+    endmark = terms["$"].get();
+
     solve_first();
-    solve_follows();
+    solve_follows(endmark);
     
     auto state = make_unique<State>(states.size());
-    state->add(State::Item(first->rules.front().get(), 0, &Symbol::Endmark));
+    state->add(State::Item(first->rules.front().get(), 0, endmark));
     state->closure();
     
     start = state.get();
@@ -82,7 +85,7 @@ Parser::solve()
     }
 
     Nonterm::Rule* rule = first->rules.front().get();
-    State::Item accept(rule, rule->product.size(), &Symbol::Endmark);
+    State::Item accept(rule, rule->product.size(), endmark);
 
     for (auto& state : states) {
         state->solve_actions(accept);
@@ -143,7 +146,9 @@ Parser::write(ostream& out) const
     out << "\n";
 
     for (auto& nonterm : nonterms) {
-        nonterm.second->write_actions(out);
+        for (auto& rule : nonterm.second->rules) {
+            rule->write_action(out);
+        }
     }
     out << "\n";
 }
@@ -151,16 +156,33 @@ Parser::write(ostream& out) const
 void
 Parser::print_grammar(ostream& out) const
 {
-    for (auto& nonterm : nonterms) {
-        nonterm.second->print_rules(out);
+    for (auto nonterm : all) {
+        nonterm->print_rules(out);
         out << "\n";
     }
-    for (auto& nonterm : nonterms) {
-        nonterm.second->print_firsts(out);
+    out << "Firsts:\n";
+    for (auto nonterm : all) {
+        nonterm->print_firsts(out);
         out << "\n";
     }
-    for (auto& nonterm : nonterms) {
-        nonterm.second->print_follows(out);
+    out << "\n";
+    out << "Follows:\n";
+    for (auto nonterm : all) {
+        nonterm->print_follows(out);
+        out << "\n";
+    }
+    out << "\n";
+}
+
+void
+Parser::print_states(ostream& out) const
+{
+    size_t id = 0;
+    for (auto& state : states) {
+        state->id = id++;
+    }
+    for (auto& state : states) {
+        state->print(out);
         out << "\n";
     }
 }
@@ -176,10 +198,10 @@ Parser::intern_term(istream& in)
         return nullptr;
     }
     if (terms.count(name) == 0) {
-        // TODO Add a parse for just a string of characters.
         // TODO Store all of the accept values.
         Accept* accept = new Accept(name, terms.size());
-        lexer.add(accept, name);
+        //lexer.add(accept, name);
+        lexer.add_series(accept, name);
         terms[name] = make_unique<Symbol>(name);
     }
     return terms[name].get();
@@ -232,11 +254,13 @@ Parser::read_term(istream& in)
         return false;
     }
     
+    
     terms[name] = make_unique<Symbol>(name);
     Symbol* term = terms[name].get();
     term->type = type;
     
-    Accept* accept = new Accept(term->name, terms.size());
+    Accept* accept = new Accept(term->name, terms.size() - 1);
+    
     if (!regex.empty()) {
         lexer.add(accept, regex);
     } else {
@@ -257,6 +281,8 @@ Parser::read_rules(istream& in)
         cerr << "Rule must start with a nonterminal.\n";
         return false;
     }
+    all.push_back(nonterm);
+    
     string type;
     if (!read_type(in, &type)) {
         return false;
@@ -333,7 +359,7 @@ Parser::read_term_name(istream& in, string* name)
         cerr << "Expected quote to start terminal.\n";
         return false;
     }
-    while (isalpha(in.peek())) {
+    while (isprint(in.peek()) && in.peek() != '\'') {
         name->push_back(in.get());
     }
     if (in.get() != '\'') {
@@ -421,11 +447,11 @@ Parser::solve_first()
 }
 
 void
-Parser::solve_follows()
+Parser::solve_follows(Symbol* endmark)
 {
     if (first) {
         Nonterm::Rule* rule = first->rules.front().get();
-        rule->nonterm->follows.insert(&Symbol::Endmark);
+        rule->nonterm->follows.insert(endmark);
     }
 
     bool found = false;

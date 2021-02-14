@@ -3,9 +3,10 @@
 /******************************************************************************/
 Symbol::Symbol(const string& name):
     name(name),
+    type(""),
     id  (0){}
 
-Symbol Symbol::Endmark("endmark");
+//Symbol Symbol::Endmark("endmark");
 
 void
 Symbol::print(ostream& out) const {
@@ -22,6 +23,16 @@ Nonterm::Nonterm(const string& name): Symbol(name),
     empty_first(false){}
 
 void
+Nonterm::print(ostream& out) const {
+    out << name;
+}
+
+void
+Nonterm::write(ostream& out) const {
+    out << "nonterm" << id;
+}
+
+void
 Nonterm::add_rule(const vector<Symbol*>& syms, const string& action)
 {
     rules.emplace_back(std::make_unique<Rule>(this, action));
@@ -32,7 +43,8 @@ Nonterm::add_rule(const vector<Symbol*>& syms, const string& action)
 
 /******************************************************************************/
 void
-Nonterm::solve_first(bool *found) {
+Nonterm::solve_first(bool *found)
+{
     for (auto& rule : rules) {
         insert_firsts(rule.get(), found);
     }
@@ -89,7 +101,7 @@ Nonterm::solve_follows(bool *found)
 }
 
 void
-Nonterm::insert_follows(set<Symbol*>& syms, bool* found)
+Nonterm::insert_follows(const set<Symbol*>& syms, bool* found)
 {
     for (Symbol* sym : syms) {
         auto in = follows.insert(sym);
@@ -126,11 +138,6 @@ Nonterm::insert_follows(vector<Symbol*>::iterator sym,
 
 /******************************************************************************/
 void
-Nonterm::print(ostream& out) const {
-    out << name;
-}
-
-void
 Nonterm::print_rules(ostream& out) const
 {
     bool bar = false;
@@ -156,32 +163,32 @@ Nonterm::print_rules(ostream& out) const
 }
 
 void
-Nonterm::print_firsts(ostream& out) const {
-    print(out);
-    out << ": ";
+Nonterm::print_firsts(ostream& out) const
+{
+    out << "  "; print(out); out << ": ";
+    bool space = false;
     for (auto sym : firsts) {
+        if (space) {
+            out << " ";
+        } else {
+            space = true;
+        }
         sym->print(out);
     }
 }
 
 void
-Nonterm::print_follows(ostream& out) const {
-    print(out);
-    out << ": ";
+Nonterm::print_follows(ostream& out) const
+{
+    out << "  "; print(out); out << ": ";
+    bool space = false;
     for (auto sym : follows) {
+        if (space) {
+            out << " ";
+        } else {
+            space = true;
+        }
         sym->print(out);
-    }
-}
-
-void
-Nonterm::write(ostream& out) const {
-    out << "nonterm" << id;
-}
-
-void
-Nonterm::write_actions(ostream& out) const {
-    for (auto& rule : rules) {
-        rule->write_action(out);
     }
 }
 
@@ -194,7 +201,12 @@ Nonterm::Rule::Rule(Nonterm* nonterm, const string& action):
 void
 Nonterm::Rule::write_action(ostream& out) const
 {
-    out << "unique_ptr<" << nonterm->type << "> " << action << "(";
+    if (!nonterm->type.empty()) {
+        out << "unique_ptr<" << nonterm->type << ">";
+    } else {
+        out << "void";
+    }
+    out << " " << action << "(";
     
     bool comma = false;
     for (auto sym : product) {

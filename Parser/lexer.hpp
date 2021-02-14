@@ -53,6 +53,7 @@ class Lexer
      * returns true if the provided expression is valid.
      */
     bool add(Accept* accept, const string& regex);
+    bool add_series(Accept* accept, const string& series);
     
     /** After adding expressions, call solve to build to DFA. */
     void solve();
@@ -117,6 +118,25 @@ class Lexer
     /** The DFA is defined by an initial state and unique sets of NFA states. */
     State* initial;
     set<unique_ptr<State>, State::Compare> states;
+    
+    class Literal {
+      public:
+        static unique_ptr<Literal> parse(const string& in, Accept* accept);
+        Literal();
+        
+        Finite* get_start();
+
+      private:
+        /** States of the NFA, owned by the literal object. */
+        Finite* start;
+        vector<unique_ptr<Finite>> states;
+        Finite* add_state();
+        Finite* add_state(Accept* accept);
+
+        Finite* parse_term(istream& in, Accept* accept);
+    };
+    
+    vector<unique_ptr<Literal>> literals;
 };
 
 #endif

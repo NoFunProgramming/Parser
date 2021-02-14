@@ -1,3 +1,9 @@
+/*******************************************************************************
+ * State of the parser.  To build a parser, the program will solve for every
+ * possible state that could occur while reading a valid input for the given
+ * language.
+ */
+
 #ifndef state_hpp
 #define state_hpp
 
@@ -16,7 +22,11 @@ class State
     
     bool operator<(const State& other) const;
     
-    /** Each state is a set of possible parse states. */
+    /**
+     * Each state is a set of possible parse states. At any given time while
+     * parsing a valid input, the parser must be within one rule, looking for
+     * one a several symbols that could be next based on the possible rules.
+     */
     class Item {
       public:
         Item(Nonterm::Rule* rule, size_t mark, Symbol* ahead);
@@ -30,16 +40,17 @@ class State
                 
         Symbol* next();
         Nonterm* next_nonterm();
-        
         bool operator==(const Item& other) const;
         bool operator<(const Item& other) const;
+        void print(ostream& out) const;
     };
     
     void add(Item item);
     void closure();
     
+    unique_ptr<State> solve_next(Symbol* symbol);
+    void add_next(Symbol* symbol, State* next);
     
-
     /** Shift or reduce based on the state and next symbol. */
     class Actions {
       public:
@@ -48,11 +59,11 @@ class State
         map<Symbol*, Nonterm::Rule*> reduce;
     };
         
-    unique_ptr<State> solve_next(Symbol* symbol);
-    void add_next(Symbol* symbol, State* next);
     
     void solve_actions(Item accept);
     void solve_gotos();
+    
+    void print(ostream& out) const;
 
     /** Write the states source code. */
     void write(ostream& out) const;
@@ -68,6 +79,7 @@ class State
     map<Symbol*, State*> nexts;
     map<Symbol*, State*> gotos;
     unique_ptr<Actions> actions;
+    
     
     static void firsts(const vector<Symbol*>& symbols, set<Symbol*>* firsts);
 };
