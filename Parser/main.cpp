@@ -13,14 +13,14 @@ test_grammar()
     Parser parser;
     
     string test =
-        "'num'<int>   [0-9]+    &scan_num;"
+        "'num'<Expr>   [0-9]+    &scan_num;"
         ""
-        "total<Value>: mul      &reduce_total"
+        "total<Expr>: mul      &reduce_total"
         "    ;"
 //        "add<Value>: mul        &reduce_add"
 //        "    | add '+' mul      &reduce_add_mul"
 //        "    ;"
-        "mul<Value>: 'num'      &reduce_mul"
+        "mul<Expr>: 'num'      &reduce_mul"
         "    | mul '*' 'num'    &reduce_mul_num"
         "    ;"
     ;
@@ -29,9 +29,11 @@ test_grammar()
     
     parser.read_grammar(in);
     parser.solve();
-    parser.print_grammar(std::cout);
-    //parser.print_states(std::cout);
-    //parser.write(std::cout);
+//    std::cout << "/*";
+//    parser.print_grammar(std::cout);
+//    parser.print_states(std::cout);
+//    std::cout << "*/";
+    parser.write(std::cout);
 }
 
 /*******************************************************************************

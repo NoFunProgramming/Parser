@@ -93,9 +93,26 @@ Parser::solve()
 void
 Parser::write(ostream& out) const
 {
+    out << "#include \"parser.hpp\"\n";
+    out << "#include \"values.hpp\"\n";
+    out << "#include <memory>\n";
+    out << "using std::unique_ptr;\n";
+    out << "\n";
+    
+    for (auto& term : terms) {
+        term.second->write_proto(out);
+    }
+    out << "\n";
+    
+    for (auto& term : terms) {
+        term.second->write_define(out);
+    }
+    out << "\n";
+
+    
     for (auto& term : terms) {
         out << "Term ";
-        term.second->write(out);
+        term.second->write_declare(out);
         out << ";\n";
     }
     out << "\n";
@@ -112,6 +129,14 @@ Parser::write(ostream& out) const
     }
     out << "\n";
     
+    for (auto& nonterm : all) {
+        for (auto& rule : nonterm->rules) {
+            rule->write_proto(out);
+        }
+    }
+    out << "\n";
+    
+    
     id = 0;
     for (auto& nonterm : nonterms) {
         for (auto& rule : nonterm.second->rules) {
@@ -119,6 +144,12 @@ Parser::write(ostream& out) const
             out << "Rule rule" << rule->id;
             out << " = {" << rule->product.size() << ", &";
             rule->nonterm->write(out);
+            out << ", ";
+            if (!rule->action.empty()) {
+                out << "&" << rule->action;
+            } else {
+                out << "nullptr";
+            }
             out << "};\n";
         }
     }
@@ -144,9 +175,16 @@ Parser::write(ostream& out) const
     }
     out << "\n";
 
-    for (auto& nonterm : nonterms) {
-        for (auto& rule : nonterm.second->rules) {
+    for (auto& nonterm : all) {
+        for (auto& rule : nonterm->rules) {
             rule->write_action(out);
+        }
+    }
+    out << "\n";
+
+    for (auto& nonterm : all) {
+        for (auto& rule : nonterm->rules) {
+            rule->write_define(out);
         }
     }
     out << "\n";
@@ -183,6 +221,7 @@ Parser::print_states(ostream& out) const
     }
     for (auto& state : states) {
         state->print(out);
+        state->print_items(out);
         out << "\n";
     }
 }
@@ -262,6 +301,7 @@ Parser::read_term(istream& in)
     terms[name] = make_unique<Term>(name, id);
     Term* term = terms[name].get();
     term->type = type;
+    term->action = action;
     
     Accept* accept = new Accept(term->name, id);
     
@@ -294,6 +334,9 @@ Parser::read_rules(istream& in)
         cerr << "Expected a colon before the production.\n";
         return false;
     }
+    // TODO Pass during the constructor.
+    nonterm->type = type;
+    
     if (!first) {
         first = nonterm;
     }

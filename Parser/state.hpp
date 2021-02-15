@@ -20,6 +20,8 @@ class State
     size_t id;
     
     void print(ostream& out) const;
+    void print_items(ostream& out) const;
+    
     void write(ostream& out) const;
     
     bool operator<(const State& other) const;

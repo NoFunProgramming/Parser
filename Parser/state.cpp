@@ -129,7 +129,12 @@ State::operator<(const State& other) const {
 void
 State::print(ostream& out) const
 {
-    out << "State " << id << "\n";
+    out << "State " << id;
+}
+
+void
+State::print_items(ostream& out) const
+{
     for (auto& item : items) {
         item.print(out);
         out << "\n";
@@ -155,10 +160,11 @@ void
 State::write_define(ostream& out) const
 {
     out << "State "; write(out); out << " = {";
+    out << id;
     if (actions->shift.size() > 0) {
-        out << "shift" << id;
+        out << ", shift" << id;
     } else {
-        out << "nullptr";
+        out << ", nullptr";
     }
     if (actions->accept.size() > 0) {
         out << ", accept" << id;
@@ -171,7 +177,7 @@ State::write_define(ostream& out) const
         out << ", nullptr";
     }
     if (gotos.size() > 0) {
-        out << ", next" << id;
+        out << ", go" << id;
     } else {
         out << ", nullptr";
     }
@@ -196,7 +202,7 @@ State::write_shift(ostream& out) const
         act.second->print(out);
         out << "\n";
     }
-    out << "};\n";
+    out << "    {nullptr, nullptr}};\n";
 }
 
 void
@@ -217,7 +223,7 @@ State::write_accept(ostream& out) const
         act.second->print(out);
         out << "\n";
     }
-    out << "};\n";
+    out << "    {nullptr, nullptr}};\n";
 }
 
 void
@@ -238,7 +244,7 @@ State::write_reduce(ostream& out) const
         act.second->print(out);
         out << "\n";
     }
-    out << "};\n";
+    out << "    {nullptr, nullptr}};\n";
 }
 
 void
@@ -259,7 +265,7 @@ State::write_goto(ostream& out) const
         go.second->write(out);
         out << "\n";
     }
-    out << "};\n";
+    out << "    {nullptr, nullptr}};\n";
 }
 
 /******************************************************************************/

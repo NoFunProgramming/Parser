@@ -41,10 +41,15 @@ class Term : public Symbol
     string name;
     string type;
     size_t rank;
+    string action;
 
     virtual void print(ostream& out) const;
     virtual void write(ostream& out) const;
     virtual void write_declare(ostream& out) const;
+    
+    void write_proto(ostream& out) const;
+    void write_action(ostream& out) const;
+    void write_define(ostream& out) const;
 };
 
 /*******************************************************************************
@@ -90,7 +95,9 @@ class Nonterm : public Symbol
         
         virtual void print(ostream& out) const;
         virtual void write(ostream& out) const;
+        void write_proto(ostream& out) const;
         void write_action(ostream& out) const;
+        void write_define(ostream& out) const;
     };
     
     vector<unique_ptr<Rule>> rules;

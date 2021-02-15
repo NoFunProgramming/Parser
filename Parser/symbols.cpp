@@ -19,6 +19,47 @@ Term::write(ostream& out) const {
 void
 Term::write_declare(ostream& out) const {
     out << "term" << rank;
+    out << " = {\"" << name << "\", ";
+    if (!action.empty()) {
+        out << "&";
+        write(out);
+        out << "_scan";
+    } else {
+        out << "nullptr";
+    }
+    out << "}";
+}
+
+void
+Term::write_proto(ostream& out) const {
+    if (action.empty())
+        return;
+    out << "unique_ptr<" << type << "> ";
+    out << action << "(const std::string& s);\n";
+    //out << "Value* " << action << "(const std::string& s);\n";
+}
+
+void
+Term::write_action(ostream& out) const
+{
+    if (action.empty())
+        return;
+    out << "unique_ptr<" << type << "> ";
+    out << action << "(const std::string& s);\n";
+}
+
+void
+Term::write_define(ostream& out) const {
+    if (action.empty())
+        return;
+    out << "Value*\n";
+    write(out);
+    out << "_scan(const std::string& s) {\n";
+    out << "    unique_ptr<" << type << "> value = ";
+    out << action << "(s);\n";
+    out << "    return value.release();\n";
+    out << "}\n";
+    
 }
 
 /******************************************************************************/
@@ -237,6 +278,16 @@ Nonterm::Rule::write(ostream& out) const {
 }
 
 void
+Nonterm::Rule::write_proto(ostream& out) const
+{
+    out << "Value*";
+    out << " " << action;
+    out << "(vector<Value*>&);\n";
+}
+
+
+
+void
 Nonterm::Rule::write_action(ostream& out) const
 {
     if (!nonterm->type.empty()) {
@@ -255,7 +306,8 @@ Nonterm::Rule::write_action(ostream& out) const
             } else {
                 comma = true;
             }
-            out << term->type;
+            //out << term->type;
+            out << "unique_ptr<" << nonterm->type << ">&";
         }
         Nonterm* nonterm = dynamic_cast<Nonterm*>(sym);
         if (nonterm && !nonterm->type.empty()) {
@@ -268,4 +320,56 @@ Nonterm::Rule::write_action(ostream& out) const
         }
     }
     out << ");\n";
+}
+
+void
+Nonterm::Rule::write_define(ostream& out) const
+{
+    out << "Value*\n";
+    out << action << "(vector<Value*>& values) {\n";
+    for (int i = 0; i < product.size(); i++) {
+        int index = i - (int)product.size();
+        
+        string type;
+        Term* term = dynamic_cast<Term*>(product[i]);
+        Nonterm* nonterm = dynamic_cast<Nonterm*>(product[i]);
+        if (term) {
+            type = term->type;
+        } else if (nonterm) {
+            type = nonterm->type;
+        }
+
+        if (!type.empty()) {
+            out << "    unique_ptr<" << type << "> ";
+            out << "E" << i << "(dynamic_cast<" << type << "*>";
+            out << "(values.end()[" << index << "]));\n";
+        }
+    }
+    out << "    unique_ptr<" << nonterm->type << "> R = ";
+    out << action << "(";
+
+    bool comma = false;
+    for (int i = 0; i < product.size(); i++) {
+        string type;
+        Term* term = dynamic_cast<Term*>(product[i]);
+        Nonterm* nonterm = dynamic_cast<Nonterm*>(product[i]);
+        if (term) {
+            type = term->type;
+        } else if (nonterm) {
+            type = nonterm->type;
+        }
+
+        if (!type.empty()) {
+            if (comma) {
+                out << ", ";
+            } else {
+                comma = true;
+            }
+            out << "E" << i;
+        }
+    }
+    
+    out << ");\n";
+    out << "    return R.release();\n";
+    out << "}\n\n";
 }
