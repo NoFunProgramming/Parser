@@ -26,6 +26,7 @@ using std::unique_ptr;
 class Symbol
 {
   public:
+    string type;
     virtual void print(ostream& out) const = 0;
     virtual void write(ostream& out) const = 0;
 };
@@ -39,13 +40,15 @@ class Term : public Symbol
   public:
     Term(const string& name, size_t rank);
     string name;
-    string type;
     size_t rank;
     string action;
-
+    
+    virtual bool has_type() const;
+    
     virtual void print(ostream& out) const;
     virtual void write(ostream& out) const;
     virtual void write_declare(ostream& out) const;
+    virtual void write_type(ostream& out) const;
     
     void write_proto(ostream& out) const;
     void write_action(ostream& out) const;
@@ -75,9 +78,12 @@ class Nonterm : public Symbol
     string name;
     string type;
     size_t rank;
+    
+    virtual bool has_type() const;
 
     virtual void print(ostream& out) const;
     virtual void write(ostream& out) const;
+    virtual void write_type(ostream& out) const;
   
     /**
      * All nonterminals have one or more production rules, vectors of symbols,
