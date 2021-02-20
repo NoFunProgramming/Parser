@@ -95,11 +95,11 @@ class Parser
     bool read_rules(istream& in);
     bool read_product(istream& in, vector<Symbol*>* syms);
     
-    /** Reads and add to, or finds in, the set of symbol names. */
+    /** Interns symbol names while reading production rules. */
     Term* intern_term(istream& in);
     Nonterm* intern_nonterm(istream& in);
         
-    /** Recursive decent parser for reading grammar rules. */
+    /** Reads a valid name for a symbol. */
     bool read_term_name(istream& in, string* name);
     bool read_nonterm_name(istream& in, string* name);
     
@@ -113,7 +113,8 @@ class Parser
 
     /**
      * The first step to finding all possible parse states is finding all
-     * terminals that could be first in a rule or follows nonterminal.
+     * terminals that could be first in a rule or any terminal which could
+     * follow a nonterminal.
      */
     void solve_first();
     void solve_follows(Symbol* endmark);

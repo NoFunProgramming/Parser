@@ -77,6 +77,13 @@ Nonterm::write(ostream& out) const {
 }
 
 void
+Nonterm::write_declare(ostream& out) const {
+    out << "Nonterm ";
+    write(out);
+    out << ";\n";
+}
+
+void
 Nonterm::add_rule(const vector<Symbol*>& syms, const string& action)
 {
     rules.emplace_back(std::make_unique<Rule>(this, action));
@@ -209,7 +216,10 @@ Nonterm::print_rules(ostream& out) const
 void
 Nonterm::print_firsts(ostream& out) const
 {
-    out << "  "; print(out); out << ": ";
+    out << "  ";
+    print(out);
+    out << ": ";
+    
     bool space = false;
     for (auto sym : firsts) {
         if (space) {
@@ -224,7 +234,10 @@ Nonterm::print_firsts(ostream& out) const
 void
 Nonterm::print_follows(ostream& out) const
 {
-    out << "  "; print(out); out << ": ";
+    out << "  ";
+    print(out);
+    out << ": ";
+    
     bool space = false;
     for (auto sym : follows) {
         if (space) {
@@ -319,11 +332,12 @@ Nonterm::Rule::write_define(ostream& out) const
     out << action << "(vector<Value*>& values) {\n";
     
     for (int i = 0; i < product.size(); i++) {
+        Symbol* sym = product[i];
         int index = i - (int)product.size();
-        if (!product[i]->type.empty()) {
-            out << "    unique_ptr<" << product[i]->type << "> ";
+        if (!sym->type.empty()) {
+            out << "    unique_ptr<" << sym->type << "> ";
             out << "E" << i;
-            out << "(dynamic_cast<" << product[i]->type << "*>";
+            out << "(dynamic_cast<" << sym->type << "*>";
             out << "(values.end()[" << index << "]));\n";
         }
     }

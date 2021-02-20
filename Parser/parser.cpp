@@ -6,7 +6,8 @@ using std::cerr;
 using std::make_unique;
 
 /******************************************************************************/
-Parser::Parser(){}
+Parser::Parser():
+    start(nullptr){}
 
 bool
 Parser::read_grammar(istream& in)
@@ -107,28 +108,28 @@ Parser::write(ostream& out) const
     for (auto& term : terms) {
         term.second->write_proto(out);
     }
-    out << "\n";
+    out << std::endl;
+    
     for (auto& term : terms) {
         term.second->write_define(out);
     }
-    out << "\n";
+    out << std::endl;
+    
     for (auto& term : terms) {
         term.second->write_declare(out);
     }
     out << "Symbol endmark;\n";
-    out << "\n";
-    
+    out << std::endl;
+
     lexer.write(out);
     
     size_t id = 0;
     for (auto& nonterm : nonterms) {
         nonterm.second->rank = id++;
-        out << "Nonterm ";
-        nonterm.second->write(out);
-        out << ";\n";
+        nonterm.second->write_declare(out);
     }
-    out << "\n";
-    
+    out << std::endl;
+
     for (auto& nonterm : all) {
         for (auto& rule : nonterm->rules) {
             rule->write_proto(out);
@@ -186,12 +187,15 @@ Parser::print_grammar(ostream& out) const
         nonterm->print_rules(out);
         out << std::endl;
     }
+    out << std::endl;
+    
     out << "Firsts:\n";
     for (auto nonterm : all) {
         nonterm->print_firsts(out);
         out << std::endl;
     }
     out << std::endl;
+    
     out << "Follows:\n";
     for (auto nonterm : all) {
         nonterm->print_follows(out);
@@ -210,9 +214,7 @@ Parser::print_states(ostream& out) const
     }
 }
 
-/**
- * Reading the definition a new terminal.
- */
+/******************************************************************************/
 Term*
 Parser::intern_term(istream& in)
 {
@@ -243,9 +245,7 @@ Parser::intern_nonterm(istream& in)
     return nonterms[name].get();
 }
 
-/**
- * Reading the definition a new terminal.
- */
+/******************************************************************************/
 bool
 Parser::read_term(istream& in)
 {
@@ -305,7 +305,7 @@ Parser::read_rules(istream& in)
         return false;
     }
     if (in.get() != ':') {
-        cerr << "Expected a colon before the production.\n";
+        cerr << "Expected a colon after the nonterminal name.\n";
         return false;
     }
     
@@ -367,7 +367,7 @@ Parser::read_product(istream& in, vector<Symbol*>* syms)
                 return false;
             }
         } else {
-            cerr << "Expected terminal or nonterminal name in rule.\n";
+            cerr << "Expected character in rule.\n";
         }
     }
     return true;
@@ -436,7 +436,7 @@ Parser::read_type(istream& in, string* type)
     if (!type->empty()) {
         return true;
     } else {
-        cerr << "Type name must have one character.\n";
+        cerr << "Type names require at least one character.\n";
         return false;
     }
 }
@@ -519,9 +519,6 @@ Parser::solve_first()
 void
 Parser::solve_follows(Symbol* endmark)
 {
-//    if (!first || first->rules.size() == 0) {
-//        return;
-//    }
     if (all.size() == 0 || all.front()->rules.size() == 0) {
         return;
     }
@@ -537,4 +534,3 @@ Parser::solve_follows(Symbol* endmark)
         }
     } while (found);
 }
-

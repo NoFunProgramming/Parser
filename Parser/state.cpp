@@ -26,11 +26,11 @@ State::closure()
         if (nonterm) {
             vector<Symbol*> product = item.advance().rest();
             product.push_back(item.ahead);
+            
+            set<Symbol*> terms;
+            firsts(product, &terms);
 
-            // TODO Check the calculation of terms.
             for (auto& rule : nonterm->rules) {
-                set<Symbol*> terms;
-                firsts(product, &terms);
                 for (auto term : terms) {
                     Item next = Item(rule.get(), 0, term);
                     auto result = items.insert(next);
@@ -127,8 +127,7 @@ State::operator<(const State& other) const {
 
 /******************************************************************************/
 void
-State::print(ostream& out) const
-{
+State::print(ostream& out) const {
     out << "State " << id;
 }
 
@@ -145,22 +144,26 @@ State::print_items(ostream& out) const
     }
 }
 
+/******************************************************************************/
 void
 State::write(ostream& out) const {
     out << "state" << id;
 }
 
-/******************************************************************************/
 void
 State::write_declare(ostream& out) const {
-    out << "extern State "; write(out); out << ";\n";
+    out << "extern State ";
+    write(out);
+    out << ";\n";
 }
 
 void
 State::write_define(ostream& out) const
 {
-    out << "State "; write(out); out << " = {";
-    out << id;
+    out << "State ";
+    write(out);
+    out << " = {" << id;
+    
     if (actions->shift.size() > 0) {
         out << ", shift" << id;
     } else {

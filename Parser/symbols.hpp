@@ -1,7 +1,7 @@
 /*******************************************************************************
  * The grammar of a regular language is defined by two types of symbols:
  * terminals and nonterminals.  Terminals are the smallest unit of the grammar
- * and often represent a specific pattern of characters, such as a integer. The
+ * and often represent a specific pattern of characters such as a integer. The
  * nonterminal themselves are defined by production rules, which are a sequences
  * of both terminals and nonterminals.
  */
@@ -20,8 +20,7 @@ using std::ostream;
 using std::unique_ptr;
 
 /*******************************************************************************
- * Symbols for defining a regular language.  This is the base class for all
- * types of symbols, such as terminals and nonterminals.
+ * Base class for all types of symbols such as terminals and nonterminals.
  */
 class Symbol
 {
@@ -33,7 +32,7 @@ class Symbol
 
 /*******************************************************************************
  * Terminals are the smallest unit of the grammar and often represent a specific
- * pattern of characters, such as a integer.
+ * pattern of characters such as a integer.
  */
 class Term : public Symbol
 {
@@ -65,7 +64,7 @@ class Endmark : public Symbol
  * Nonterminals of the grammar.  To form the language, every nonterminal of the
  * grammar represent a sequnce of symbols, either terminals or nonterminals.
  * These nonterminals have additional properties, such as the first and
- * following terminals which are used to solve for the states of a parser.
+ * following terminals which are used to solve for all possible parse states.
  */
 class Nonterm : public Symbol
 {
@@ -76,12 +75,13 @@ class Nonterm : public Symbol
     
     virtual void print(ostream& out) const;
     virtual void write(ostream& out) const;
+    void write_declare(ostream& out) const;
   
     /**
      * All nonterminals have one or more production rules, vectors of symbols,
      * that list the symbol sequence that defines a given nonterminal.  Each
-     * rule can also have an action that is to occur each time the parser
-     * matches a rule and reduces its sequence of symbols to a nonterminal.
+     * rule can also have an action that occurs each time the parser matches a
+     * rule in the input and reduces its sequence of symbols to a nonterminal.
      */
     class Rule {
       public:
@@ -104,8 +104,9 @@ class Nonterm : public Symbol
 
     /**
      * To find all possible parse states, the first step is to solve for all
-     * terminals that could be the first in a productions for each nonterminal.
-     * A nonterminal can also have an empty production rule of no symbols.
+     * terminals that could be the first in the productions for each
+     * nonterminal. A nonterminal can also have an empty production rule of no
+     * symbols.
      */
     set<Symbol*> firsts;
     bool empty_first;
