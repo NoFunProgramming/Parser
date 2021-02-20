@@ -1,7 +1,7 @@
 #include "finite.hpp"
 #include "regex.hpp"
 #include "lexer.hpp"
-#include "parser.hpp"
+#include "generator.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -10,7 +10,7 @@
 void
 test_grammar()
 {
-    Parser parser;
+    Generator generator;
     
     string test =
         "'num'<Expr>   [0-9]+    &scan_num;"
@@ -27,13 +27,13 @@ test_grammar()
     
     std::stringstream in(test);
     
-    parser.read_grammar(in);
-    parser.solve();
+    generator.read_grammar(in);
+    generator.solve();
 //    std::cout << "/*";
 //    parser.print_grammar(std::cout);
 //    parser.print_states(std::cout);
 //    std::cout << "*/";
-    parser.write(std::cout);
+    generator.write(std::cout);
 }
 
 /*******************************************************************************

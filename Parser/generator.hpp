@@ -62,10 +62,10 @@ using std::unique_ptr;
  *
  *    'num'<int> [0-9]+ &read_int;
  */
-class Parser
+class Generator
 {
   public:
-    Parser();
+    Generator();
     
     /** Reads in the grammar that defines the parser. */
     bool read_grammar(istream& in);

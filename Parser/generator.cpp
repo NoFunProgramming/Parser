@@ -1,4 +1,4 @@
-#include "parser.hpp"
+#include "generator.hpp"
 
 #include <iostream>
 using std::cerr;
@@ -6,11 +6,11 @@ using std::cerr;
 using std::make_unique;
 
 /******************************************************************************/
-Parser::Parser():
+Generator::Generator():
     start(nullptr){}
 
 bool
-Parser::read_grammar(istream& in)
+Generator::read_grammar(istream& in)
 {
     while (true) {
         in >> std::ws;
@@ -33,7 +33,7 @@ Parser::read_grammar(istream& in)
 
 /******************************************************************************/
 void
-Parser::solve()
+Generator::solve()
 {
     if (all.size() == 0 || all.front()->rules.size() == 0) {
         return;
@@ -97,7 +97,7 @@ Parser::solve()
 
 /******************************************************************************/
 void
-Parser::write(ostream& out) const
+Generator::write(ostream& out) const
 {
     out << "#include \"parser.hpp\"\n";
     out << "#include \"values.hpp\"\n";
@@ -181,7 +181,7 @@ Parser::write(ostream& out) const
 
 /******************************************************************************/
 void
-Parser::print_grammar(ostream& out) const
+Generator::print_grammar(ostream& out) const
 {
     for (auto nonterm : all) {
         nonterm->print_rules(out);
@@ -205,7 +205,7 @@ Parser::print_grammar(ostream& out) const
 }
 
 void
-Parser::print_states(ostream& out) const
+Generator::print_states(ostream& out) const
 {
     for (auto& state : states) {
         state->print(out);
@@ -216,7 +216,7 @@ Parser::print_states(ostream& out) const
 
 /******************************************************************************/
 Term*
-Parser::intern_term(istream& in)
+Generator::intern_term(istream& in)
 {
     string name;
     if (!read_term_name(in, &name)) {
@@ -233,7 +233,7 @@ Parser::intern_term(istream& in)
 }
 
 Nonterm*
-Parser::intern_nonterm(istream& in)
+Generator::intern_nonterm(istream& in)
 {
     string name;
     if (!read_nonterm_name(in, &name)) {
@@ -247,7 +247,7 @@ Parser::intern_nonterm(istream& in)
 
 /******************************************************************************/
 bool
-Parser::read_term(istream& in)
+Generator::read_term(istream& in)
 {
     string name;
     if (!read_term_name(in, &name)) {
@@ -293,7 +293,7 @@ Parser::read_term(istream& in)
 
 /******************************************************************************/
 bool
-Parser::read_rules(istream& in)
+Generator::read_rules(istream& in)
 {
     string name;
     if (!read_nonterm_name(in, &name)) {
@@ -343,7 +343,7 @@ Parser::read_rules(istream& in)
 }
 
 bool
-Parser::read_product(istream& in, vector<Symbol*>* syms)
+Generator::read_product(istream& in, vector<Symbol*>* syms)
 {
     while (in.peek() != EOF) {
         in >> std::ws;
@@ -375,7 +375,7 @@ Parser::read_product(istream& in, vector<Symbol*>* syms)
 
 /******************************************************************************/
 bool
-Parser::read_term_name(istream& in, string* name)
+Generator::read_term_name(istream& in, string* name)
 {
     if (in.get() != '\'') {
         cerr << "Expected quote to start terminal name.\n";
@@ -396,7 +396,7 @@ Parser::read_term_name(istream& in, string* name)
 }
 
 bool
-Parser::read_nonterm_name(istream& in, string* name)
+Generator::read_nonterm_name(istream& in, string* name)
 {
     while (isalpha(in.peek())) {
         name->push_back(in.get());
@@ -410,7 +410,7 @@ Parser::read_nonterm_name(istream& in, string* name)
 
 /******************************************************************************/
 bool
-Parser::read_type(istream& in, string* type)
+Generator::read_type(istream& in, string* type)
 {
     in >> std::ws;
     if (in.peek() == '<') {
@@ -442,7 +442,7 @@ Parser::read_type(istream& in, string* type)
 }
 
 bool
-Parser::read_regex(istream& in, string* regex)
+Generator::read_regex(istream& in, string* regex)
 {
     in >> std::ws;
     if (in.peek() == '&' || in.peek() == ';') {
@@ -471,7 +471,7 @@ Parser::read_regex(istream& in, string* regex)
 }
 
 bool
-Parser::read_action(istream& in, string* action)
+Generator::read_action(istream& in, string* action)
 {
     in >> std::ws;
     if (in.peek() == '&') {
@@ -505,7 +505,7 @@ Parser::read_action(istream& in, string* action)
 
 /******************************************************************************/
 void
-Parser::solve_first()
+Generator::solve_first()
 {
     bool found = false;
     do {
@@ -517,7 +517,7 @@ Parser::solve_first()
 }
 
 void
-Parser::solve_follows(Symbol* endmark)
+Generator::solve_follows(Symbol* endmark)
 {
     if (all.size() == 0 || all.front()->rules.size() == 0) {
         return;
