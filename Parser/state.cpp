@@ -61,9 +61,9 @@ State::firsts(const vector<Symbol*>& symbols, set<Symbol*>* firsts)
 }
 
 unique_ptr<State>
-State::solve_next(Symbol* symbol)
+State::solve_next(Symbol* symbol, size_t id)
 {
-    unique_ptr<State> state = make_unique<State>(0);
+    unique_ptr<State> state = make_unique<State>(id);
     for (auto item : items) {
         if (item.next() == symbol)
             state->items.insert(item.advance());

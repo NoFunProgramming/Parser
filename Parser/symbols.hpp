@@ -43,15 +43,11 @@ class Term : public Symbol
     size_t rank;
     string action;
     
-    virtual bool has_type() const;
-    
     virtual void print(ostream& out) const;
     virtual void write(ostream& out) const;
     virtual void write_declare(ostream& out) const;
-    virtual void write_type(ostream& out) const;
     
     void write_proto(ostream& out) const;
-    void write_action(ostream& out) const;
     void write_define(ostream& out) const;
 };
 
@@ -76,14 +72,10 @@ class Nonterm : public Symbol
   public:
     Nonterm(const string& name);
     string name;
-    string type;
     size_t rank;
     
-    virtual bool has_type() const;
-
     virtual void print(ostream& out) const;
     virtual void write(ostream& out) const;
-    virtual void write_type(ostream& out) const;
   
     /**
      * All nonterminals have one or more production rules, vectors of symbols,
@@ -101,6 +93,7 @@ class Nonterm : public Symbol
         
         virtual void print(ostream& out) const;
         virtual void write(ostream& out) const;
+        void write_declare(ostream& out) const;
         void write_proto(ostream& out) const;
         void write_action(ostream& out) const;
         void write_define(ostream& out) const;

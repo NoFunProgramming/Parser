@@ -86,8 +86,8 @@ class Parser
      */
     map<string, unique_ptr<Term>> terms;
     map<string, unique_ptr<Nonterm>> nonterms;
+    vector<unique_ptr<Accept>> accepts;
     vector<Nonterm*> all;
-    Nonterm* first;
     Endmark endmark;
          
     /** Recursive decent parser for reading grammar rules. */
@@ -101,7 +101,7 @@ class Parser
         
     /** Recursive decent parser for reading grammar rules. */
     bool read_term_name(istream& in, string* name);
-    bool read_nonterm_name(istream& in, string* type);
+    bool read_nonterm_name(istream& in, string* name);
     
     /** Attributes of the grammar rules. */
     bool read_type(istream& in, string* type);

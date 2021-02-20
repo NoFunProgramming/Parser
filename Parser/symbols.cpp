@@ -5,11 +5,6 @@ Term::Term(const string& name, size_t rank):
     name(name),
     rank(rank){}
 
-bool
-Term::has_type() const {
-    return !type.empty();
-}
-
 void
 Term::print(ostream& out) const {
     out << "'" << name << "'";
@@ -21,30 +16,19 @@ Term::write(ostream& out) const {
 }
 
 void
-Term::write_declare(ostream& out) const {
-    out << "term" << rank;
-    out << " = {\"" << name << "\", ";
+Term::write_declare(ostream& out) const
+{
+    out << "Term term" << rank << " = {\"" << name << "\", ";
     if (!action.empty()) {
-        out << "&";
-        write(out);
-        out << "_scan";
+        out << "&term" << rank << "_scan";
     } else {
         out << "nullptr";
     }
-    out << "}";
+    out << "};\n";
 }
 
 void
-Term::write_proto(ostream& out) const {
-    if (action.empty())
-        return;
-    out << "unique_ptr<" << type << "> ";
-    out << action << "(const std::string& s);\n";
-    //out << "Value* " << action << "(const std::string& s);\n";
-}
-
-void
-Term::write_action(ostream& out) const
+Term::write_proto(ostream& out) const
 {
     if (action.empty())
         return;
@@ -58,17 +42,10 @@ Term::write_define(ostream& out) const
     if (action.empty())
         return;
     out << "Value*\n";
-    write(out);
-    out << "_scan(const std::string& s) {\n";
-    out << "    unique_ptr<" << type << "> value = ";
-    out << action << "(s);\n";
+    out << "term" << rank << "_scan(const std::string& s) {\n";
+    out << "    unique_ptr<" << type << "> value = " << action << "(s);\n";
     out << "    return value.release();\n";
     out << "}\n";
-}
-
-void
-Term::write_type(ostream& out) const {
-    out << "unique_ptr<" << type << ">";
 }
 
 /******************************************************************************/
@@ -85,14 +62,9 @@ Endmark::write(ostream& out) const {
 /******************************************************************************/
 Nonterm::Nonterm(const string& name):
     name(name),
-    type(""),
     rank(0),
     empty_first(false){}
 
-bool
-Nonterm::has_type() const {
-    return !type.empty();
-}
 
 void
 Nonterm::print(ostream& out) const {
@@ -102,11 +74,6 @@ Nonterm::print(ostream& out) const {
 void
 Nonterm::write(ostream& out) const {
     out << "nonterm" << rank;
-}
-
-void
-Nonterm::write_type(ostream& out) const {
-    out << "unique_ptr<" << type << ">";
 }
 
 void
@@ -297,43 +264,51 @@ Nonterm::Rule::write(ostream& out) const {
 }
 
 void
+Nonterm::Rule::write_declare(ostream& out) const
+{
+    out << "Rule rule" << id;
+    out << " = {" << product.size() << ", &";
+    nonterm->write(out);
+    
+    out << ", ";
+    if (!action.empty()) {
+        out << "&" << action;
+    } else {
+        out << "nullptr";
+    }
+    out << "};\n";
+}
+
+void
 Nonterm::Rule::write_proto(ostream& out) const
 {
-    out << "Value* " << action << "(vector<Value*>&);\n";
+    out << "Value* ";
+    out << action << "(vector<Value*>&);\n";
 }
 
 void
 Nonterm::Rule::write_action(ostream& out) const
 {
     if (!nonterm->type.empty()) {
-        out << "unique_ptr<" << nonterm->type << ">";
+        out << "unique_ptr<" << nonterm->type << "> ";
     } else {
-        out << "void";
+        out << "void ";
     }
-    out << " " << action << "(";
     
+    out << action << "(";
+
     bool comma = false;
     for (auto sym : product) {
-        
-        string type;
-        Term* term = dynamic_cast<Term*>(sym);
-        if (term) {
-            type = term->type;
-        }
-        Nonterm* nonterm = dynamic_cast<Nonterm*>(sym);
-        if (nonterm) {
-            type = nonterm->type;
-        }
-                
-        if (!type.empty()) {
+        if (!sym->type.empty()) {
             if (comma) {
                 out << ", ";
             } else {
                 comma = true;
             }
-            out << "unique_ptr<" << type << ">&";
+            out << "unique_ptr<" << sym->type << ">&";
         }
     }
+    
     out << ");\n";
 }
 
@@ -345,28 +320,29 @@ Nonterm::Rule::write_define(ostream& out) const
     
     for (int i = 0; i < product.size(); i++) {
         int index = i - (int)product.size();
-        
         if (!product[i]->type.empty()) {
             out << "    unique_ptr<" << product[i]->type << "> ";
-            out << "E" << i << "(dynamic_cast<" << product[i]->type << "*>";
+            out << "E" << i;
+            out << "(dynamic_cast<" << product[i]->type << "*>";
             out << "(values.end()[" << index << "]));\n";
         }
     }
     
     out << "    unique_ptr<" << nonterm->type << "> ";
-    out << " R = "<< action << "(";
+    out << "R = "<< action << "(";
 
     bool comma = false;
     for (int i = 0; i < product.size(); i++) {
-//        if (product[i]->has_type()) {
-//            if (comma) {
-//                out << ", ";
-//            } else {
-//                comma = true;
-//            }
-//            out << "E" << i;
-//        }
+        if (!product[i]->type.empty()) {
+            if (comma) {
+                out << ", ";
+            } else {
+                comma = true;
+            }
+            out << "E" << i;
+        }
     }
+    
     out << ");\n";
     out << "    return R.release();\n";
     out << "}\n\n";

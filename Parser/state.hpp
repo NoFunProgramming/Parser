@@ -52,7 +52,7 @@ class State
     void add(Item item);
     void closure();
     
-    unique_ptr<State> solve_next(Symbol* symbol);
+    unique_ptr<State> solve_next(Symbol* symbol, size_t id);
     void add_next(Symbol* symbol, State* next);
     
     /** Shift or reduce based on the state and next symbol. */

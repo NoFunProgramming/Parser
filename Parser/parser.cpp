@@ -6,8 +6,7 @@ using std::cerr;
 using std::make_unique;
 
 /******************************************************************************/
-Parser::Parser():
-    first(nullptr){}
+Parser::Parser(){}
 
 bool
 Parser::read_grammar(istream& in)
@@ -31,16 +30,21 @@ Parser::read_grammar(istream& in)
     return true;
 }
 
+/******************************************************************************/
 void
 Parser::solve()
 {
+    if (all.size() == 0 || all.front()->rules.size() == 0) {
+        return;
+    }
+    
     lexer.solve();
     
     solve_first();
     solve_follows(&endmark);
     
     auto state = make_unique<State>(states.size());
-    state->add(State::Item(first->rules.front().get(), 0, &endmark));
+    state->add(State::Item(all.front()->rules.front().get(), 0, &endmark));
     state->closure();
     
     start = state.get();
@@ -56,7 +60,7 @@ Parser::solve()
 
         for (auto& term : terms) {
             Symbol* sym = term.second.get();
-            unique_ptr<State> next = state->solve_next(sym);
+            unique_ptr<State> next = state->solve_next(sym, states.size());
             if (next) {
                 auto found = states.insert(std::move(next));
                 State* target = found.first->get();
@@ -69,7 +73,7 @@ Parser::solve()
 
         for (auto& nonterm : nonterms) {
             Symbol* sym = nonterm.second.get();
-            unique_ptr<State> next = state->solve_next(sym);
+            unique_ptr<State> next = state->solve_next(sym, states.size());
             if (next) {
                 auto found = states.insert(std::move(next));
                 State* target = found.first->get();
@@ -81,7 +85,7 @@ Parser::solve()
         }
     }
 
-    Nonterm::Rule* rule = first->rules.front().get();
+    Nonterm::Rule* rule = all.front()->rules.front().get();
     State::Item accept(rule, rule->product.size(), &endmark);
 
     for (auto& state : states) {
@@ -90,6 +94,7 @@ Parser::solve()
     }
 }
 
+/******************************************************************************/
 void
 Parser::write(ostream& out) const
 {
@@ -103,23 +108,18 @@ Parser::write(ostream& out) const
         term.second->write_proto(out);
     }
     out << "\n";
-    
     for (auto& term : terms) {
         term.second->write_define(out);
     }
     out << "\n";
-
-    
     for (auto& term : terms) {
-        out << "Term ";
         term.second->write_declare(out);
-        out << ";\n";
     }
+    out << "Symbol endmark;\n";
     out << "\n";
     
     lexer.write(out);
     
-    out << "Symbol endmark;\n";
     size_t id = 0;
     for (auto& nonterm : nonterms) {
         nonterm.second->rank = id++;
@@ -134,33 +134,21 @@ Parser::write(ostream& out) const
             rule->write_proto(out);
         }
     }
-    out << "\n";
-    
+    out << std::endl;
     
     id = 0;
     for (auto& nonterm : nonterms) {
         for (auto& rule : nonterm.second->rules) {
             rule->id = id++;
-            out << "Rule rule" << rule->id;
-            out << " = {" << rule->product.size() << ", &";
-            rule->nonterm->write(out);
-            out << ", ";
-            if (!rule->action.empty()) {
-                out << "&" << rule->action;
-            } else {
-                out << "nullptr";
-            }
-            out << "};\n";
+            rule->write_declare(out);
         }
     }
-    out << "\n";
+    out << std::endl;
     
-    id = 0;
     for (auto& state : states) {
-        state->id = id++;
-        out << "extern State state"  << state->id << ";\n";
+        state->write_declare(out);
     }
-    out << "\n";
+    out << std::endl;
     
     for (auto& state : states) {
         state->write_shift(out);
@@ -168,61 +156,57 @@ Parser::write(ostream& out) const
         state->write_reduce(out);
         state->write_goto(out);
     }
-    out << "\n";
+    out << std::endl;
 
     for (auto& state : states) {
         state->write_define(out);
     }
-    out << "\n";
+    out << std::endl;
 
     for (auto& nonterm : all) {
         for (auto& rule : nonterm->rules) {
             rule->write_action(out);
         }
     }
-    out << "\n";
+    out << std::endl;
 
     for (auto& nonterm : all) {
         for (auto& rule : nonterm->rules) {
             rule->write_define(out);
         }
     }
-    out << "\n";
+    out << std::endl;
 }
 
+/******************************************************************************/
 void
 Parser::print_grammar(ostream& out) const
 {
     for (auto nonterm : all) {
         nonterm->print_rules(out);
-        out << "\n";
+        out << std::endl;
     }
     out << "Firsts:\n";
     for (auto nonterm : all) {
         nonterm->print_firsts(out);
-        out << "\n";
+        out << std::endl;
     }
-    out << "\n";
+    out << std::endl;
     out << "Follows:\n";
     for (auto nonterm : all) {
         nonterm->print_follows(out);
-        out << "\n";
+        out << std::endl;
     }
-    out << "\n";
+    out << std::endl;
 }
 
 void
 Parser::print_states(ostream& out) const
 {
-    // TODO Index the state at build time.
-    size_t id = 0;
-    for (auto& state : states) {
-        state->id = id++;
-    }
     for (auto& state : states) {
         state->print(out);
         state->print_items(out);
-        out << "\n";
+        out << std::endl;
     }
 }
 
@@ -237,14 +221,11 @@ Parser::intern_term(istream& in)
         return nullptr;
     }
     if (terms.count(name) == 0) {
-        
-        size_t id = terms.size();
-        
-        // TODO Store all of the accept values.
-        Accept* accept = new Accept(name, id);
-        //lexer.add(accept, name);
-        lexer.add_series(accept, name);
-        terms[name] = make_unique<Term>(name, id);
+        terms[name] = make_unique<Term>(name, terms.size());
+        Term* term = terms[name].get();
+
+        accepts.emplace_back(make_unique<Accept>(name, term->rank));
+        lexer.add_series(accepts.back().get(), name);
     }
     return terms[name].get();
 }
@@ -290,26 +271,21 @@ Parser::read_term(istream& in)
         cerr << "Terminals end with a semicolon.\n";
         return false;
     }
-    
-    if (terms.count(name) != 0) {
-        cerr << "Terminal " << name << " was already defined.\n";
-        return false;
+        
+    if (terms.count(name) == 0) {
+        terms[name] = make_unique<Term>(name, terms.size());
     }
-    
-    size_t id = terms.size();
-    
-    terms[name] = make_unique<Term>(name, id);
     Term* term = terms[name].get();
     term->type = type;
     term->action = action;
     
-    Accept* accept = new Accept(term->name, id);
+    accepts.emplace_back(make_unique<Accept>(term->name, term->rank));
+    Accept* accept = accepts.back().get();
     
     if (!regex.empty()) {
         lexer.add(accept, regex);
     } else {
-        // TODO Change to the series.
-        lexer.add(accept, term->name);
+        lexer.add_series(accept, term->name);
     }
 
     return true;
@@ -319,13 +295,11 @@ Parser::read_term(istream& in)
 bool
 Parser::read_rules(istream& in)
 {
-    Nonterm* nonterm = intern_nonterm(in);
-    if (!nonterm) {
+    string name;
+    if (!read_nonterm_name(in, &name)) {
         cerr << "Rule must start with a nonterminal.\n";
         return false;
     }
-    all.push_back(nonterm);
-    
     string type;
     if (!read_type(in, &type)) {
         return false;
@@ -334,12 +308,13 @@ Parser::read_rules(istream& in)
         cerr << "Expected a colon before the production.\n";
         return false;
     }
-    // TODO Pass during the constructor.
-    nonterm->type = type;
     
-    if (!first) {
-        first = nonterm;
+    if (nonterms.count(name) == 0) {
+        nonterms[name] = make_unique<Nonterm>(name);
     }
+    Nonterm* nonterm = nonterms[name].get();
+    nonterm->type = type;
+    all.push_back(nonterm);
     
     vector<Symbol*> syms;
         
@@ -347,19 +322,20 @@ Parser::read_rules(istream& in)
         if (!read_product(in, &syms)) {
             return false;
         }
-        string reduce;
-        if (!read_action(in, &reduce)) {
+        string action;
+        if (!read_action(in, &action)) {
             return false;
         }
 
         in >> std::ws;
         if (in.peek() == ';') {
             in.get();
-            nonterm->add_rule(syms, reduce);
+            nonterm->add_rule(syms, action);
             break;
-        } else if (in.peek() == '|') {
+        }
+        else if (in.peek() == '|') {
             in.get();
-            nonterm->add_rule(syms, reduce);
+            nonterm->add_rule(syms, action);
             syms.clear();
         }
     }
@@ -375,20 +351,23 @@ Parser::read_product(istream& in, vector<Symbol*>* syms)
             break;
         }
         
-        if (in.peek() == '\'') {
+        int c = in.peek();
+        if (c == '\'') {
             Term* sym = intern_term(in);
             if (sym) {
                 syms->push_back(sym);
             } else {
                 return false;
             }
-        } else {
+        } else if (isalpha(c)) {
             Nonterm* sym = intern_nonterm(in);
             if (sym) {
                 syms->push_back(sym);
             } else {
                 return false;
             }
+        } else {
+            cerr << "Expected terminal or nonterminal name in rule.\n";
         }
     }
     return true;
@@ -399,18 +378,18 @@ bool
 Parser::read_term_name(istream& in, string* name)
 {
     if (in.get() != '\'') {
-        cerr << "Expected quote to start terminal.\n";
+        cerr << "Expected quote to start terminal name.\n";
         return false;
     }
     while (isprint(in.peek()) && in.peek() != '\'') {
         name->push_back(in.get());
     }
     if (in.get() != '\'') {
-        cerr << "Expected quote to end terminal.\n";
+        cerr << "Expected quote to end terminal name.\n";
         return false;
     }
     if (name->empty()) {
-        cerr << "Terminals require at least one character.\n";
+        cerr << "Terminal names require at least one character.\n";
         return false;
     }
     return true;
@@ -423,7 +402,7 @@ Parser::read_nonterm_name(istream& in, string* name)
         name->push_back(in.get());
     }
     if (name->empty()) {
-        cerr << "Nonterminals require at least one character.\n";
+        cerr << "Nonterminal names require at least one character.\n";
         return false;
     }
     return true;
@@ -436,15 +415,30 @@ Parser::read_type(istream& in, string* type)
     in >> std::ws;
     if (in.peek() == '<') {
         in.get();
-        while (isalpha(in.peek())) {
-            type->push_back(in.get());
+    } else {
+        return true;
+    }
+    
+    while (true) {
+        int c = in.peek();
+        if (c == '>') {
+            in.get();
+            break;
         }
-        if (in.get() != '>') {
-            cerr << "Expected '>' after terminal type.\n";
-            return false;
+
+        if (isalpha(c)) {
+            type->push_back(in.get());
+        } else {
+            cerr << "Unexpected character in type name.\n";
         }
     }
-    return true;
+    
+    if (!type->empty()) {
+        return true;
+    } else {
+        cerr << "Type name must have one character.\n";
+        return false;
+    }
 }
 
 bool
@@ -464,7 +458,7 @@ Parser::read_regex(istream& in, string* regex)
         if (isprint(c)) {
             regex->push_back(in.get());
         } else {
-            cerr << "Unexpected character in regex expression.\n";
+            cerr << "Unexpected character in regular expression.\n";
         }
     }
     
@@ -497,7 +491,7 @@ Parser::read_action(istream& in, string* action)
         } else if (c == '_') {
             action->push_back(in.get());
         } else {
-            cerr << "Unexpected character in action name.\n";
+            cerr << "Unexpected character in action method name.\n";
         }
     }
     
@@ -525,11 +519,14 @@ Parser::solve_first()
 void
 Parser::solve_follows(Symbol* endmark)
 {
-    if (!first || first->rules.size() == 0) {
+//    if (!first || first->rules.size() == 0) {
+//        return;
+//    }
+    if (all.size() == 0 || all.front()->rules.size() == 0) {
         return;
     }
         
-    Nonterm::Rule* rule = first->rules.front().get();
+    Nonterm::Rule* rule = all.front()->rules.front().get();
     rule->nonterm->follows.insert(endmark);
 
     bool found = false;
