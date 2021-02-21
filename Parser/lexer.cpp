@@ -251,10 +251,16 @@ Lexer::State::Range::operator<(const Range& other) const {
 void
 Lexer::State::Range::write(ostream& out) const
 {
-    // TODO Check for printable characters.
-    out << "(c >= '" << (char)first << "')";
-    out << " && ";
-    out << "(c <= '" << (char)last << "')";
+    // TODO Check for same characters.
+    if (isprint(first) && isprint(last)) {
+        out << "(c >= '" << (char)first << "')";
+        out << " && ";
+        out << "(c <= '" << (char)last << "')";
+    } else {
+        out << "(c >= " << first << ")";
+        out << " && ";
+        out << "(c <= " << last << ")";
+    }
 }
 
 /******************************************************************************/
@@ -312,6 +318,14 @@ Lexer::Literal::parse_term(istream& in, Accept* accept)
             return nullptr;
         }
         
+        if (c == '\\') {
+            c = in.get();
+            if (c == 'n') {
+                c = '\n';
+            } else {
+                return nullptr;
+            }
+        }
         if (in.peek() == EOF) {
             Finite* next = add_state(accept);
             term->add_out(c, next);
