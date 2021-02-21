@@ -15,6 +15,7 @@
 		96BE754625B4C3DA000DC07F /* generator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BE754425B4C3DA000DC07F /* generator.cpp */; };
 		96BE754B25B4D2D1000DC07F /* symbols.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BE754925B4D2D1000DC07F /* symbols.cpp */; };
 		96CA746D25E1BCD00006D782 /* Parser in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9613FD03259C6248005AC19B /* Parser */; };
+		96CACACD25E2ECF4004EF4B9 /* tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96CACACB25E2ECF4004EF4B9 /* tests.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -48,6 +49,8 @@
 		96BE754A25B4D2D1000DC07F /* symbols.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = symbols.hpp; sourceTree = "<group>"; };
 		96CA746925E1B6E50006D782 /* parser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = parser.cpp; sourceTree = "<group>"; };
 		96CA746A25E1B6E50006D782 /* parser.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = parser.hpp; sourceTree = "<group>"; };
+		96CACACB25E2ECF4004EF4B9 /* tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tests.cpp; sourceTree = "<group>"; };
+		96CACACC25E2ECF4004EF4B9 /* tests.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = tests.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +98,8 @@
 				96BE754425B4C3DA000DC07F /* generator.cpp */,
 				96CA746A25E1B6E50006D782 /* parser.hpp */,
 				96CA746925E1B6E50006D782 /* parser.cpp */,
+				96CACACC25E2ECF4004EF4B9 /* tests.hpp */,
+				96CACACB25E2ECF4004EF4B9 /* tests.cpp */,
 				9613FD06259C6248005AC19B /* main.cpp */,
 			);
 			path = Parser;
@@ -161,6 +166,7 @@
 				96B7D325259CDAAA00196100 /* finite.cpp in Sources */,
 				9680CBA1259CF961006E19A4 /* regex.cpp in Sources */,
 				96BD9AFF25A96E110014EC35 /* lexer.cpp in Sources */,
+				96CACACD25E2ECF4004EF4B9 /* tests.cpp in Sources */,
 				9613FD07259C6248005AC19B /* main.cpp in Sources */,
 				96BE754B25B4D2D1000DC07F /* symbols.cpp in Sources */,
 			);

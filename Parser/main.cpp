@@ -1,16 +1,46 @@
-#include "finite.hpp"
-#include "regex.hpp"
-#include "lexer.hpp"
+/*******************************************************************************
+ * Writes a language parser.  The parser reads in grammar rules and outputs
+ * source code that parses a regular language.  The grammar is defined by two
+ * types of symbols: terminals and nonterminals.  The nonterminal themselves
+ * are define as a sequence of symbols, known as a production rule. Terminals
+ * are shown in quotes and are defined by a pattern of input characters.
+ *
+ * The input rules are written as a nonterminal followed by zero or more
+ * symbols.  If there is more than one rule associated the same nonterminal,
+ * they are separated by a vertical bar.  A semicolon indicates the end of the
+ * rules for a given nonterminal.
+ *
+ *      add: mul | add '+' mul;
+ *
+ * At the end of each rule can be optional user defined action, indicated by an
+ * ampersand.  The action method is called by the generated source code when
+ * that rule's sequence of symbols is found.  Each nonterminal can also have a
+ * type which is defined within angle brackets.  The generated source code calls
+ * the action method with a input argument for each rule's symbol that has a
+ * type.
+ *
+ *      add<int64> add '+' mul &reduce_add_mul;
+ *
+ * Terminals are defined by regular expressions.  When running the generated
+ * source code, the parser will identify these patterns in the input string and
+ * add the matching terminal to the stack of the parser.  The parser will then
+ * check this stack for sequences that match one of the rules.  If a match is
+ * found, that rule's nonterminal will replace those symbols on the stack.
+ *
+ *      'num' [0-9]+;
+ *
+ * Similar to nonterminals, the terminals can also have a user defined action
+ * and a type. When a pattern is match in the input string, the source calls the
+ * with the matching string and expects the method to return a value of the
+ * provided type.
+ *
+ *    'num'<int> [0-9]+ &read_int;
+ */
+
 #include "generator.hpp"
+#include "tests.hpp"
 
 #include <iostream>
-#include <sstream>
-
-/******************************************************************************/
-void test_finite(void);
-void test_regex(void);
-void test_lexer(void);
-void test_grammar(void);
 
 /******************************************************************************/
 int
@@ -27,137 +57,3 @@ main(int argc, const char * argv[])
     generator.solve();
     generator.write(std::cout);
 }
-
-/*******************************************************************************
- * Writes the source code for a parser.  The class reads in a user defined
- * grammar and outputs source code that can be compiled into another program to
- * parse an input string.  Action methods can be associated with every rule of
- * the grammar and are called when that pattern is found within the input.
- */
-void
-test_grammar()
-{
-    string test =
-        "'num'<Expr>   [0-9]+   &scan_num;"
-        ""
-        "total<Expr>: add       &reduce_total"
-        "    ;"
-        "add<Value>: mul        &reduce_add"
-        "    | add '+' mul      &reduce_add_mul"
-        "    ;"
-        "mul<Expr>: 'num'       &reduce_mul"
-        "    | mul '*' 'num'    &reduce_mul_num"
-        "    ;";
-    
-    std::stringstream in(test);
- 
-    Generator generator;
-    
-    generator.read_grammar(in);
-    generator.solve();
-//    std::cout << "/*";
-//    parser.print_grammar(std::cout);
-//    parser.print_states(std::cout);
-//    std::cout << "*/";
-    generator.write(std::cout);
-}
-
-/*******************************************************************************
- * Writes the source code for a lexer.  This class combines multiple regular
- * expressions into a single deterministic finite automaton (DFA).  After adding
- * all expressions, call solve and then write to generate the source code.
- *
- * The output source code will define a structure for each state in DFA. This
- * structure contains a method that take a character and returns either the next
- * state in the DFA or a null pointer.  The null indicates that the pattern
- * matching is complete and the accepted value, if any, for the current state is
- * the type of token identified in the string.
- */
-void
-test_lexer()
-{
-    Accept num("number", 0);
-    Accept id("identifier", 1);
-
-    Lexer lexer;
-    lexer.add(&num, "[0-9]+");
-    lexer.add(&id, "[a-e]([a-e]|[0-9])*");
-
-    lexer.solve();
-    lexer.write(std::cout);
-}
-
-/*******************************************************************************
- * Converts regular expressions into finite automata for finding patterns in
- * strings.  After building, the Regex object will contain a non-deterministic
- * finite automaton (NFA).  Define a start state and connect it to the first
- * state of each NFA.  Calling scan from this new start will return the
- * accepted pattern, defined by a regular expession, found in the string.
- */
-void
-test_regex()
-{
-    Accept number("number", 0);
-    Accept identifier("identifier", 1);
-    
-    unique_ptr<Regex> num = Regex::parse("[0-9]+", &number);
-    unique_ptr<Regex> id  = Regex::parse("[a-z]([a-z]|[0-9])*", &identifier);
-    if (!num || !id) {
-        std::cerr << "Unable to parse expression.\n";
-        return;
-    }
-
-    Finite start;
-    start.add_epsilon(num->get_start());
-    start.add_epsilon(id->get_start());
-    
-    std::stringstream in("test var3 12");
-    
-    while (in.peek() != EOF) {
-        in >> std::ws;
-        Accept* accept = start.scan(&in);
-        if (accept) {
-            std::cout << "Found a " << accept->name << ".\n";
-        } else {
-            std::cout << "Did not match expression.\n";
-            break;
-        }
-    }
-}
-
-/*******************************************************************************
- * Defines an automaton to match tokens in a string.  Outputs from each state
- * determine the next active states based on the characters read from the
- * stream.  After connecting the states scan the input from the start state,
- * which moves between states while reading, to match words and numbers.
- */
-void
-test_finite()
-{
-    Accept word("word", 0);
-    Accept number("number", 1);
-    
-    Finite start;
-    Finite state_word(&word);
-    Finite state_number(&number);
-    Finite state_sign;
-    
-    start.add_out('a', 'z', &state_word);
-    start.add_out('-', &state_sign);
-    start.add_epsilon(&state_sign);
-    
-    state_word.add_out('a', 'z', &state_word);
-    state_sign.add_out('0', '9', &state_number);
-    state_number.add_out('0', '9', &state_number);
-    
-    std::stringstream in("hello 123 -456 world");
-    
-    while (in.peek() != EOF) {
-        in >> std::ws;
-        Accept* accept = start.scan(&in);
-        if (accept) {
-            std::cout << "Found a " << accept->name << ".\n";
-        }
-    }
-}
-
