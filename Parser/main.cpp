@@ -13,7 +13,7 @@ test_grammar()
     Generator generator;
     
     string test =
-        "'num'<Expr>   [0-9]+    &scan_num;"
+        "'num'<Expr>   [0-9]+    &scan_num8;"
         ""
         "total<Expr>: mul      &reduce_total"
         "    ;"
@@ -143,6 +143,12 @@ main(int argc, const char * argv[])
     //test_finite();
     //test_regex();
     //test_lexer();
-    test_grammar();
+    //test_grammar();
+    
+    Generator generator;
+
+    generator.read_grammar(std::cin);
+    generator.solve();
+    generator.write(std::cout);
 }
 

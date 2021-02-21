@@ -14,17 +14,19 @@
 		96BD9AFF25A96E110014EC35 /* lexer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BD9AFD25A96E110014EC35 /* lexer.cpp */; };
 		96BE754625B4C3DA000DC07F /* generator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BE754425B4C3DA000DC07F /* generator.cpp */; };
 		96BE754B25B4D2D1000DC07F /* symbols.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BE754925B4D2D1000DC07F /* symbols.cpp */; };
+		96CA746D25E1BCD00006D782 /* Parser in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9613FD03259C6248005AC19B /* Parser */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		9613FD01259C6248005AC19B /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
+			buildActionMask = 12;
+			dstPath = "$(PROJECT_DIR)/bin";
 			dstSubfolderSpec = 0;
 			files = (
+				96CA746D25E1BCD00006D782 /* Parser in CopyFiles */,
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -44,6 +46,8 @@
 		96BE754525B4C3DA000DC07F /* generator.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = generator.hpp; sourceTree = "<group>"; };
 		96BE754925B4D2D1000DC07F /* symbols.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = symbols.cpp; sourceTree = "<group>"; };
 		96BE754A25B4D2D1000DC07F /* symbols.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = symbols.hpp; sourceTree = "<group>"; };
+		96CA746925E1B6E50006D782 /* parser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = parser.cpp; sourceTree = "<group>"; };
+		96CA746A25E1B6E50006D782 /* parser.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = parser.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +94,8 @@
 				9639743A25BAA74800445D0A /* state.cpp */,
 				96BE754525B4C3DA000DC07F /* generator.hpp */,
 				96BE754425B4C3DA000DC07F /* generator.cpp */,
+				96CA746A25E1B6E50006D782 /* parser.hpp */,
+				96CA746925E1B6E50006D782 /* parser.cpp */,
 			);
 			path = Parser;
 			sourceTree = "<group>";

@@ -347,7 +347,8 @@ Generator::read_product(istream& in, vector<Symbol*>* syms)
 {
     while (in.peek() != EOF) {
         in >> std::ws;
-        if (in.peek() == ';' || in.peek() == '|' || in.peek() == '&') {
+        if (in.peek() == ';'  || in.peek() == '\n'
+                || in.peek() == '|' || in.peek() == '&') {
             break;
         }
         
@@ -368,6 +369,7 @@ Generator::read_product(istream& in, vector<Symbol*>* syms)
             }
         } else {
             cerr << "Expected character in rule.\n";
+            return false;
         }
     }
     return true;
@@ -430,6 +432,7 @@ Generator::read_type(istream& in, string* type)
             type->push_back(in.get());
         } else {
             cerr << "Unexpected character in type name.\n";
+            return false;
         }
     }
     
@@ -459,6 +462,7 @@ Generator::read_regex(istream& in, string* regex)
             regex->push_back(in.get());
         } else {
             cerr << "Unexpected character in regular expression.\n";
+            return false;
         }
     }
     
@@ -482,16 +486,19 @@ Generator::read_action(istream& in, string* action)
         
     while (true) {
         int c = in.peek();
-        if (c == ' ' || c == ';') {
+        if (c == ' ' || c == ';' || c == '\n') {
             break;
         }
         
         if (isalpha(c)) {
             action->push_back(in.get());
+        } else if (isdigit(c) && action->size() > 0) {
+            action->push_back(in.get());
         } else if (c == '_') {
             action->push_back(in.get());
         } else {
             cerr << "Unexpected character in action method name.\n";
+            return false;
         }
     }
     
