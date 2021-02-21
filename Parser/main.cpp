@@ -7,25 +7,51 @@
 #include <sstream>
 
 /******************************************************************************/
+void test_finite(void);
+void test_regex(void);
+void test_lexer(void);
+void test_grammar(void);
+
+/******************************************************************************/
+int
+main(int argc, const char * argv[])
+{
+    //test_finite();
+    //test_regex();
+    //test_lexer();
+    //test_grammar();
+    
+    Generator generator;
+
+    generator.read_grammar(std::cin);
+    generator.solve();
+    generator.write(std::cout);
+}
+
+/*******************************************************************************
+ * Writes the source code for a parser.  The class reads in a user defined
+ * grammar and outputs source code that can be compiled into another program to
+ * parse an input string.  Action methods can be associated with every rule of
+ * the grammar and are called when that pattern is found within the input.
+ */
 void
 test_grammar()
 {
-    Generator generator;
-    
     string test =
-        "'num'<Expr>   [0-9]+    &scan_num8;"
+        "'num'<Expr>   [0-9]+   &scan_num;"
         ""
-        "total<Expr>: mul      &reduce_total"
+        "total<Expr>: add       &reduce_total"
         "    ;"
-//        "add<Value>: mul        &reduce_add"
-//        "    | add '+' mul      &reduce_add_mul"
-//        "    ;"
-        "mul<Expr>: 'num'      &reduce_mul"
+        "add<Value>: mul        &reduce_add"
+        "    | add '+' mul      &reduce_add_mul"
+        "    ;"
+        "mul<Expr>: 'num'       &reduce_mul"
         "    | mul '*' 'num'    &reduce_mul_num"
-        "    ;"
-    ;
+        "    ;";
     
     std::stringstream in(test);
+ 
+    Generator generator;
     
     generator.read_grammar(in);
     generator.solve();
@@ -97,7 +123,6 @@ test_regex()
             break;
         }
     }
-    
 }
 
 /*******************************************************************************
@@ -134,21 +159,5 @@ test_finite()
             std::cout << "Found a " << accept->name << ".\n";
         }
     }
-}
-
-/******************************************************************************/
-int
-main(int argc, const char * argv[])
-{
-    //test_finite();
-    //test_regex();
-    //test_lexer();
-    //test_grammar();
-    
-    Generator generator;
-
-    generator.read_grammar(std::cin);
-    generator.solve();
-    generator.write(std::cout);
 }
 

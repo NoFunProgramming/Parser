@@ -81,7 +81,6 @@
 		9613FD05259C6248005AC19B /* Parser */ = {
 			isa = PBXGroup;
 			children = (
-				9613FD06259C6248005AC19B /* main.cpp */,
 				96B7D324259CDAAA00196100 /* finite.hpp */,
 				96B7D323259CDAAA00196100 /* finite.cpp */,
 				9680CBA0259CF961006E19A4 /* regex.hpp */,
@@ -96,6 +95,7 @@
 				96BE754425B4C3DA000DC07F /* generator.cpp */,
 				96CA746A25E1B6E50006D782 /* parser.hpp */,
 				96CA746925E1B6E50006D782 /* parser.cpp */,
+				9613FD06259C6248005AC19B /* main.cpp */,
 			);
 			path = Parser;
 			sourceTree = "<group>";
