@@ -7,6 +7,11 @@ extern State state0;
 extern Symbol endmark;
 
 /******************************************************************************/
+Term(const char* name, Value* (*scan)(const std::string&)):
+    name(name),
+    scan(scan){}
+
+/******************************************************************************/
 Parser::Parser() :
     node(&node0){}
 

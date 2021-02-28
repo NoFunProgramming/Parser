@@ -16,13 +16,18 @@ Generator::read_grammar(istream& in)
         in >> std::ws;
         if (in.peek() == EOF) {
             break;
+        }        
+        if (!read_comment(in)) {
+            return false;
         }
-        
+                
+        in >> std::ws;
         if (in.peek() == '\'') {
             if (!read_term(in)) {
                 return false;
             }
-        } else {
+        }
+        else {
             if (!read_rules(in)) {
                 return false;
             }
@@ -229,6 +234,7 @@ Generator::intern_term(istream& in)
         accepts.emplace_back(make_unique<Accept>(name, term->rank));
         lexer.add_series(accepts.back().get(), name);
     }
+    //std::cerr << name << terms[name].get()->rank << std::endl;
     return terms[name].get();
 }
 
@@ -279,6 +285,7 @@ Generator::read_term(istream& in)
     term->type = type;
     term->action = action;
     
+    std::cerr << name << term->rank << std::endl;
     accepts.emplace_back(make_unique<Accept>(term->name, term->rank));
     Accept* accept = accepts.back().get();
     
@@ -372,6 +379,44 @@ Generator::read_product(istream& in, vector<Symbol*>* syms)
             return false;
         }
     }
+    return true;
+}
+
+bool
+Generator::read_comment(istream& in)
+{
+    if (in.peek() != '/') {
+        return true;
+    }
+
+    int c = in.get();
+    if (in.peek() != '*') {
+        in.putback(c);
+        return true;
+    } else {
+        in.get();
+    }
+    
+    bool star = false;
+    while (true) {
+        if (in.peek() == EOF) {
+            cerr << "Unexpected end of file in comment.\n";
+            return false;
+        }
+        if (star) {
+            int c = in.get();
+            if (c == '/') {
+                break;
+            } else if (c != '*') {
+                star = false;
+            }
+        } else {
+            if (in.get() == '*') {
+                star = true;
+            }
+        }
+    }
+    
     return true;
 }
 

@@ -170,7 +170,7 @@ Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
         return nullptr;
     }
     
-    if (isalpha(c)) {
+    if (isalpha(c) || isdigit(c)) {
         Finite* state = add_state();
         Finite::Out* out = state->add_out(c, nullptr);
         outs->push_back(out);
@@ -197,6 +197,16 @@ Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
             return nullptr;
         }
         return expr;
+    }
+    else if (c == ']' || c == ')' || c == '|') {
+        cerr << "Unexpected '" << (char)c << "' in expression.\n";
+        return nullptr;
+    }
+    else if (isprint(c)) {
+        Finite* state = add_state();
+        Finite::Out* out = state->add_out(c, nullptr);
+        outs->push_back(out);
+        return state;
     }
     else {
         if (c == EOF) {
@@ -269,27 +279,46 @@ Regex::parse_atom_not(istream& in, vector<Finite::Out*>* outs)
     return state;
 }
 
+// TODO Allow escape sequnces in ranges.
+
 /** Parses an escape sequence, \[ \(, to match control characters. */
 Finite*
 Regex::parse_atom_escape(istream& in, vector<Finite::Out*>* outs)
 {
     int c = in.get();
     
-    if (c == '[' || c == ']' || c == '(' || c == ')'
-            || c == '|' || c == '\\') {
-        Finite* state = add_state();
-        Finite::Out* out = state->add_out(c, nullptr);
-        outs->push_back(out);
-        return state;
-    }
-    else {
-        if (c == EOF) {
-            cerr << "Unexpected end of file.\n";
-        } else if (isprint(c)) {
-            cerr << "Unknown escape sequence '" << (char)c << "'.\n";
-        } else {
-            cerr << "Unexpected control character.\n";
+    switch (c) {
+        case '[': break;
+        case ']': break;
+        case '(': break;
+        case ')': break;
+        case '|': break;
+        case 'n': c = '\n'; break;
+        case 'r': c = '\r'; break;
+        case 't': c = '\t'; break;
+        case 'a': c = '\a'; break;
+        case 'b': c = '\b'; break;
+        case 'e': c = '\e'; break;
+        case 'f': c = '\f'; break;
+        case 'v': c = '\v'; break;
+        case '\\': c = '\\'; break;
+        case '\'': c = '\''; break;
+        case '"':  c = '"' ; break;
+        case '?':  c = '?' ; break;
+        default: {
+            if (c == EOF) {
+                cerr << "Unexpected end of file.\n";
+            } else if (isprint(c)) {
+                cerr << "Unknown escape sequence '" << (char)c << "'.\n";
+            } else {
+                cerr << "Unexpected control character.\n";
+            }
+            return nullptr;
         }
-        return nullptr;
     }
+
+    Finite* state = add_state();
+    Finite::Out* out = state->add_out(c, nullptr);
+    outs->push_back(out);
+    return state;
 }

@@ -33,7 +33,7 @@ Term::write_proto(ostream& out) const
     if (action.empty())
         return;
     out << "unique_ptr<" << type << "> ";
-    out << action << "(const std::string& s);\n";
+    out << action << "(Table*, const std::string& s);\n";
 }
 
 void
@@ -42,8 +42,8 @@ Term::write_define(ostream& out) const
     if (action.empty())
         return;
     out << "Value*\n";
-    out << "term" << rank << "_scan(const std::string& s) {\n";
-    out << "    unique_ptr<" << type << "> value = " << action << "(s);\n";
+    out << "term" << rank << "_scan(Table* table, const std::string& s) {\n";
+    out << "    unique_ptr<" << type << "> value = " << action << "(table, s);\n";
     out << "    return value.release();\n";
     out << "}\n";
 }

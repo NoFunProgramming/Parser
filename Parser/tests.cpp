@@ -19,6 +19,7 @@ test_grammar()
     string test =
         "'num'<Expr>   [0-9]+   &scan_num;"
         ""
+        "/* Comment */"
         "total<Expr>: add       &reduce_total"
         "    ;"
         "add<Value>: mul        &reduce_add"
@@ -32,7 +33,11 @@ test_grammar()
  
     Generator generator;
     
-    generator.read_grammar(in);
+    bool ok = generator.read_grammar(in);
+    if (!ok) {
+        std::cerr << "Unable to read grammar.\n";
+        return;
+    }
     generator.solve();
 //    std::cout << "/*";
 //    parser.print_grammar(std::cout);

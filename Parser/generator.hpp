@@ -63,6 +63,7 @@ class Generator
     bool read_term(istream& in);
     bool read_rules(istream& in);
     bool read_product(istream& in, vector<Symbol*>* syms);
+    bool read_comment(istream& in);
     
     /** Interns symbol names while reading production rules. */
     Term* intern_term(istream& in);

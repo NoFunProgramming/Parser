@@ -194,9 +194,15 @@ Lexer::State::solve_closure()
 void
 Lexer::State::solve_accept()
 {
+    if (items.size() > 1) {
+        std::cerr << "Checking\n";
+    }
     auto lowest = min_element(items.begin(), items.end(), Finite::lower);
     if (lowest != items.end()) {
         accept = (*lowest)->get_accept();
+        if (items.size() > 1 && accept) {
+            std::cerr << "Return " << id << " " << accept->name << "\n";
+        }
     }
 }
 
@@ -251,15 +257,23 @@ Lexer::State::Range::operator<(const Range& other) const {
 void
 Lexer::State::Range::write(ostream& out) const
 {
-    // TODO Check for same characters.
-    if (isprint(first) && isprint(last)) {
-        out << "(c >= '" << (char)first << "')";
-        out << " && ";
-        out << "(c <= '" << (char)last << "')";
+    if (first == last) {
+        if (isprint(first) && first != '\'') {
+            out << "c == '" << (char)first << "'";
+        } else {
+            out << "c == " << first << "";
+        }
     } else {
-        out << "(c >= " << first << ")";
-        out << " && ";
-        out << "(c <= " << last << ")";
+        if (isprint(first) && isprint(last)
+                && first != '\'' && last != '\'') {
+            out << "(c >= '" << (char)first << "')";
+            out << " && ";
+            out << "(c <= '" << (char)last << "')";
+        } else {
+            out << "(c >= " << first << ")";
+            out << " && ";
+            out << "(c <= " << last << ")";
+        }
     }
 }
 
@@ -320,12 +334,26 @@ Lexer::Literal::parse_term(istream& in, Accept* accept)
         
         if (c == '\\') {
             c = in.get();
-            if (c == 'n') {
-                c = '\n';
-            } else {
-                return nullptr;
+            switch (c) {
+                case 'n': c = '\n'; break;
+                case 'r': c = '\r'; break;
+                case 't': c = '\t'; break;
+                case 'a': c = '\a'; break;
+                case 'b': c = '\b'; break;
+                case 'e': c = '\e'; break;
+                case 'f': c = '\f'; break;
+                case 'v': c = '\v'; break;
+                case '\\': c = '\\'; break;
+                case '\'': c = '\''; break;
+                case '"':  c = '"' ; break;
+                case '?':  c = '?' ; break;
+                default: {
+                    cerr << "Unknown escape sequence.\n";
+                    return nullptr;
+                }
             }
         }
+        
         if (in.peek() == EOF) {
             Finite* next = add_state(accept);
             term->add_out(c, next);
@@ -338,5 +366,5 @@ Lexer::Literal::parse_term(istream& in, Accept* accept)
         }
     }
     
-    return term;
+    return fact;
 }
