@@ -52,17 +52,17 @@ main(int argc, const char * argv[])
     //test_finite();
     //test_regex();
     //test_lexer();
-    test_grammar();
+    //test_grammar();
     
-//    Generator generator;
-//
-//    bool ok = generator.read_grammar(std::cin);
-//    if (!ok) {
-//        std::cerr << "Unable to read grammar.\n";
-//        return 1;
-//    }
-//
-//    generator.solve();
-//    generator.write(std::cout);
+    Generator generator;
+
+    bool ok = generator.read_grammar(std::cin);
+    if (!ok) {
+        std::cerr << "Unable to read grammar.\n";
+        return 1;
+    }
+
+    generator.solve();
+    generator.write(std::cout);
     return 0;
 }
