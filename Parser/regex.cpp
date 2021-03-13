@@ -1,8 +1,9 @@
 #include "regex.hpp"
 
 #include <sstream>
-using std::make_unique;
-using std::istringstream;
+using std::string;
+using std::vector;
+using std::istream;
 using std::cerr;
 
 /******************************************************************************/
@@ -14,12 +15,12 @@ Regex::Regex() :
  * All unconnected outputs from the final automaton are connect to a provided
  * accept condition.
  */
-unique_ptr<Regex>
+std::unique_ptr<Regex>
 Regex::parse(const string& in, Accept* accept)
 {
-    unique_ptr<Regex> result(make_unique<Regex>());
+    std::unique_ptr<Regex> result(std::make_unique<Regex>());
     
-    istringstream input(in);
+    std::istringstream input(in);
     
     vector<Finite::Out*> outs;
     result->start = result->parse_expr(input, &outs);
@@ -46,13 +47,13 @@ Finite* Regex::get_start() { return start; }
  */
 Finite*
 Regex::add_state() {
-    states.emplace_back(make_unique<Finite>());
+    states.emplace_back(std::make_unique<Finite>());
     return states.back().get();
 }
 
 Finite*
 Regex::add_state(Accept* accept) {
-    states.emplace_back(make_unique<Finite>(accept));
+    states.emplace_back(std::make_unique<Finite>(accept));
     return states.back().get();
 }
 

@@ -9,15 +9,10 @@
 #ifndef symbols_hpp
 #define symbols_hpp
 
-#include <set>
-#include <vector>
 #include <string>
+#include <vector>
+#include <set>
 #include <sstream>
-using std::set;
-using std::vector;
-using std::string;
-using std::ostream;
-using std::unique_ptr;
 
 /*******************************************************************************
  * Base class for all types of symbols such as terminals and nonterminals.
@@ -25,9 +20,9 @@ using std::unique_ptr;
 class Symbol
 {
   public:
-    string type;
-    virtual void print(ostream& out) const = 0;
-    virtual void write(ostream& out) const = 0;
+    std::string type;
+    virtual void print(std::ostream& out) const = 0;
+    virtual void write(std::ostream& out) const = 0;
 };
 
 /*******************************************************************************
@@ -37,17 +32,17 @@ class Symbol
 class Term : public Symbol
 {
   public:
-    Term(const string& name, size_t rank);
-    string name;
+    Term(const std::string& name, size_t rank);
+    std::string name;
     size_t rank;
-    string action;
+    std::string action;
     
-    virtual void print(ostream& out) const;
-    virtual void write(ostream& out) const;
-    virtual void write_declare(ostream& out) const;
+    virtual void print(std::ostream& out) const;
+    virtual void write(std::ostream& out) const;
+    virtual void write_declare(std::ostream& out) const;
     
-    void write_proto(ostream& out) const;
-    void write_define(ostream& out) const;
+    void write_proto(std::ostream& out) const;
+    void write_define(std::ostream& out) const;
 };
 
 /*******************************************************************************
@@ -56,8 +51,8 @@ class Term : public Symbol
 class Endmark : public Symbol
 {
   public:
-    virtual void print(ostream& out) const;
-    virtual void write(ostream& out) const;
+    virtual void print(std::ostream& out) const;
+    virtual void write(std::ostream& out) const;
 };
 
 /*******************************************************************************
@@ -69,13 +64,13 @@ class Endmark : public Symbol
 class Nonterm : public Symbol
 {
   public:
-    Nonterm(const string& name);
-    string name;
+    Nonterm(const std::string& name);
+    std::string name;
     size_t rank;
     
-    virtual void print(ostream& out) const;
-    virtual void write(ostream& out) const;
-    void write_declare(ostream& out) const;
+    virtual void print(std::ostream& out) const;
+    virtual void write(std::ostream& out) const;
+    void write_declare(std::ostream& out) const;
   
     /**
      * All nonterminals have one or more production rules, vectors of symbols,
@@ -85,22 +80,22 @@ class Nonterm : public Symbol
      */
     class Rule {
       public:
-        Rule(Nonterm* nonterm, const string& action);
+        Rule(Nonterm* nonterm, const std::string& action);
         Nonterm* nonterm;
-        vector<Symbol*> product;
-        string action;
+        std::vector<Symbol*> product;
+        std::string action;
         size_t id;
         
-        virtual void print(ostream& out) const;
-        virtual void write(ostream& out) const;
-        void write_declare(ostream& out) const;
-        void write_proto(ostream& out) const;
-        void write_action(ostream& out) const;
-        void write_define(ostream& out) const;
+        virtual void print(std::ostream& out) const;
+        virtual void write(std::ostream& out) const;
+        void write_declare(std::ostream& out) const;
+        void write_proto(std::ostream& out) const;
+        void write_action(std::ostream& out) const;
+        void write_define(std::ostream& out) const;
     };
     
-    vector<unique_ptr<Rule>> rules;
-    void add_rule(const vector<Symbol*>& syms, const string& action);
+    std::vector<std::unique_ptr<Rule>> rules;
+    void add_rule(const std::vector<Symbol*>& syms, const std::string& action);
 
     /**
      * To find all possible parse states, the first step is to solve for all
@@ -108,7 +103,7 @@ class Nonterm : public Symbol
      * nonterminal. A nonterminal can also have an empty production rule of no
      * symbols.
      */
-    set<Symbol*> firsts;
+    std::set<Symbol*> firsts;
     bool empty_first;
     void solve_first(bool* found);
 
@@ -116,13 +111,13 @@ class Nonterm : public Symbol
      * After finding the firsts, solve for all terminals that could follow each
      * nonterminal.
      */
-    set<Symbol*> follows;
+    std::set<Symbol*> follows;
     void solve_follows(bool* found);
     
     /** Prints the input grammar in BNF form. */
-    void print_rules(ostream& out) const;
-    void print_firsts(ostream& out) const;
-    void print_follows(ostream& out) const;
+    void print_rules(std::ostream& out) const;
+    void print_firsts(std::ostream& out) const;
+    void print_follows(std::ostream& out) const;
     
   private:
     /**
@@ -133,9 +128,9 @@ class Nonterm : public Symbol
      */
     void insert_firsts(Rule* rule, bool* found);
     
-    void insert_follows(const set<Symbol*>& syms, bool* found);
-    void insert_follows(vector<Symbol*>::iterator symbol,
-                        vector<Symbol*>::iterator end,
+    void insert_follows(const std::set<Symbol*>& syms, bool* found);
+    void insert_follows(std::vector<Symbol*>::iterator symbol,
+                        std::vector<Symbol*>::iterator end,
                         bool* epsilon, bool* found);
 };
 

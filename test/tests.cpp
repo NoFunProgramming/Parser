@@ -1,11 +1,24 @@
-#include "tests.hpp"
-
 #include "finite.hpp"
 #include "regex.hpp"
 #include "lexer.hpp"
 #include "generator.hpp"
 
 #include <sstream>
+
+/******************************************************************************/
+void test_finite(void);
+void test_regex(void);
+void test_lexer(void);
+void test_grammar(void);
+
+void
+run_tests()
+{
+    test_finite();
+    test_regex();
+    test_lexer();
+    test_grammar();
+}
 
 /*******************************************************************************
  * Writes the source code for a parser.  The class reads in a user defined
@@ -16,7 +29,7 @@
 void
 test_grammar()
 {
-    string test =
+    std::string test =
         "'num'<Expr>   [0-9]+   &scan_num;"
         ""
         "/* Comment */"
@@ -84,8 +97,8 @@ test_regex()
     Accept number("number", 0);
     Accept identifier("identifier", 1);
     
-    unique_ptr<Regex> num = Regex::parse("[0-9]+", &number);
-    unique_ptr<Regex> id  = Regex::parse("[a-z]([a-z]|[0-9])*", &identifier);
+    std::unique_ptr<Regex> num = Regex::parse("[0-9]+", &number);
+    std::unique_ptr<Regex> id  = Regex::parse("[a-z]([a-z]|[0-9])*", &identifier);
     if (!num || !id) {
         std::cerr << "Unable to parse expression.\n";
         return;

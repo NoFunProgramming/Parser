@@ -51,7 +51,6 @@
 		96CA746925E1B6E50006D782 /* parser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = parser.cpp; sourceTree = "<group>"; };
 		96CA746A25E1B6E50006D782 /* parser.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = parser.hpp; sourceTree = "<group>"; };
 		96CACACB25E2ECF4004EF4B9 /* tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tests.cpp; sourceTree = "<group>"; };
-		96CACACC25E2ECF4004EF4B9 /* tests.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = tests.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +70,7 @@
 				963F0EEC259E539600E5D128 /* readme.md */,
 				968F77FB25EC7D1C002DF456 /* license */,
 				9613FD05259C6248005AC19B /* Parser */,
+				96BE62A825FBD667006BED36 /* test */,
 				9613FD04259C6248005AC19B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -99,12 +99,18 @@
 				9639743A25BAA74800445D0A /* state.cpp */,
 				96BE754525B4C3DA000DC07F /* generator.hpp */,
 				96BE754425B4C3DA000DC07F /* generator.cpp */,
-				96CACACC25E2ECF4004EF4B9 /* tests.hpp */,
-				96CACACB25E2ECF4004EF4B9 /* tests.cpp */,
 				96CA746A25E1B6E50006D782 /* parser.hpp */,
 				96CA746925E1B6E50006D782 /* parser.cpp */,
 			);
 			path = Parser;
+			sourceTree = "<group>";
+		};
+		96BE62A825FBD667006BED36 /* test */ = {
+			isa = PBXGroup;
+			children = (
+				96CACACB25E2ECF4004EF4B9 /* tests.cpp */,
+			);
+			path = test;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

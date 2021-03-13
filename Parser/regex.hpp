@@ -12,9 +12,6 @@
 
 #include <string>
 #include <iostream>
-using std::string;
-using std::istream;
-using std::unique_ptr;
 
 /*******************************************************************************
  * Contains a finite automaton for pattern matching.  Build a new regex object
@@ -28,7 +25,7 @@ class Regex
      * Returns a new Regex object if the input expression is a valid, otherwise
      * a null pointer is returned.
      */
-    static unique_ptr<Regex> parse(const string& in, Accept* accept);
+    static std::unique_ptr<Regex> parse(const std::string& in, Accept* accept);
     Regex();
 
     /**
@@ -40,7 +37,7 @@ class Regex
   private:
     /** States of the NFA, owned by the regex object. */
     Finite* start;
-    vector<unique_ptr<Finite>> states;
+    std::vector<std::unique_ptr<Finite>> states;
     Finite* add_state();
     Finite* add_state(Accept* accept);
     
@@ -50,18 +47,18 @@ class Regex
      * of unconnected outputs.  As states are allocated they are added to the
      * state vector of the Regex object.
      */
-    Finite* parse_expr(istream& in, vector<Finite::Out*>* outs);
-    Finite* parse_term(istream& in, vector<Finite::Out*>* outs);
-    Finite* parse_fact(istream& in, vector<Finite::Out*>* outs);
-    Finite* parse_atom(istream& in, vector<Finite::Out*>* outs);
+    Finite* parse_expr(std::istream& in, std::vector<Finite::Out*>* outs);
+    Finite* parse_term(std::istream& in, std::vector<Finite::Out*>* outs);
+    Finite* parse_fact(std::istream& in, std::vector<Finite::Out*>* outs);
+    Finite* parse_atom(std::istream& in, std::vector<Finite::Out*>* outs);
     
     /**
      * Additional methods to find characters in a range, outside of a range, or
      * look for a control character in the expression.
      */
-    Finite* parse_atom_range(istream& in, vector<Finite::Out*>* outs);
-    Finite* parse_atom_not(istream& in, vector<Finite::Out*>* outs);
-    Finite* parse_atom_escape(istream& in, vector<Finite::Out*>* outs);
+    Finite* parse_atom_range(std::istream& in, std::vector<Finite::Out*>* outs);
+    Finite* parse_atom_not(std::istream& in, std::vector<Finite::Out*>* outs);
+    Finite* parse_atom_escape(std::istream& in, std::vector<Finite::Out*>* outs);
 };
 
 #endif

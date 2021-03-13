@@ -15,14 +15,10 @@
 #include "lexer.hpp"
 #include "state.hpp"
 
-#include <map>
 #include <string>
-#include <sstream>
+#include <map>
 #include <memory>
-using std::map;
-using std::string;
-using std::istream;
-using std::unique_ptr;
+#include <sstream>
 
 /*******************************************************************************
  * Writes a language parser.  The parser reads in grammar rules and outputs
@@ -37,15 +33,16 @@ class Generator
     Generator();
     
     /** Reads in the grammar that defines the parser. */
-    bool read_grammar(istream& in);
+    bool read_grammar(std::istream& in);
     
     /** After reading, solve for all possible parse states. */
     void solve();
     
     /** After solving, write the source code for the parser. */
-    void write(ostream& out) const;
-    void print_grammar(ostream& out) const;
-    void print_states(ostream& out) const;
+    void write(std::ostream& out) const;
+    
+    void print_grammar(std::ostream& out) const;
+    void print_states(std::ostream& out) const;
 
   private:
     /**
@@ -53,30 +50,30 @@ class Generator
      * and nonterminal names.  The parser can then store production rules as
      * vectors of pointers to these terminal and nonterminal symbols.
      */
-    map<string, unique_ptr<Term>> terms;
-    map<string, unique_ptr<Nonterm>> nonterms;
-    vector<unique_ptr<Accept>> accepts;
-    vector<Nonterm*> all;
+    std::map<std::string, std::unique_ptr<Term>> terms;
+    std::map<std::string, std::unique_ptr<Nonterm>> nonterms;
+    std::vector<std::unique_ptr<Accept>> accepts;
+    std::vector<Nonterm*> all;
     Endmark endmark;
          
     /** Recursive decent parser for reading grammar rules. */
-    bool read_term(istream& in);
-    bool read_rules(istream& in);
-    bool read_product(istream& in, vector<Symbol*>* syms);
-    bool read_comment(istream& in);
+    bool read_term(std::istream& in);
+    bool read_rules(std::istream& in);
+    bool read_product(std::istream& in, std::vector<Symbol*>* syms);
+    bool read_comment(std::istream& in);
     
     /** Interns symbol names while reading production rules. */
-    Term* intern_term(istream& in);
-    Nonterm* intern_nonterm(istream& in);
+    Term* intern_term(std::istream& in);
+    Nonterm* intern_nonterm(std::istream& in);
         
     /** Reads a valid name for a symbol. */
-    bool read_term_name(istream& in, string* name);
-    bool read_nonterm_name(istream& in, string* name);
+    bool read_term_name(std::istream& in, std::string* name);
+    bool read_nonterm_name(std::istream& in, std::string* name);
     
     /** Attributes of the grammar rules. */
-    bool read_type(istream& in, string* type);
-    bool read_regex(istream& in, string* regex);
-    bool read_action(istream& in, string* action);
+    bool read_type(std::istream& in, std::string* type);
+    bool read_regex(std::istream& in, std::string* regex);
+    bool read_action(std::istream& in, std::string* action);
         
     /** Lexer to scan an input for terminals. */
     Lexer lexer;
@@ -94,12 +91,12 @@ class Generator
      * if the next parse state for a given symbol has already been found.
      */
     struct Compare {
-        bool operator() (const unique_ptr<State>& lhs,
-                         const unique_ptr<State>& rhs) const {
+        bool operator() (const std::unique_ptr<State>& lhs,
+                         const std::unique_ptr<State>& rhs) const {
             return *lhs < *rhs;
         }
     };
-    set<unique_ptr<State>, Compare> states;
+    std::set<std::unique_ptr<State>, Compare> states;
     State* start;
 };
 

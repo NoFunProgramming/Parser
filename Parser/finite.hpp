@@ -2,21 +2,17 @@
  * Finite automata for finding patterns in strings.  Outputs are added to each
  * finite state to define the next states to move to after reading an input
  * character.  After connecting the states, call scan from the start state to
- * read and return the accepted match from the input string.
+ * find and return the accepted match for the input string.
  */
 
 #ifndef finite_hpp
 #define finite_hpp
 
-#include <iostream>
 #include <string>
 #include <vector>
 #include <set>
 #include <memory>
-using std::string;
-using std::vector;
-using std::set;
-using std::unique_ptr;
+#include <iostream>
 
 /*******************************************************************************
  * Marks a state as matching a specific pattern.  The rank is required as
@@ -25,8 +21,8 @@ using std::unique_ptr;
  */
 class Accept {
   public:
-    Accept(const string& name, size_t rank);
-    string name;
+    Accept(const std::string& name, size_t rank);
+    std::string name;
     size_t rank;
 };
 
@@ -46,7 +42,7 @@ class Finite {
      * Checks an input stream for a pattern starting from this state.  Scan
      * continually reads from an input stream, following the outputs for each
      * character, until no new states are found.  At that point scan will return
-     * of lowest ranked accept of the last found states.
+     * the lowest ranked accept of the last found states.
      */
     Accept* scan(std::istream* in);
     
@@ -79,18 +75,18 @@ class Finite {
     Out* add_epsilon(Finite* next);
         
     /** Finds output targets with the given character in its range. */
-    void move(char c, set<Finite*>* next);
+    void move(char c, std::set<Finite*>* next);
     
     /** Follows empty transitions until no new states are found. */
-    static void closure(set<Finite*>* states);
-    void closure(set<Finite*>* states, vector<Finite*>* stack);
+    static void closure(std::set<Finite*>* states);
+    void closure(std::set<Finite*>* states, std::vector<Finite*>* stack);
     
     /** Compare states to find the lowest rank. */
     static bool lower(Finite* left, Finite* right);
     
   private:
     Accept* accept;
-    vector<unique_ptr<Out>> outs;        
+    std::vector<std::unique_ptr<Out>> outs;
 };
 
 #endif

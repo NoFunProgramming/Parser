@@ -1,6 +1,7 @@
 #include "finite.hpp"
 
-using std::make_unique;
+using std::string;
+using std::vector;
 
 /******************************************************************************/
 Accept::Accept(const string& name, size_t rank):
@@ -24,8 +25,8 @@ Accept* Finite::get_accept() { return accept; }
 Accept*
 Finite::scan(std::istream* in)
 {
-    set<Finite*> current;
-    set<Finite*> found;
+    std::set<Finite*> current;
+    std::set<Finite*> found;
     
     current.insert(this);
     closure(&current);
@@ -55,7 +56,7 @@ Finite::scan(std::istream* in)
 }
 
 void
-Finite::closure(set<Finite*>* states)
+Finite::closure(std::set<Finite*>* states)
 {
     vector<Finite*> stack;
     stack.insert(stack.end(), states->begin(), states->end());
@@ -68,9 +69,9 @@ Finite::closure(set<Finite*>* states)
 }
 
 void
-Finite::closure(set<Finite*>* states, vector<Finite*>* stack)
+Finite::closure(std::set<Finite*>* states, vector<Finite*>* stack)
 {
-    for (unique_ptr<Out>& out: outs) {
+    for (std::unique_ptr<Out>& out: outs) {
         if (out->is_epsilon()) {
             Finite* next = out->next;
             if (next) {
@@ -84,9 +85,9 @@ Finite::closure(set<Finite*>* states, vector<Finite*>* stack)
 }
 
 void
-Finite::move(char c, set<Finite*>* next)
+Finite::move(char c, std::set<Finite*>* next)
 {
-    for (unique_ptr<Out>& out : outs) {
+    for (std::unique_ptr<Out>& out : outs) {
         if (out->in_range(c) && out->next) {
             next->insert(out->next);
         }
@@ -108,25 +109,25 @@ Finite::lower(Finite* left, Finite* right)
 /** Builds and returns new outputs, but retains ownership. */
 Finite::Out*
 Finite::add_out(char c, Finite* next) {
-    outs.emplace_back(make_unique<Out>(c, c, next));
+    outs.emplace_back(std::make_unique<Out>(c, c, next));
     return outs.back().get();
 }
 
 Finite::Out*
 Finite::add_out(char first, char last, Finite* next) {
-    outs.emplace_back(make_unique<Out>(first, last, next));
+    outs.emplace_back(std::make_unique<Out>(first, last, next));
     return outs.back().get();
 }
 
 Finite::Out*
 Finite::add_not(char first, char last, Finite* next) {
-    outs.emplace_back(make_unique<Out>(first, last, false, next));
+    outs.emplace_back(std::make_unique<Out>(first, last, false, next));
     return outs.back().get();
 }
 
 Finite::Out*
 Finite::add_epsilon(Finite* next) {
-    outs.emplace_back(make_unique<Out>(next));
+    outs.emplace_back(std::make_unique<Out>(next));
     return outs.back().get();
 }
 

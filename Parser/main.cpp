@@ -41,7 +41,6 @@
  */
 
 #include "generator.hpp"
-#include "tests.hpp"
 
 #include <iostream>
 
@@ -49,20 +48,19 @@
 int
 main(int argc, const char * argv[])
 {
-    //test_finite();
-    //test_regex();
-    //test_lexer();
-    //test_grammar();
+//    Generator generator;
+//
+//    bool ok = generator.read_grammar(std::cin);
+//    if (!ok) {
+//        std::cerr << "Unable to read grammar.\n";
+//        return 1;
+//    }
+//
+//    generator.solve();
+//    generator.write(std::cout);
     
-    Generator generator;
+    void run_tests();
+    run_tests();
 
-    bool ok = generator.read_grammar(std::cin);
-    if (!ok) {
-        std::cerr << "Unable to read grammar.\n";
-        return 1;
-    }
-
-    generator.solve();
-    generator.write(std::cout);
     return 0;
 }

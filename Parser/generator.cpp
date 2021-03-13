@@ -1,8 +1,11 @@
 #include "generator.hpp"
 
 #include <iostream>
-using std::cerr;
 
+using std::string;
+using std::vector;
+using std::istream;
+using std::cerr;
 using std::make_unique;
 
 /******************************************************************************/
@@ -10,7 +13,7 @@ Generator::Generator():
     start(nullptr){}
 
 bool
-Generator::read_grammar(istream& in)
+Generator::read_grammar(std::istream& in)
 {
     while (true) {
         in >> std::ws;
@@ -49,14 +52,14 @@ Generator::solve()
     solve_first();
     solve_follows(&endmark);
     
-    auto state = make_unique<State>(states.size());
+    auto state = std::make_unique<State>(states.size());
     state->add(State::Item(all.front()->rules.front().get(), 0, &endmark));
     state->closure();
     
     start = state.get();
     states.insert(std::move(state));
     
-    vector<State*> checking;
+    std::vector<State*> checking;
     checking.push_back(start);
 
     while (checking.size() > 0)
@@ -66,7 +69,7 @@ Generator::solve()
 
         for (auto& term : terms) {
             Symbol* sym = term.second.get();
-            unique_ptr<State> next = state->solve_next(sym, states.size());
+            std::unique_ptr<State> next = state->solve_next(sym, states.size());
             if (next) {
                 auto found = states.insert(std::move(next));
                 State* target = found.first->get();
@@ -79,7 +82,7 @@ Generator::solve()
 
         for (auto& nonterm : nonterms) {
             Symbol* sym = nonterm.second.get();
-            unique_ptr<State> next = state->solve_next(sym, states.size());
+            std::unique_ptr<State> next = state->solve_next(sym, states.size());
             if (next) {
                 auto found = states.insert(std::move(next));
                 State* target = found.first->get();
@@ -102,7 +105,7 @@ Generator::solve()
 
 /******************************************************************************/
 void
-Generator::write(ostream& out) const
+Generator::write(std::ostream& out) const
 {
     out << "#include \"parser.hpp\"\n";
     out << "#include \"values.hpp\"\n";
@@ -186,7 +189,7 @@ Generator::write(ostream& out) const
 
 /******************************************************************************/
 void
-Generator::print_grammar(ostream& out) const
+Generator::print_grammar(std::ostream& out) const
 {
     for (auto nonterm : all) {
         nonterm->print_rules(out);
@@ -210,7 +213,7 @@ Generator::print_grammar(ostream& out) const
 }
 
 void
-Generator::print_states(ostream& out) const
+Generator::print_states(std::ostream& out) const
 {
     for (auto& state : states) {
         state->print(out);
@@ -221,17 +224,17 @@ Generator::print_states(ostream& out) const
 
 /******************************************************************************/
 Term*
-Generator::intern_term(istream& in)
+Generator::intern_term(std::istream& in)
 {
     string name;
     if (!read_term_name(in, &name)) {
         return nullptr;
     }
     if (terms.count(name) == 0) {
-        terms[name] = make_unique<Term>(name, terms.size());
+        terms[name] = std::make_unique<Term>(name, terms.size());
         Term* term = terms[name].get();
 
-        accepts.emplace_back(make_unique<Accept>(name, term->rank));
+        accepts.emplace_back(std::make_unique<Accept>(name, term->rank));
         lexer.add_series(accepts.back().get(), name);
     }
     //std::cerr << name << terms[name].get()->rank << std::endl;
@@ -285,7 +288,6 @@ Generator::read_term(istream& in)
     term->type = type;
     term->action = action;
     
-    std::cerr << name << term->rank << std::endl;
     accepts.emplace_back(make_unique<Accept>(term->name, term->rank));
     Accept* accept = accepts.back().get();
     

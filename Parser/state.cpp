@@ -1,6 +1,7 @@
 #include "state.hpp"
 
-using std::make_unique;
+using std::vector;
+using std::ostream;
 
 /******************************************************************************/
 State::State(size_t id):
@@ -27,7 +28,7 @@ State::closure()
             vector<Symbol*> product = item.advance().rest();
             product.push_back(item.ahead);
             
-            set<Symbol*> terms;
+            std::set<Symbol*> terms;
             firsts(product, &terms);
 
             for (auto& rule : nonterm->rules) {
@@ -44,7 +45,7 @@ State::closure()
 }
 
 void
-State::firsts(const vector<Symbol*>& symbols, set<Symbol*>* firsts)
+State::firsts(const vector<Symbol*>& symbols, std::set<Symbol*>* firsts)
 {
     for (Symbol* sym : symbols) {
         Nonterm* nonterm = dynamic_cast<Nonterm*>(sym);
@@ -60,10 +61,10 @@ State::firsts(const vector<Symbol*>& symbols, set<Symbol*>* firsts)
     }
 }
 
-unique_ptr<State>
+std::unique_ptr<State>
 State::solve_next(Symbol* symbol, size_t id)
 {
-    unique_ptr<State> state = make_unique<State>(id);
+    std::unique_ptr<State> state = std::make_unique<State>(id);
     for (auto item : items) {
         if (item.next() == symbol)
             state->items.insert(item.advance());
@@ -85,7 +86,7 @@ State::solve_actions(Item accept)
 {
     // TODO Look for shift reduce conflicts.
     
-    actions = make_unique<Actions>();
+    actions = std::make_unique<Actions>();
 
     for (auto item : items) {
         Term* term = dynamic_cast<Term*>(item.next());

@@ -1,8 +1,6 @@
 #include "lexer.hpp"
 
 #include <sstream>
-using std::make_unique;
-using std::istringstream;
 using std::cerr;
 
 /******************************************************************************/
@@ -15,9 +13,9 @@ Lexer::Lexer():
  * into a single DFA.
  */
 bool
-Lexer::add(Accept* accept, const string& regex)
+Lexer::add(Accept* accept, const std::string& regex)
 {
-    unique_ptr<Regex> expr = Regex::parse(regex, accept);
+    std::unique_ptr<Regex> expr = Regex::parse(regex, accept);
     if (!expr) {
         std::cerr << "Unable to parse expression.\n";
         return false;
@@ -28,9 +26,9 @@ Lexer::add(Accept* accept, const string& regex)
 }
 
 bool
-Lexer::add_series(Accept* accept, const string& series)
+Lexer::add_series(Accept* accept, const std::string& series)
 {
-    unique_ptr<Literal> expr = Literal::parse(series, accept);
+    std::unique_ptr<Literal> expr = Literal::parse(series, accept);
     if (!expr) {
         std::cerr << "Unable to parse character series.\n";
         return false;
@@ -54,7 +52,7 @@ void
 Lexer::solve()
 {
     /** Build the first state from the start state of all expressions. */
-    unique_ptr<State> first = make_unique<State>(states.size());
+    std::unique_ptr<State> first = std::make_unique<State>(states.size());
     for (auto& expr : exprs) {
         first->add_finite(expr->get_start());
     }
@@ -67,7 +65,7 @@ Lexer::solve()
     initial = first.get();
     states.insert(std::move(first));
     
-    vector<State*> pending;
+    std::vector<State*> pending;
     pending.push_back(initial);
     
     /** While still finding new states. */
@@ -78,7 +76,7 @@ Lexer::solve()
         /** Check every character for a possible new set. */
         int c = 0;
         while (c <= CHAR_MAX) {
-            set<Finite*> found;
+            std::set<Finite*> found;
             current->move(c, &found);
             
             int first = c;
@@ -87,7 +85,7 @@ Lexer::solve()
             
             /** Keep looking to check if the next char is the same set. */
             while (c <= CHAR_MAX && matches) {
-                set<Finite*> next;
+                std::set<Finite*> next;
                 current->move(c, &next);
                 matches = found == next;
                 if (matches) {
@@ -123,7 +121,7 @@ Lexer::solve()
  * for the current state is the type of token identified.
  */
 void
-Lexer::write(ostream& out) const
+Lexer::write(std::ostream& out) const
 {
     for (auto& state : states) {
         out << "extern Node node" << state->id << ";\n";
@@ -153,7 +151,7 @@ Lexer::State::add_finite(Finite* finite) {
 }
 
 void
-Lexer::State::add_finite(set<Finite*>& finites) {
+Lexer::State::add_finite(std::set<Finite*>& finites) {
     items.insert(finites.begin(), finites.end());
 }
 
@@ -163,7 +161,7 @@ Lexer::State::add_next(int first, int last, State* next) {
 }
 
 void
-Lexer::State::move(char c, set<Finite*>* found) {
+Lexer::State::move(char c, std::set<Finite*>* found) {
     for (Finite* item : items) {
         item->move(c, found);
     }
@@ -176,7 +174,7 @@ Lexer::State::move(char c, set<Finite*>* found) {
 void
 Lexer::State::solve_closure()
 {
-    vector<Finite*> stack;
+    std::vector<Finite*> stack;
     stack.insert(stack.end(), items.begin(), items.end());
     
     while (stack.size() > 0) {
@@ -194,15 +192,9 @@ Lexer::State::solve_closure()
 void
 Lexer::State::solve_accept()
 {
-    if (items.size() > 1) {
-        std::cerr << "Checking\n";
-    }
     auto lowest = min_element(items.begin(), items.end(), Finite::lower);
     if (lowest != items.end()) {
         accept = (*lowest)->get_accept();
-        if (items.size() > 1 && accept) {
-            std::cerr << "Return " << id << " " << accept->name << "\n";
-        }
     }
 }
 
@@ -212,12 +204,12 @@ Lexer::State::solve_accept()
  * character and returns either a new state in the DFA or a null pointer.
  */
 void
-Lexer::State::write_proto(ostream& out) {
+Lexer::State::write_proto(std::ostream& out) {
     out << "Node* scan_next" << id << "(int c);\n";
 }
 
 void
-Lexer::State::write_struct(ostream& out) {
+Lexer::State::write_struct(std::ostream& out) {
     out << "Node node" << id;
     out << " = {&scan" << id;
     if (accept) {
@@ -230,7 +222,7 @@ Lexer::State::write_struct(ostream& out) {
 }
 
 void
-Lexer::State::write(ostream& out)
+Lexer::State::write(std::ostream& out)
 {
     out << "Node*\n";
     out << "scan" << id << "(int c) {\n";
@@ -255,7 +247,7 @@ Lexer::State::Range::operator<(const Range& other) const {
 }
 
 void
-Lexer::State::Range::write(ostream& out) const
+Lexer::State::Range::write(std::ostream& out) const
 {
     if (first == last) {
         if (isprint(first) && first != '\'') {
@@ -283,12 +275,12 @@ Lexer::Literal::Literal():
 
 Finite* Lexer::Literal::get_start() { return start; }
 
-unique_ptr<Lexer::Literal>
-Lexer::Literal::parse(const string& in, Accept* accept)
+std::unique_ptr<Lexer::Literal>
+Lexer::Literal::parse(const std::string& in, Accept* accept)
 {
-    unique_ptr<Literal> result(make_unique<Literal>());
+    std::unique_ptr<Literal> result(std::make_unique<Literal>());
     
-    istringstream input(in);
+    std::istringstream input(in);
     
     result->start = result->parse_term(input, accept);
     
@@ -307,19 +299,19 @@ Lexer::Literal::parse(const string& in, Accept* accept)
  */
 Finite*
 Lexer::Literal::add_state() {
-    states.emplace_back(make_unique<Finite>());
+    states.emplace_back(std::make_unique<Finite>());
     return states.back().get();
 }
 
 Finite*
 Lexer::Literal::add_state(Accept* accept) {
-    states.emplace_back(make_unique<Finite>(accept));
+    states.emplace_back(std::make_unique<Finite>(accept));
     return states.back().get();
 }
 
 
 Finite*
-Lexer::Literal::parse_term(istream& in, Accept* accept)
+Lexer::Literal::parse_term(std::istream& in, Accept* accept)
 {
     Finite* fact = add_state();
     Finite* term = fact;

@@ -1,5 +1,9 @@
 #include "symbols.hpp"
 
+using std::string;
+using std::vector;
+using std::ostream;
+
 /******************************************************************************/
 Term::Term(const string& name, size_t rank):
     name(name),
@@ -152,7 +156,7 @@ Nonterm::solve_follows(bool *found)
 }
 
 void
-Nonterm::insert_follows(const set<Symbol*>& syms, bool* found)
+Nonterm::insert_follows(const std::set<Symbol*>& syms, bool* found)
 {
     for (Symbol* sym : syms) {
         auto in = follows.insert(sym);
