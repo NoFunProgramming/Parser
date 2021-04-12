@@ -22,13 +22,37 @@ Term::write(ostream& out) const {
 void
 Term::write_declare(ostream& out) const
 {
-    out << "Term term" << rank << " = {\"" << name << "\", ";
+//    out << "Term term" << rank << " = {\"" << name << "\", ";
+//    if (!action.empty()) {
+//        out << "&term" << rank << "_scan";
+//    } else {
+//        out << "nullptr";
+//    }
+//    out << "};\n";
+
+    //out << "Symbol term" << rank << ";\n";
+    out << "Symbol term" << rank << " = {";
+    out << "\"" << name << "\"};\n";
+
+    
+    out << "Accept aterm" << rank << " = {";
+    out << "&term" << rank << ", ";
+    //out << "\"" << name << "\", ";
     if (!action.empty()) {
         out << "&term" << rank << "_scan";
     } else {
         out << "nullptr";
     }
     out << "};\n";
+
+    
+//    out << "NodeState term2" << rank << " = {\"" << name << "\", ";
+//    if (!action.empty()) {
+//        out << "&term" << rank << "_scan";
+//    } else {
+//        out << "nullptr";
+//    }
+//    out << "};\n";
 }
 
 void
@@ -82,8 +106,10 @@ Nonterm::write(ostream& out) const {
 
 void
 Nonterm::write_declare(ostream& out) const {
-    out << "Nonterm ";
-    write(out);
+    //out << "Nonterm ";
+    out << "Symbol ";
+    out << "nonterm" << rank;
+    out << " = {\"" << name << "\"}";
     out << ";\n";
 }
 
@@ -284,7 +310,8 @@ void
 Nonterm::Rule::write_declare(ostream& out) const
 {
     out << "Rule rule" << id;
-    out << " = {" << product.size() << ", &";
+    out << " = {";
+    out << "&";
     nonterm->write(out);
     
     out << ", ";
@@ -293,6 +320,7 @@ Nonterm::Rule::write_declare(ostream& out) const
     } else {
         out << "nullptr";
     }
+    out  << ", " << product.size();
     out << "};\n";
 }
 
@@ -300,7 +328,7 @@ void
 Nonterm::Rule::write_proto(ostream& out) const
 {
     out << "Value* ";
-    out << action << "(vector<Value*>&);\n";
+    out << action << "(Table*, vector<Value*>&);\n";
 }
 
 void
@@ -313,6 +341,7 @@ Nonterm::Rule::write_action(ostream& out) const
     }
     
     out << action << "(";
+    out << "Table*, ";
 
     bool comma = false;
     for (auto sym : product) {
@@ -333,7 +362,7 @@ void
 Nonterm::Rule::write_define(ostream& out) const
 {
     out << "Value*\n";
-    out << action << "(vector<Value*>& values) {\n";
+    out << action << "(Table* table, vector<Value*>& values) {\n";
     
     for (int i = 0; i < product.size(); i++) {
         Symbol* sym = product[i];
@@ -348,6 +377,7 @@ Nonterm::Rule::write_define(ostream& out) const
     
     out << "    unique_ptr<" << nonterm->type << "> ";
     out << "R = "<< action << "(";
+    out << "table, ";
 
     bool comma = false;
     for (int i = 0; i < product.size(); i++) {

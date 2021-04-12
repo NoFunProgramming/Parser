@@ -48,19 +48,16 @@
 int
 main(int argc, const char * argv[])
 {
-//    Generator generator;
-//
-//    bool ok = generator.read_grammar(std::cin);
-//    if (!ok) {
-//        std::cerr << "Unable to read grammar.\n";
-//        return 1;
-//    }
-//
-//    generator.solve();
-//    generator.write(std::cout);
-    
-    void run_tests();
-    run_tests();
+    Generator generator;
+
+    bool ok = generator.read_grammar(std::cin);
+    if (!ok) {
+        std::cerr << "Unable to read grammar.\n";
+        return 1;
+    }
+
+    generator.solve();
+    generator.write(std::cout);
 
     return 0;
 }

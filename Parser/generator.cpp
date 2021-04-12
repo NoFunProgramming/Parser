@@ -30,6 +30,11 @@ Generator::read_grammar(std::istream& in)
                 return false;
             }
         }
+        else if (in.peek() == '#') {
+            if (!read_include(in)) {
+                return false;
+            }
+        }
         else {
             if (!read_rules(in)) {
                 return false;
@@ -107,11 +112,20 @@ Generator::solve()
 void
 Generator::write(std::ostream& out) const
 {
-    out << "#include \"parser.hpp\"\n";
-    out << "#include \"values.hpp\"\n";
+    for (auto line : includes) {
+        out << line << "\n";
+    }
+    
+    
+    // TODO Make include a user variable.
+    //out << "#include \"values.hpp\"\n";
+    //out << "#include \"calc.hpp\"\n";
     out << "#include <memory>\n";
+    out << "using std::vector;\n";
     out << "using std::unique_ptr;\n";
     out << "\n";
+    
+    write_structs(out);
     
     for (auto& term : terms) {
         term.second->write_proto(out);
@@ -185,6 +199,8 @@ Generator::write(std::ostream& out) const
         }
     }
     out << std::endl;
+    
+    write_functions(out);
 }
 
 /******************************************************************************/
@@ -381,6 +397,24 @@ Generator::read_product(istream& in, vector<Symbol*>* syms)
             return false;
         }
     }
+    return true;
+}
+
+bool
+Generator::read_include(istream& in)
+{
+    std::string text;
+    while (in.peek() != EOF) {
+        int c = in.get();
+        if (c == '\n') {
+            break;
+        } else if (isprint(c)) {
+            text.push_back(c);
+        } else {
+            return false;
+        }
+    }
+    includes.push_back(text);
     return true;
 }
 
@@ -587,4 +621,123 @@ Generator::solve_follows(Symbol* endmark)
             nonterm.second->solve_follows(&found);
         }
     } while (found);
+}
+
+/******************************************************************************/
+std::string find_shift =
+"State*\n"
+"find_shift(State* state, Symbol* sym) {\n"
+"    if (!state->shift)\n"
+"        return nullptr;\n"
+"    for (Shift* s = state->shift; s->sym; s++) {\n"
+"        if (s->sym == sym) {\n"
+"            return s->state;\n"
+"        }\n"
+"    }\n"
+"    return nullptr;\n"
+"}\n\n";
+
+std::string find_accept =
+"Rule*\n"
+"find_accept(State* state, Symbol* sym) {\n"
+"    if (!state->accept)\n"
+"        return nullptr;\n"
+"    for (Reduce* r = state->accept; r->sym; r++) {\n"
+"        if (r->sym == sym) {\n"
+"            return r->rule;\n"
+"        }\n"
+"    }\n"
+"    return nullptr;\n"
+"}\n\n";
+
+std::string find_reduce =
+"Rule*\n"
+"find_reduce(State* state, Symbol* sym) {\n"
+"    if (!state->reduce)\n"
+"        return nullptr;\n"
+"   for (Reduce* r = state->reduce; r->sym; r++) {\n"
+"        if (r->sym == sym) {\n"
+"            return r->rule;\n"
+"        }\n"
+"    }\n"
+"    return nullptr;\n"
+"}\n\n";
+
+std::string find_goto =
+"State*\n"
+"find_goto(State* state, Symbol* sym) {\n"
+"   if (!state->next)\n"
+"       return nullptr;\n"
+"   for (Go* g = state->next; g->sym; g++) {\n"
+"       if (g->sym == sym) {\n"
+"           return g->state;\n"
+"       }\n"
+"   }\n"
+"   return nullptr;\n"
+"}\n\n";
+
+void
+Generator::write_structs(std::ostream& out) const
+{
+    out << "struct Symbol {\n";
+    out << "    const char* name;\n";
+    out << "};\n";
+    
+    out << "struct Node {\n";
+    out << "    Node* (*scan)(int c);\n";
+    out << "    Accept* accept;\n";
+    out << "};\n";
+    
+    out << "class State;\n";
+    
+    out << "struct Shift {\n";
+    out << "    Symbol* sym;\n";
+    out << "    State*  state;\n";
+    out << "};\n";
+
+    out << "struct Reduce {\n";
+    out << "    Symbol* sym;\n";
+    out << "    Rule*   rule;\n";
+    out << "};\n";
+
+    out << "struct Go {\n";
+    out << "    Symbol* sym;\n";
+    out << "    State*  state;\n";
+    out << "};\n";
+    
+    out << "struct State {\n";
+    out << "    int     id;\n";
+    out << "    Shift*  shift;\n";
+    out << "    Reduce* accept;\n";
+    out << "    Reduce* reduce;\n";
+    out << "    Go*     next;\n";
+    out << "};\n";
+
+}
+
+void
+Generator::write_functions(std::ostream& out) const
+{
+    out << "Node*\n";
+    out << "next_node(Node* node, int c)\n";
+    out << "{\n";
+    out << "    return node->scan(c);\n";
+    out << "}\n";
+
+    out << "Accept*\n";
+    out << "find_term(Node* node) {\n";
+    out << "    return node->accept;\n";
+    out << "}\n";
+
+    out << "const char* symbol_name(Symbol* sym) { return sym->name;}\n";
+    
+    out << "Node*  node_start() { return &node0; }\n";
+    out << "State* state_start() { return &state0; }\n";
+    out << "Symbol* symbol_end() { return &endmark; }\n";
+
+    
+    out << find_shift;
+    out << find_accept;
+    out << find_reduce;
+    out << find_goto;
 }

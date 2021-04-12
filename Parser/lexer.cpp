@@ -214,7 +214,8 @@ Lexer::State::write_struct(std::ostream& out) {
     out << " = {&scan" << id;
     if (accept) {
         //out << ", \"" << accept->name << "\"";
-        out << ", &term" << accept->rank;
+        //out << ", &term" << accept->rank;
+        out << ", &aterm" << accept->rank;
     } else {
         out << ", nullptr";
     }

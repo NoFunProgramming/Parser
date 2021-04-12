@@ -40,6 +40,8 @@ class Generator
     
     /** After solving, write the source code for the parser. */
     void write(std::ostream& out) const;
+    void write_structs(std::ostream& out) const;
+    void write_functions(std::ostream& out) const;
     
     void print_grammar(std::ostream& out) const;
     void print_states(std::ostream& out) const;
@@ -62,6 +64,10 @@ class Generator
     bool read_product(std::istream& in, std::vector<Symbol*>* syms);
     bool read_comment(std::istream& in);
     
+    /** User defined includes to appear at the top of the generated file. */
+    std::vector<std::string> includes;
+    bool read_include(std::istream& in);
+
     /** Interns symbol names while reading production rules. */
     Term* intern_term(std::istream& in);
     Nonterm* intern_nonterm(std::istream& in);

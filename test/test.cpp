@@ -4,20 +4,42 @@
 #include "generator.hpp"
 
 #include <sstream>
+#include <iostream>
 
-/******************************************************************************/
-void test_finite(void);
-void test_regex(void);
-void test_lexer(void);
-void test_grammar(void);
-
+/*******************************************************************************
+ * Defines an automaton to match tokens in a string.  Outputs from each state
+ * determine the next active states based on the characters read from the
+ * stream.  After connecting the states scan the input from the start state,
+ * which moves between states while reading, to match words and numbers.
+ */
 void
-run_tests()
+test_finite()
 {
-    test_finite();
-    test_regex();
-    test_lexer();
-    test_grammar();
+    Accept word("word", 0);
+    Accept number("number", 1);
+    
+    Finite start;
+    Finite state_word(&word);
+    Finite state_number(&number);
+    Finite state_sign;
+    
+    start.add_out('a', 'z', &state_word);
+    start.add_out('-', &state_sign);
+    start.add_epsilon(&state_sign);
+    
+    state_word.add_out('a', 'z', &state_word);
+    state_sign.add_out('0', '9', &state_number);
+    state_number.add_out('0', '9', &state_number);
+    
+    std::stringstream in("hello 123 -456 world");
+    
+    while (in.peek() != EOF) {
+        in >> std::ws;
+        Accept* accept = start.scan(&in);
+        if (accept) {
+            std::cout << "Found a " << accept->name << ".\n";
+        }
+    }
 }
 
 /*******************************************************************************
@@ -30,6 +52,7 @@ void
 test_grammar()
 {
     std::string test =
+        "#include \"parser.hpp\"\n"
         "'num'<Expr>   [0-9]+   &scan_num;"
         ""
         "/* Comment */"
@@ -122,39 +145,16 @@ test_regex()
     }
 }
 
-/*******************************************************************************
- * Defines an automaton to match tokens in a string.  Outputs from each state
- * determine the next active states based on the characters read from the
- * stream.  After connecting the states scan the input from the start state,
- * which moves between states while reading, to match words and numbers.
- */
-void
-test_finite()
-{
-    Accept word("word", 0);
-    Accept number("number", 1);
-    
-    Finite start;
-    Finite state_word(&word);
-    Finite state_number(&number);
-    Finite state_sign;
-    
-    start.add_out('a', 'z', &state_word);
-    start.add_out('-', &state_sign);
-    start.add_epsilon(&state_sign);
-    
-    state_word.add_out('a', 'z', &state_word);
-    state_sign.add_out('0', '9', &state_number);
-    state_number.add_out('0', '9', &state_number);
-    
-    std::stringstream in("hello 123 -456 world");
-    
-    while (in.peek() != EOF) {
-        in >> std::ws;
-        Accept* accept = start.scan(&in);
-        if (accept) {
-            std::cout << "Found a " << accept->name << ".\n";
-        }
-    }
-}
 
+
+/******************************************************************************/
+int
+main(int argc, const char * argv[])
+{
+    //test_finite();
+    //test_regex();
+    //test_lexer();
+    test_grammar();
+
+    return 0;
+}

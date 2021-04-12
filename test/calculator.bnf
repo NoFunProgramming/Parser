@@ -1,0 +1,15 @@
+#include "calculator.hpp"
+
+'num'<Expr>   [0-9]+   &scan_num;
+
+/* Comment */
+total<Expr>: add       &reduce_total
+    ;
+add<Expr>: mul         &reduce_add
+    | add '+' mul      &reduce_add_mul
+    ;
+mul<Expr>: 'num'       &reduce_mul
+    | mul '*' 'num'    &reduce_mul_num
+    | '(' add ')'      &reduce_paren
+    ;
+

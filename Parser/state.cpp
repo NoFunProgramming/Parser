@@ -215,7 +215,7 @@ State::write_accept(ostream& out) const
     if (actions->accept.size() ==  0)
         return;
     
-    out << "Accept accept" << id << "[] = {\n";
+    out << "Reduce accept" << id << "[] = {\n";
     for (auto& act : actions->accept) {
         out << "    {&";
         act.first->write(out);
