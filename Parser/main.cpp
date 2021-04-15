@@ -41,6 +41,7 @@
  */
 
 #include "generator.hpp"
+#include "code.hpp"
 
 #include <iostream>
 

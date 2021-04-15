@@ -46,7 +46,7 @@ class Generator
     void print_grammar(std::ostream& out) const;
     void print_states(std::ostream& out) const;
 
-  private:
+  //private:
     /**
      * While reading in a grammar, the parser builds a set of unique terminal
      * and nonterminal names.  The parser can then store production rules as

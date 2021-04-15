@@ -9,7 +9,7 @@ using std::unique_ptr;
 int
 main(int argc, const char * argv[])
 {
-    std::stringstream in("(5 + 5) * 4");
+    std::stringstream in("(5 + 5) * 5");
     
     Table table;
     
@@ -17,7 +17,10 @@ main(int argc, const char * argv[])
     parser.init();
 
     do {
-        parser.scan(&table, in.get());
+        bool ok = parser.scan(&table, in.get());
+        if (!ok) {
+            return 1;
+        }
     } while (!in.eof());
     
     return 0;
@@ -72,9 +75,6 @@ reduce_paren(Table* table, unique_ptr<Expr>& E1)
     return std::move(E1);
 }
 
-
-#include <iostream>
-
 /******************************************************************************/
 Parser::Parser() :
     node(nullptr){}
@@ -107,28 +107,42 @@ Parser::scan(Table* table, int c)
                 if (accept->scan) {
                     value = accept->scan(table, text);
                 }
-                advance(table, accept->term, value);
-                advance(table, symbol_end(), nullptr);
-                break;
+                bool ok = advance(table, accept->term, value);
+                if (!ok) {
+                    return false;
+                }
+                ok = advance(table, symbol_end(), nullptr);
+                if (!ok) {
+                    return false;
+                }
+                return true;
             }
             else {
-                std::cout << "Unexpected end of file." << "\n";
+                std::cout << "Unexpected end of file.\n";
                 return false;
             }
         }
         else if (node == node_start() && c == ' ') {
-            break;
+            return true;
         }
         else {
             Node* next = next_node(node, c);
-            if (!next) {
+            if (next) {
+                text.push_back(c);
+                node = next;
+                return true;
+            }
+            else {
                 Accept* accept = find_term(node);
                 if (accept) {
                     Value* value = nullptr;
                     if (accept->scan) {
                         value = accept->scan(table, text);
                     }
-                    advance(table, accept->term, value);
+                    bool ok = advance(table, accept->term, value);
+                    if (!ok) {
+                        return false;
+                    }
                     node = node_start();
                     text.clear();
                 }
@@ -137,15 +151,8 @@ Parser::scan(Table* table, int c)
                     return false;
                 }
             }
-            else {
-                text.push_back(c);
-                node = next;
-                break;
-            }
         }
     }
-    
-    return true;
 }
 
 /******************************************************************************/
@@ -156,9 +163,9 @@ Parser::advance(Table* table, Symbol* sym, Value* val)
     {
         State* top = states.back();
         
-        State* next = find_shift(top, sym);
-        if (next) {
-            push(next, sym, val);
+        State* shift = find_shift(top, sym);
+        if (shift) {
+            push(shift, sym, val);
             return true;
         }
         
@@ -185,14 +192,16 @@ Parser::advance(Table* table, Symbol* sym, Value* val)
             top = states.back();
             State* found = find_goto(top, rule->nonterm);
             push(found, rule->nonterm, result);
-            continue;
         }
-        
-        std::cout << "Error\n";
-        return false;
+        else {
+            std::cout << "Error, unexpected symbol ";
+            std::cout << "'" << symbol_name(sym) << "'.\n";
+            return false;
+        }
     }
 }
 
+/******************************************************************************/
 void
 Parser::push(State* state, Symbol* sym, Value* val)
 {

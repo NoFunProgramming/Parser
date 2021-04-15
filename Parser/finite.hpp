@@ -8,9 +8,9 @@
 #ifndef finite_hpp
 #define finite_hpp
 
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
 #include <memory>
 #include <iostream>
 

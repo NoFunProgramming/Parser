@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		96037E7D2626B91600CAED04 /* code.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96037E7B2626B91600CAED04 /* code.cpp */; };
+		96037E7E2626B91600CAED04 /* code.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96037E7B2626B91600CAED04 /* code.cpp */; };
 		961342A9261E14EC007C5345 /* finite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96B7D323259CDAAA00196100 /* finite.cpp */; };
 		961342AA261E14EC007C5345 /* regex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9680CB9F259CF961006E19A4 /* regex.cpp */; };
 		961342AB261E14EC007C5345 /* lexer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BD9AFD25A96E110014EC35 /* lexer.cpp */; };
@@ -87,6 +89,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		96037E7B2626B91600CAED04 /* code.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = code.cpp; sourceTree = "<group>"; };
+		96037E7C2626B91600CAED04 /* code.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = code.hpp; sourceTree = "<group>"; };
 		9613429C261E135E007C5345 /* test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test; sourceTree = BUILT_PRODUCTS_DIR; };
 		9613FD03259C6248005AC19B /* parser */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = parser; sourceTree = BUILT_PRODUCTS_DIR; };
 		9613FD06259C6248005AC19B /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
@@ -173,6 +177,8 @@
 				9639743A25BAA74800445D0A /* state.cpp */,
 				96BE754525B4C3DA000DC07F /* generator.hpp */,
 				96BE754425B4C3DA000DC07F /* generator.cpp */,
+				96037E7C2626B91600CAED04 /* code.hpp */,
+				96037E7B2626B91600CAED04 /* code.cpp */,
 			);
 			path = Parser;
 			sourceTree = "<group>";
@@ -290,6 +296,7 @@
 			files = (
 				9699D31426216EBA001D56D5 /* calculator.bnf in Sources */,
 				961342A9261E14EC007C5345 /* finite.cpp in Sources */,
+				96037E7E2626B91600CAED04 /* code.cpp in Sources */,
 				961342AA261E14EC007C5345 /* regex.cpp in Sources */,
 				961342AB261E14EC007C5345 /* lexer.cpp in Sources */,
 				961342AC261E14EC007C5345 /* symbols.cpp in Sources */,
@@ -307,6 +314,7 @@
 				9639743C25BAA74800445D0A /* state.cpp in Sources */,
 				96B7D325259CDAAA00196100 /* finite.cpp in Sources */,
 				9680CBA1259CF961006E19A4 /* regex.cpp in Sources */,
+				96037E7D2626B91600CAED04 /* code.cpp in Sources */,
 				96BD9AFF25A96E110014EC35 /* lexer.cpp in Sources */,
 				9613FD07259C6248005AC19B /* main.cpp in Sources */,
 				96BE754B25B4D2D1000DC07F /* symbols.cpp in Sources */,

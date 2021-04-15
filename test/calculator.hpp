@@ -14,6 +14,22 @@ class Node;
 class State;
 
 /******************************************************************************/
+class Value {
+  public:
+    virtual ~Value(){}
+};
+
+class Expr : public Value {
+  public:
+    Expr(int value):value(value){}
+    int value;
+};
+
+class Table {
+  public:
+};
+
+/******************************************************************************/
 struct Accept {
     Symbol* term;
     Value* (*scan)(Table*, const std::string&);
@@ -57,22 +73,6 @@ class Parser {
 
     void push(State* state, Symbol* sym, Value* val);
     void pop(size_t count);
-};
-
-class Value {
-  public:
-    virtual ~Value(){}
-};
-
-
-class Table {
-    
-};
-
-class Expr : public Value {
-  public:
-    Expr(int value):value(value){}
-    int value;
 };
 
 #endif

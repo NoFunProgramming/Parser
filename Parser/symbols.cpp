@@ -22,37 +22,17 @@ Term::write(ostream& out) const {
 void
 Term::write_declare(ostream& out) const
 {
-//    out << "Term term" << rank << " = {\"" << name << "\", ";
-//    if (!action.empty()) {
-//        out << "&term" << rank << "_scan";
-//    } else {
-//        out << "nullptr";
-//    }
-//    out << "};\n";
-
-    //out << "Symbol term" << rank << ";\n";
-    out << "Symbol term" << rank << " = {";
-    out << "\"" << name << "\"};\n";
-
+    out << "Symbol "; write(out);
+    out << " = {\"" << name << "\"};\n";
     
     out << "Accept aterm" << rank << " = {";
-    out << "&term" << rank << ", ";
-    //out << "\"" << name << "\", ";
+    out << "&"; write(out); out << ", ";
     if (!action.empty()) {
         out << "&term" << rank << "_scan";
     } else {
         out << "nullptr";
     }
     out << "};\n";
-
-    
-//    out << "NodeState term2" << rank << " = {\"" << name << "\", ";
-//    if (!action.empty()) {
-//        out << "&term" << rank << "_scan";
-//    } else {
-//        out << "nullptr";
-//    }
-//    out << "};\n";
 }
 
 void
@@ -93,6 +73,14 @@ Nonterm::Nonterm(const string& name):
     rank(0),
     empty_first(false){}
 
+void
+Nonterm::add_rule(const vector<Symbol*>& syms, const string& action)
+{
+    rules.emplace_back(std::make_unique<Rule>(this, action));
+    Rule* rule = rules.back().get();
+    
+    rule->product.insert(rule->product.end(), syms.begin(), syms.end());
+}
 
 void
 Nonterm::print(ostream& out) const {
@@ -105,21 +93,10 @@ Nonterm::write(ostream& out) const {
 }
 
 void
-Nonterm::write_declare(ostream& out) const {
-    //out << "Nonterm ";
-    out << "Symbol ";
-    out << "nonterm" << rank;
-    out << " = {\"" << name << "\"}";
-    out << ";\n";
-}
-
-void
-Nonterm::add_rule(const vector<Symbol*>& syms, const string& action)
+Nonterm::write_declare(ostream& out) const
 {
-    rules.emplace_back(std::make_unique<Rule>(this, action));
-    Rule* rule = rules.back().get();
-    
-    rule->product.insert(rule->product.end(), syms.begin(), syms.end());
+    out << "Symbol nonterm" << rank;
+    out << " = {\"" << name << "\"};\n";
 }
 
 /******************************************************************************/
@@ -259,6 +236,7 @@ Nonterm::print_firsts(ostream& out) const
         }
         sym->print(out);
     }
+    // TODO Print if there is an empty firsts.
 }
 
 void
@@ -309,9 +287,9 @@ Nonterm::Rule::write(ostream& out) const {
 void
 Nonterm::Rule::write_declare(ostream& out) const
 {
-    out << "Rule rule" << id;
-    out << " = {";
-    out << "&";
+    out << "Rule ";
+    write(out);
+    out << " = {&";
     nonterm->write(out);
     
     out << ", ";

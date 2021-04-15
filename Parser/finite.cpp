@@ -1,10 +1,7 @@
 #include "finite.hpp"
 
-using std::string;
-using std::vector;
-
 /******************************************************************************/
-Accept::Accept(const string& name, size_t rank):
+Accept::Accept(const std::string& name, size_t rank):
     name(name),
     rank(rank){}
 
@@ -58,7 +55,7 @@ Finite::scan(std::istream* in)
 void
 Finite::closure(std::set<Finite*>* states)
 {
-    vector<Finite*> stack;
+    std::vector<Finite*> stack;
     stack.insert(stack.end(), states->begin(), states->end());
     
     while (stack.size() > 0) {
@@ -69,7 +66,7 @@ Finite::closure(std::set<Finite*>* states)
 }
 
 void
-Finite::closure(std::set<Finite*>* states, vector<Finite*>* stack)
+Finite::closure(std::set<Finite*>* states, std::vector<Finite*>* stack)
 {
     for (std::unique_ptr<Out>& out: outs) {
         if (out->is_epsilon()) {

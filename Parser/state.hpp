@@ -75,7 +75,7 @@ class State
     
     bool operator<(const State& other) const;
             
-  private:
+  //private:
     size_t id;
     std::set<Item> items;
     std::map<Symbol*, State*> nexts;

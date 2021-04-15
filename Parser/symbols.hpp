@@ -67,11 +67,7 @@ class Nonterm : public Symbol
     Nonterm(const std::string& name);
     std::string name;
     size_t rank;
-    
-    virtual void print(std::ostream& out) const;
-    virtual void write(std::ostream& out) const;
-    void write_declare(std::ostream& out) const;
-  
+      
     /**
      * All nonterminals have one or more production rules, vectors of symbols,
      * that list the symbol sequence that defines a given nonterminal.  Each
@@ -118,6 +114,10 @@ class Nonterm : public Symbol
     void print_rules(std::ostream& out) const;
     void print_firsts(std::ostream& out) const;
     void print_follows(std::ostream& out) const;
+    
+    virtual void print(std::ostream& out) const;
+    virtual void write(std::ostream& out) const;
+    void write_declare(std::ostream& out) const;
     
   private:
     /**

@@ -2,6 +2,7 @@
 #include "regex.hpp"
 #include "lexer.hpp"
 #include "generator.hpp"
+#include "code.hpp"
 
 #include <sstream>
 #include <iostream>
@@ -79,7 +80,14 @@ test_grammar()
 //    parser.print_grammar(std::cout);
 //    parser.print_states(std::cout);
 //    std::cout << "*/";
-    generator.write(std::cout);
+    //generator.write(std::cout);
+    
+    std::vector<State*> states;
+    for (auto& s : generator.states) {
+        states.push_back(s.get());
+    }
+    
+    Code::write(states, std::cout);
 }
 
 /*******************************************************************************
