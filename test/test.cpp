@@ -87,7 +87,7 @@ test_grammar()
         states.push_back(s.get());
     }
     
-    Code::write(states, std::cout);
+    Code::write(generator, states, std::cout);
 }
 
 /*******************************************************************************

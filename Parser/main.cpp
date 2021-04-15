@@ -58,7 +58,13 @@ main(int argc, const char * argv[])
     }
 
     generator.solve();
-    generator.write(std::cout);
+    //generator.write(std::cout);
+    std::vector<State*> states;
+    for (auto& s : generator.states) {
+        states.push_back(s.get());
+    }
+    
+    Code::write(generator, states, std::cout);
 
     return 0;
 }
