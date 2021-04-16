@@ -84,10 +84,10 @@ class Nonterm : public Symbol
         
         virtual void print(std::ostream& out) const;
         virtual void write(std::ostream& out) const;
-        void write_declare(std::ostream& out) const;
-        void write_proto(std::ostream& out) const;
-        void write_action(std::ostream& out) const;
-        void write_define(std::ostream& out) const;
+//        void write_declare(std::ostream& out) const;
+//        void write_proto(std::ostream& out) const;
+//        void write_action(std::ostream& out) const;
+//        void write_define(std::ostream& out) const;
     };
     
     std::vector<std::unique_ptr<Rule>> rules;

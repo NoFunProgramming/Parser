@@ -67,11 +67,6 @@ class State
      */
     void write(std::ostream& out) const;
     void write_declare(std::ostream& out) const;
-    void write_define (std::ostream& out) const;
-    void write_shift  (std::ostream& out) const;
-    void write_accept (std::ostream& out) const;
-    void write_reduce (std::ostream& out) const;
-    void write_goto   (std::ostream& out) const;
     
     bool operator<(const State& other) const;
             

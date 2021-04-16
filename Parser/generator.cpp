@@ -125,7 +125,7 @@ Generator::write(std::ostream& out) const
     out << "using std::unique_ptr;\n";
     out << "\n";
     
-    write_structs(out);
+    //write_structs(out);
     
     for (auto& term : terms) {
         term.second->write_proto(out);
@@ -152,55 +152,55 @@ Generator::write(std::ostream& out) const
     }
     out << std::endl;
 
-    for (auto& nonterm : all) {
-        for (auto& rule : nonterm->rules) {
-            rule->write_proto(out);
-        }
-    }
-    out << std::endl;
-    
-    id = 0;
-    for (auto& nonterm : nonterms) {
-        for (auto& rule : nonterm.second->rules) {
-            rule->id = id++;
-            rule->write_declare(out);
-        }
-    }
-    out << std::endl;
+//    for (auto& nonterm : all) {
+//        for (auto& rule : nonterm->rules) {
+//            rule->write_proto(out);
+//        }
+//    }
+//    out << std::endl;
+//
+//    id = 0;
+//    for (auto& nonterm : nonterms) {
+//        for (auto& rule : nonterm.second->rules) {
+//            rule->id = id++;
+//            rule->write_declare(out);
+//        }
+//    }
+//    out << std::endl;
     
     for (auto& state : states) {
         state->write_declare(out);
     }
     out << std::endl;
     
-    for (auto& state : states) {
-        state->write_shift(out);
-        state->write_accept(out);
-        state->write_reduce(out);
-        state->write_goto(out);
-    }
-    out << std::endl;
+//    for (auto& state : states) {
+//        state->write_shift(out);
+//        state->write_accept(out);
+//        state->write_reduce(out);
+//        state->write_goto(out);
+//    }
+//    out << std::endl;
 
-    for (auto& state : states) {
-        state->write_define(out);
-    }
-    out << std::endl;
+//    for (auto& state : states) {
+//        state->write_define(out);
+//    }
+//    out << std::endl;
 
-    for (auto& nonterm : all) {
-        for (auto& rule : nonterm->rules) {
-            rule->write_action(out);
-        }
-    }
-    out << std::endl;
-
-    for (auto& nonterm : all) {
-        for (auto& rule : nonterm->rules) {
-            rule->write_define(out);
-        }
-    }
-    out << std::endl;
+//    for (auto& nonterm : all) {
+//        for (auto& rule : nonterm->rules) {
+//            rule->write_action(out);
+//        }
+//    }
+//    out << std::endl;
+//
+//    for (auto& nonterm : all) {
+//        for (auto& rule : nonterm->rules) {
+//            rule->write_define(out);
+//        }
+//    }
+//    out << std::endl;
     
-    write_functions(out);
+    //write_functions(out);
 }
 
 /******************************************************************************/
@@ -623,121 +623,3 @@ Generator::solve_follows(Symbol* endmark)
     } while (found);
 }
 
-/******************************************************************************/
-std::string find_shift =
-"State*\n"
-"find_shift(State* state, Symbol* sym) {\n"
-"    if (!state->shift)\n"
-"        return nullptr;\n"
-"    for (Shift* s = state->shift; s->sym; s++) {\n"
-"        if (s->sym == sym) {\n"
-"            return s->state;\n"
-"        }\n"
-"    }\n"
-"    return nullptr;\n"
-"}\n\n";
-
-std::string find_accept =
-"Rule*\n"
-"find_accept(State* state, Symbol* sym) {\n"
-"    if (!state->accept)\n"
-"        return nullptr;\n"
-"    for (Reduce* r = state->accept; r->sym; r++) {\n"
-"        if (r->sym == sym) {\n"
-"            return r->rule;\n"
-"        }\n"
-"    }\n"
-"    return nullptr;\n"
-"}\n\n";
-
-std::string find_reduce =
-"Rule*\n"
-"find_reduce(State* state, Symbol* sym) {\n"
-"    if (!state->reduce)\n"
-"        return nullptr;\n"
-"   for (Reduce* r = state->reduce; r->sym; r++) {\n"
-"        if (r->sym == sym) {\n"
-"            return r->rule;\n"
-"        }\n"
-"    }\n"
-"    return nullptr;\n"
-"}\n\n";
-
-std::string find_goto =
-"State*\n"
-"find_goto(State* state, Symbol* sym) {\n"
-"   if (!state->next)\n"
-"       return nullptr;\n"
-"   for (Go* g = state->next; g->sym; g++) {\n"
-"       if (g->sym == sym) {\n"
-"           return g->state;\n"
-"       }\n"
-"   }\n"
-"   return nullptr;\n"
-"}\n\n";
-
-void
-Generator::write_structs(std::ostream& out) const
-{
-    out << "struct Symbol {\n";
-    out << "    const char* name;\n";
-    out << "};\n";
-    
-    out << "struct Node {\n";
-    out << "    Node* (*scan)(int c);\n";
-    out << "    Accept* accept;\n";
-    out << "};\n";
-    
-    out << "class State;\n";
-    
-    out << "struct Shift {\n";
-    out << "    Symbol* sym;\n";
-    out << "    State*  state;\n";
-    out << "};\n";
-
-    out << "struct Reduce {\n";
-    out << "    Symbol* sym;\n";
-    out << "    Rule*   rule;\n";
-    out << "};\n";
-
-    out << "struct Go {\n";
-    out << "    Symbol* sym;\n";
-    out << "    State*  state;\n";
-    out << "};\n";
-    
-    out << "struct State {\n";
-    out << "    int     id;\n";
-    out << "    Shift*  shift;\n";
-    out << "    Reduce* accept;\n";
-    out << "    Reduce* reduce;\n";
-    out << "    Go*     next;\n";
-    out << "};\n";
-
-}
-
-void
-Generator::write_functions(std::ostream& out) const
-{
-    out << "Node*\n";
-    out << "next_node(Node* node, int c)\n";
-    out << "{\n";
-    out << "    return node->scan(c);\n";
-    out << "}\n";
-
-    out << "Accept*\n";
-    out << "find_term(Node* node) {\n";
-    out << "    return node->accept;\n";
-    out << "}\n";
-
-    out << "const char* symbol_name(Symbol* sym) { return sym->name;}\n";
-    
-    out << "Node*  node_start() { return &node0; }\n";
-    out << "State* state_start() { return &state0; }\n";
-    out << "Symbol* symbol_end() { return &endmark; }\n";
-
-    
-    out << find_shift;
-    out << find_accept;
-    out << find_reduce;
-    out << find_goto;
-}

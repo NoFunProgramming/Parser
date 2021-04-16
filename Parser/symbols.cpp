@@ -284,92 +284,92 @@ Nonterm::Rule::write(ostream& out) const {
     out << "rule" << id;
 }
 
-void
-Nonterm::Rule::write_declare(ostream& out) const
-{
-    out << "Rule ";
-    write(out);
-    out << " = {&";
-    nonterm->write(out);
-    
-    out << ", ";
-    if (!action.empty()) {
-        out << "&" << action;
-    } else {
-        out << "nullptr";
-    }
-    out  << ", " << product.size();
-    out << "};\n";
-}
-
-void
-Nonterm::Rule::write_proto(ostream& out) const
-{
-    out << "Value* ";
-    out << action << "(Table*, vector<Value*>&);\n";
-}
-
-void
-Nonterm::Rule::write_action(ostream& out) const
-{
-    if (!nonterm->type.empty()) {
-        out << "unique_ptr<" << nonterm->type << "> ";
-    } else {
-        out << "void ";
-    }
-    
-    out << action << "(";
-    out << "Table*, ";
-
-    bool comma = false;
-    for (auto sym : product) {
-        if (!sym->type.empty()) {
-            if (comma) {
-                out << ", ";
-            } else {
-                comma = true;
-            }
-            out << "unique_ptr<" << sym->type << ">&";
-        }
-    }
-    
-    out << ");\n";
-}
-
-void
-Nonterm::Rule::write_define(ostream& out) const
-{
-    out << "Value*\n";
-    out << action << "(Table* table, vector<Value*>& values) {\n";
-    
-    for (int i = 0; i < product.size(); i++) {
-        Symbol* sym = product[i];
-        int index = i - (int)product.size();
-        if (!sym->type.empty()) {
-            out << "    unique_ptr<" << sym->type << "> ";
-            out << "E" << i;
-            out << "(dynamic_cast<" << sym->type << "*>";
-            out << "(values.end()[" << index << "]));\n";
-        }
-    }
-    
-    out << "    unique_ptr<" << nonterm->type << "> ";
-    out << "R = "<< action << "(";
-    out << "table, ";
-
-    bool comma = false;
-    for (int i = 0; i < product.size(); i++) {
-        if (!product[i]->type.empty()) {
-            if (comma) {
-                out << ", ";
-            } else {
-                comma = true;
-            }
-            out << "E" << i;
-        }
-    }
-    
-    out << ");\n";
-    out << "    return R.release();\n";
-    out << "}\n\n";
-}
+//void
+//Nonterm::Rule::write_declare(ostream& out) const
+//{
+//    out << "Rule ";
+//    write(out);
+//    out << " = {&";
+//    nonterm->write(out);
+//    
+//    out << ", ";
+//    if (!action.empty()) {
+//        out << "&" << action;
+//    } else {
+//        out << "nullptr";
+//    }
+//    out  << ", " << product.size();
+//    out << "};\n";
+//}
+//
+//void
+//Nonterm::Rule::write_proto(ostream& out) const
+//{
+//    out << "Value* ";
+//    out << action << "(Table*, vector<Value*>&);\n";
+//}
+//
+//void
+//Nonterm::Rule::write_action(ostream& out) const
+//{
+//    if (!nonterm->type.empty()) {
+//        out << "unique_ptr<" << nonterm->type << "> ";
+//    } else {
+//        out << "void ";
+//    }
+//    
+//    out << action << "(";
+//    out << "Table*, ";
+//
+//    bool comma = false;
+//    for (auto sym : product) {
+//        if (!sym->type.empty()) {
+//            if (comma) {
+//                out << ", ";
+//            } else {
+//                comma = true;
+//            }
+//            out << "unique_ptr<" << sym->type << ">&";
+//        }
+//    }
+//    
+//    out << ");\n";
+//}
+//
+//void
+//Nonterm::Rule::write_define(ostream& out) const
+//{
+//    out << "Value*\n";
+//    out << action << "(Table* table, vector<Value*>& values) {\n";
+//    
+//    for (int i = 0; i < product.size(); i++) {
+//        Symbol* sym = product[i];
+//        int index = i - (int)product.size();
+//        if (!sym->type.empty()) {
+//            out << "    unique_ptr<" << sym->type << "> ";
+//            out << "E" << i;
+//            out << "(dynamic_cast<" << sym->type << "*>";
+//            out << "(values.end()[" << index << "]));\n";
+//        }
+//    }
+//    
+//    out << "    unique_ptr<" << nonterm->type << "> ";
+//    out << "R = "<< action << "(";
+//    out << "table, ";
+//
+//    bool comma = false;
+//    for (int i = 0; i < product.size(); i++) {
+//        if (!product[i]->type.empty()) {
+//            if (comma) {
+//                out << ", ";
+//            } else {
+//                comma = true;
+//            }
+//            out << "E" << i;
+//        }
+//    }
+//    
+//    out << ");\n";
+//    out << "    return R.release();\n";
+//    out << "}\n\n";
+//}

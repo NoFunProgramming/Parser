@@ -21,7 +21,7 @@ Code::write(Generator& gen, std::vector<State*>& states, std::ostream& out)
 
     for (auto& nonterm : gen.all) {
         for (auto& rule : nonterm->rules) {
-            rule->write_proto(out);
+            write_proto(rule.get(), out);
         }
     }
     out << std::endl;
@@ -30,46 +30,36 @@ Code::write(Generator& gen, std::vector<State*>& states, std::ostream& out)
     for (auto& nonterm : gen.nonterms) {
         for (auto& rule : nonterm.second->rules) {
             rule->id = id++;
-            rule->write_declare(out);
+            write_declare(rule.get(), out);
         }
     }
     out << std::endl;
-
     
     for (auto& state : gen.states) {
-        state->write_declare(out);
+        out << "extern State ";
+        state->write(out);
+        out << ";\n";
     }
     out << std::endl;
-    
-    for (auto& state : states) {
-        //state->write_shift(out);
-        state->write_accept(out);
-        state->write_reduce(out);
-        state->write_goto(out);
-    }
-    out << std::endl;
-
-//    for (auto& state : states) {
-//        state->write_define(out);
-//    }
-//    out << std::endl;
-
-
     
     for (auto s : states) {
-        write_state(s, out);
+        write_shift(s, out);
+        write_accept(s, out);
+        write_reduce(s, out);
+        write_goto(s, out);
     }
-    
+    out << std::endl;
+
     for (auto& nonterm : gen.all) {
         for (auto& rule : nonterm->rules) {
-            rule->write_action(out);
+            write_action(rule.get(), out);
         }
     }
     out << std::endl;
     
     for (auto& nonterm : gen.all) {
         for (auto& rule : nonterm->rules) {
-            rule->write_define(out);
+            write_define(rule.get(), out);
         }
     }
     out << std::endl;
@@ -114,7 +104,7 @@ Code::write_define(State* state, std::ostream& out)
 
 
 void
-Code::write_state(State* state, std::ostream& out)
+Code::write_shift(State* state, std::ostream& out)
 {
     if (state->actions->shift.size() ==  0)
         return;
@@ -133,6 +123,70 @@ Code::write_state(State* state, std::ostream& out)
     }
     out << "    {nullptr, nullptr}};\n";
 }
+
+void
+Code::write_accept(State* state, std::ostream& out)
+{
+    if (state->actions->accept.size() ==  0)
+        return;
+    
+    out << "Reduce accept" << state->id << "[] = {\n";
+    for (auto& act : state->actions->accept) {
+        out << "    {&";
+        act.first->write(out);
+        out << ", &";
+        act.second->write(out);
+        out << "}, // ";
+        act.first->print(out);
+        out << " -> ";
+        act.second->print(out);
+        out << "\n";
+    }
+    out << "    {nullptr, nullptr}};\n";
+}
+
+void
+Code::write_reduce(State* state, std::ostream& out)
+{
+    if (state->actions->reduce.size() ==  0)
+        return;
+    
+    out << "Reduce reduce" << state->id << "[] = {\n";
+    for (auto& act : state->actions->reduce) {
+        out << "    {&";
+        act.first->write(out);
+        out << ", &";
+        act.second->write(out);
+        out << "}, // ";
+        act.first->print(out);
+        out << " -> ";
+        act.second->print(out);
+        out << "\n";
+    }
+    out << "    {nullptr, nullptr}};\n";
+}
+
+void
+Code::write_goto(State* state, std::ostream& out)
+{
+    if (state->gotos.size() ==  0)
+        return;
+
+    out << "Go go" << state->id << "[] = {\n";
+    for (auto& go : state->gotos) {
+        out << "    {&";
+        go.first->write(out);
+        out << ", &";
+        go.second->write(out);
+        out << "}, //";
+        go.first->print(out);
+        out << " -> ";
+        go.second->write(out);
+        out << "\n";
+    }
+    out << "    {nullptr, nullptr}};\n";
+}
+
 
 void
 Code::write_terms(Generator& gen, std::ostream& out)
@@ -264,3 +318,97 @@ Code::write_functions(std::ostream& out)
     out << "}\n\n";
 }
 
+void
+Code::write(Nonterm::Rule* rule, std::ostream& out) {
+    out << "rule" << rule->id;
+}
+
+void
+Code::write_declare(Nonterm::Rule* rule, std::ostream& out)
+{
+    out << "Rule ";
+    rule->write(out);
+    out << " = {&";
+    rule->nonterm->write(out);
+
+    out << ", ";
+    if (!rule->action.empty()) {
+        out << "&" << rule->action;
+    } else {
+        out << "nullptr";
+    }
+    out  << ", " << rule->product.size();
+    out << "};\n";
+}
+
+void
+Code::write_proto(Nonterm::Rule* rule, std::ostream& out)
+{
+    out << "Value* ";
+    out << rule->action << "(Table*, vector<Value*>&);\n";
+}
+
+void
+Code::write_action(Nonterm::Rule* rule, std::ostream& out)
+{
+    if (!rule->nonterm->type.empty()) {
+        out << "unique_ptr<" << rule->nonterm->type << "> ";
+    } else {
+        out << "void ";
+    }
+
+    out << rule->action << "(";
+    out << "Table*, ";
+
+    bool comma = false;
+    for (auto sym : rule->product) {
+        if (!sym->type.empty()) {
+            if (comma) {
+                out << ", ";
+            } else {
+                comma = true;
+            }
+            out << "unique_ptr<" << sym->type << ">&";
+        }
+    }
+
+    out << ");\n";
+}
+
+void
+Code::write_define(Nonterm::Rule* rule, std::ostream& out)
+{
+    out << "Value*\n";
+    out << rule->action << "(Table* table, vector<Value*>& values) {\n";
+
+    for (int i = 0; i < rule->product.size(); i++) {
+        Symbol* sym = rule->product[i];
+        int index = i - (int)rule->product.size();
+        if (!sym->type.empty()) {
+            out << "    unique_ptr<" << sym->type << "> ";
+            out << "E" << i;
+            out << "(dynamic_cast<" << sym->type << "*>";
+            out << "(values.end()[" << index << "]));\n";
+        }
+    }
+
+    out << "    unique_ptr<" << rule->nonterm->type << "> ";
+    out << "R = "<< rule->action << "(";
+    out << "table, ";
+
+    bool comma = false;
+    for (int i = 0; i < rule->product.size(); i++) {
+        if (!rule->product[i]->type.empty()) {
+            if (comma) {
+                out << ", ";
+            } else {
+                comma = true;
+            }
+            out << "E" << i;
+        }
+    }
+
+    out << ");\n";
+    out << "    return R.release();\n";
+    out << "}\n\n";
+}

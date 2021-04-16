@@ -40,8 +40,6 @@ class Generator
     
     /** After solving, write the source code for the parser. */
     void write(std::ostream& out) const;
-    void write_structs(std::ostream& out) const;
-    void write_functions(std::ostream& out) const;
     
     void print_grammar(std::ostream& out) const;
     void print_states(std::ostream& out) const;
