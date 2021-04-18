@@ -9,63 +9,12 @@ Term::Term(const string& name, size_t rank):
     name(name),
     rank(rank){}
 
-void
-Term::print(ostream& out) const {
-    out << "'" << name << "'";
-}
-
-void
-Term::write(ostream& out) const {
-    out << "term" << rank;
-}
-
-void
-Term::write_declare(ostream& out) const
-{
-    out << "Symbol "; write(out);
-    out << " = {\"" << name << "\"};\n";
-    
-    out << "Accept aterm" << rank << " = {";
-    out << "&"; write(out); out << ", ";
-    if (!action.empty()) {
-        out << "&term" << rank << "_scan";
-    } else {
-        out << "nullptr";
-    }
-    out << "};\n";
-}
-
-void
-Term::write_proto(ostream& out) const
-{
-    if (action.empty())
-        return;
-    out << "unique_ptr<" << type << "> ";
-    out << action << "(Table*, const std::string& s);\n";
-}
-
-void
-Term::write_define(ostream& out) const
-{
-    if (action.empty())
-        return;
-    out << "Value*\n";
-    out << "term" << rank << "_scan(Table* table, const std::string& s) {\n";
-    out << "    unique_ptr<" << type << "> value = " << action << "(table, s);\n";
-    out << "    return value.release();\n";
-    out << "}\n";
-}
+void Term::print(ostream& out) const { out << "'" << name << "'"; }
+void Term::write(ostream& out) const { out << "term" << rank; }
 
 /******************************************************************************/
-void
-Endmark::print(ostream& out) const {
-    out << "$";
-}
-
-void
-Endmark::write(ostream& out) const {
-    out << "endmark";
-}
+void Endmark::print(ostream& out) const { out << "$"; }
+void Endmark::write(ostream& out) const { out << "endmark"; }
 
 /******************************************************************************/
 Nonterm::Nonterm(const string& name):
@@ -82,22 +31,8 @@ Nonterm::add_rule(const vector<Symbol*>& syms, const string& action)
     rule->product.insert(rule->product.end(), syms.begin(), syms.end());
 }
 
-void
-Nonterm::print(ostream& out) const {
-    out << name;
-}
-
-void
-Nonterm::write(ostream& out) const {
-    out << "nonterm" << rank;
-}
-
-void
-Nonterm::write_declare(ostream& out) const
-{
-    out << "Symbol nonterm" << rank;
-    out << " = {\"" << name << "\"};\n";
-}
+void Nonterm::print(ostream& out) const { out << name; }
+void Nonterm::write(ostream& out) const { out << "nonterm" << rank; }
 
 /******************************************************************************/
 void
@@ -283,93 +218,3 @@ void
 Nonterm::Rule::write(ostream& out) const {
     out << "rule" << id;
 }
-
-//void
-//Nonterm::Rule::write_declare(ostream& out) const
-//{
-//    out << "Rule ";
-//    write(out);
-//    out << " = {&";
-//    nonterm->write(out);
-//    
-//    out << ", ";
-//    if (!action.empty()) {
-//        out << "&" << action;
-//    } else {
-//        out << "nullptr";
-//    }
-//    out  << ", " << product.size();
-//    out << "};\n";
-//}
-//
-//void
-//Nonterm::Rule::write_proto(ostream& out) const
-//{
-//    out << "Value* ";
-//    out << action << "(Table*, vector<Value*>&);\n";
-//}
-//
-//void
-//Nonterm::Rule::write_action(ostream& out) const
-//{
-//    if (!nonterm->type.empty()) {
-//        out << "unique_ptr<" << nonterm->type << "> ";
-//    } else {
-//        out << "void ";
-//    }
-//    
-//    out << action << "(";
-//    out << "Table*, ";
-//
-//    bool comma = false;
-//    for (auto sym : product) {
-//        if (!sym->type.empty()) {
-//            if (comma) {
-//                out << ", ";
-//            } else {
-//                comma = true;
-//            }
-//            out << "unique_ptr<" << sym->type << ">&";
-//        }
-//    }
-//    
-//    out << ");\n";
-//}
-//
-//void
-//Nonterm::Rule::write_define(ostream& out) const
-//{
-//    out << "Value*\n";
-//    out << action << "(Table* table, vector<Value*>& values) {\n";
-//    
-//    for (int i = 0; i < product.size(); i++) {
-//        Symbol* sym = product[i];
-//        int index = i - (int)product.size();
-//        if (!sym->type.empty()) {
-//            out << "    unique_ptr<" << sym->type << "> ";
-//            out << "E" << i;
-//            out << "(dynamic_cast<" << sym->type << "*>";
-//            out << "(values.end()[" << index << "]));\n";
-//        }
-//    }
-//    
-//    out << "    unique_ptr<" << nonterm->type << "> ";
-//    out << "R = "<< action << "(";
-//    out << "table, ";
-//
-//    bool comma = false;
-//    for (int i = 0; i < product.size(); i++) {
-//        if (!product[i]->type.empty()) {
-//            if (comma) {
-//                out << ", ";
-//            } else {
-//                comma = true;
-//            }
-//            out << "E" << i;
-//        }
-//    }
-//    
-//    out << ");\n";
-//    out << "    return R.release();\n";
-//    out << "}\n\n";
-//}

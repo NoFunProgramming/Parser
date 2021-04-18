@@ -37,10 +37,7 @@ class Generator
     
     /** After reading, solve for all possible parse states. */
     void solve();
-    
-    /** After solving, write the source code for the parser. */
-    void write(std::ostream& out) const;
-    
+        
     void print_grammar(std::ostream& out) const;
     void print_states(std::ostream& out) const;
 

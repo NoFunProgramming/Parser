@@ -146,19 +146,6 @@ State::print_items(ostream& out) const
 }
 
 /******************************************************************************/
-void
-State::write(ostream& out) const {
-    out << "state" << id;
-}
-
-void
-State::write_declare(ostream& out) const {
-    out << "extern State ";
-    write(out);
-    out << ";\n";
-}
-
-/******************************************************************************/
 State::Item::Item(Nonterm::Rule* rule, size_t mark, Symbol* ahead):
     rule    (rule),
     mark    (mark),

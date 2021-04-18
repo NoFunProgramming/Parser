@@ -110,101 +110,6 @@ Generator::solve()
 
 /******************************************************************************/
 void
-Generator::write(std::ostream& out) const
-{
-    for (auto line : includes) {
-        out << line << "\n";
-    }
-    
-    
-    // TODO Make include a user variable.
-    //out << "#include \"values.hpp\"\n";
-    //out << "#include \"calc.hpp\"\n";
-    out << "#include <memory>\n";
-    out << "using std::vector;\n";
-    out << "using std::unique_ptr;\n";
-    out << "\n";
-    
-    //write_structs(out);
-    
-    for (auto& term : terms) {
-        term.second->write_proto(out);
-    }
-    out << std::endl;
-    
-    for (auto& term : terms) {
-        term.second->write_define(out);
-    }
-    out << std::endl;
-    
-    for (auto& term : terms) {
-        term.second->write_declare(out);
-    }
-    out << "Symbol endmark;\n";
-    out << std::endl;
-
-    lexer.write(out);
-    
-    size_t id = 0;
-    for (auto& nonterm : nonterms) {
-        nonterm.second->rank = id++;
-        nonterm.second->write_declare(out);
-    }
-    out << std::endl;
-
-//    for (auto& nonterm : all) {
-//        for (auto& rule : nonterm->rules) {
-//            rule->write_proto(out);
-//        }
-//    }
-//    out << std::endl;
-//
-//    id = 0;
-//    for (auto& nonterm : nonterms) {
-//        for (auto& rule : nonterm.second->rules) {
-//            rule->id = id++;
-//            rule->write_declare(out);
-//        }
-//    }
-//    out << std::endl;
-    
-    for (auto& state : states) {
-        state->write_declare(out);
-    }
-    out << std::endl;
-    
-//    for (auto& state : states) {
-//        state->write_shift(out);
-//        state->write_accept(out);
-//        state->write_reduce(out);
-//        state->write_goto(out);
-//    }
-//    out << std::endl;
-
-//    for (auto& state : states) {
-//        state->write_define(out);
-//    }
-//    out << std::endl;
-
-//    for (auto& nonterm : all) {
-//        for (auto& rule : nonterm->rules) {
-//            rule->write_action(out);
-//        }
-//    }
-//    out << std::endl;
-//
-//    for (auto& nonterm : all) {
-//        for (auto& rule : nonterm->rules) {
-//            rule->write_define(out);
-//        }
-//    }
-//    out << std::endl;
-    
-    //write_functions(out);
-}
-
-/******************************************************************************/
-void
 Generator::print_grammar(std::ostream& out) const
 {
     for (auto nonterm : all) {
@@ -253,7 +158,6 @@ Generator::intern_term(std::istream& in)
         accepts.emplace_back(std::make_unique<Accept>(name, term->rank));
         lexer.add_series(accepts.back().get(), name);
     }
-    //std::cerr << name << terms[name].get()->rank << std::endl;
     return terms[name].get();
 }
 

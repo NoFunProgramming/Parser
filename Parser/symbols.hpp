@@ -35,14 +35,11 @@ class Term : public Symbol
     Term(const std::string& name, size_t rank);
     std::string name;
     size_t rank;
+    
     std::string action;
     
     virtual void print(std::ostream& out) const;
     virtual void write(std::ostream& out) const;
-    virtual void write_declare(std::ostream& out) const;
-    
-    void write_proto(std::ostream& out) const;
-    void write_define(std::ostream& out) const;
 };
 
 /*******************************************************************************
@@ -67,6 +64,9 @@ class Nonterm : public Symbol
     Nonterm(const std::string& name);
     std::string name;
     size_t rank;
+
+    virtual void print(std::ostream& out) const;
+    virtual void write(std::ostream& out) const;
       
     /**
      * All nonterminals have one or more production rules, vectors of symbols,
@@ -84,10 +84,6 @@ class Nonterm : public Symbol
         
         virtual void print(std::ostream& out) const;
         virtual void write(std::ostream& out) const;
-//        void write_declare(std::ostream& out) const;
-//        void write_proto(std::ostream& out) const;
-//        void write_action(std::ostream& out) const;
-//        void write_define(std::ostream& out) const;
     };
     
     std::vector<std::unique_ptr<Rule>> rules;
@@ -114,11 +110,7 @@ class Nonterm : public Symbol
     void print_rules(std::ostream& out) const;
     void print_firsts(std::ostream& out) const;
     void print_follows(std::ostream& out) const;
-    
-    virtual void print(std::ostream& out) const;
-    virtual void write(std::ostream& out) const;
-    void write_declare(std::ostream& out) const;
-    
+        
   private:
     /**
      * Methods called by solve for adding symbols to the set of firsts and

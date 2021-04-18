@@ -60,14 +60,7 @@ class State
     
     void print(std::ostream& out) const;
     void print_items(std::ostream& out) const;
-    
-    /**
-     * Write the source code for a state.  Writes arrays that list all of the
-     * shift and reduce actions for a given symbol.
-     */
-    void write(std::ostream& out) const;
-    void write_declare(std::ostream& out) const;
-    
+        
     bool operator<(const State& other) const;
             
   //private:
