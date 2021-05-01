@@ -1,10 +1,6 @@
 #include "regex.hpp"
 
 #include <sstream>
-using std::string;
-using std::vector;
-using std::istream;
-using std::cerr;
 
 /******************************************************************************/
 Regex::Regex() :
@@ -16,13 +12,13 @@ Regex::Regex() :
  * accept condition.
  */
 std::unique_ptr<Regex>
-Regex::parse(const string& in, Accept* accept)
+Regex::parse(const std::string& in, Accept* accept)
 {
     std::unique_ptr<Regex> result(std::make_unique<Regex>());
     
     std::istringstream input(in);
     
-    vector<Finite::Out*> outs;
+    std::vector<Finite::Out*> outs;
     result->start = result->parse_expr(input, &outs);
     
     if (result->start) {
@@ -59,7 +55,7 @@ Regex::add_state(Accept* accept) {
 
 /** Parses the lowest precedence operator, the vertical bar. */
 Finite*
-Regex::parse_expr(istream& in, vector<Finite::Out*>* outs)
+Regex::parse_expr(std::istream& in, std::vector<Finite::Out*>* outs)
 {
     Finite* expr = add_state();
     
@@ -83,10 +79,10 @@ Regex::parse_expr(istream& in, vector<Finite::Out*>* outs)
 
 /** Parses a list of character terminals that are in a row between bars. */
 Finite*
-Regex::parse_term(istream& in, vector<Finite::Out*>* outs)
+Regex::parse_term(std::istream& in, std::vector<Finite::Out*>* outs)
 {
-    vector<Finite::Out*> fact_in;
-    vector<Finite::Out*> fact_out;
+    std::vector<Finite::Out*> fact_in;
+    std::vector<Finite::Out*> fact_out;
     Finite* term = parse_fact(in, &fact_out);
     if (!term) {
         return nullptr;
@@ -118,9 +114,9 @@ Regex::parse_term(istream& in, vector<Finite::Out*>* outs)
 
 /** Parses the operators, + * ?, for repeated characters. */
 Finite*
-Regex::parse_fact(istream& in, vector<Finite::Out*>* outs)
+Regex::parse_fact(std::istream& in, std::vector<Finite::Out*>* outs)
 {
-    vector<Finite::Out*> atom_outs;
+    std::vector<Finite::Out*> atom_outs;
     Finite* atom = parse_atom(in, &atom_outs);
     if (!atom) {
         return nullptr;
@@ -163,7 +159,7 @@ Regex::parse_fact(istream& in, vector<Finite::Out*>* outs)
 
 /** Parses a single or a range of characters. */
 Finite*
-Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
+Regex::parse_atom(std::istream& in, std::vector<Finite::Out*>* outs)
 {
     int c = in.get();
     if (c == EOF) {
@@ -194,13 +190,13 @@ Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
             return nullptr;
         }
         if (in.get() != ')') {
-            cerr << "Expected ')' to end expression.\n";
+            std::cerr << "Expected ')' to end expression.\n";
             return nullptr;
         }
         return expr;
     }
     else if (c == ']' || c == ')' || c == '|') {
-        cerr << "Unexpected '" << (char)c << "' in expression.\n";
+        std::cerr << "Unexpected '" << (char)c << "' in expression.\n";
         return nullptr;
     }
     else if (isprint(c)) {
@@ -211,11 +207,11 @@ Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
     }
     else {
         if (c == EOF) {
-            cerr << "Unexpected end of file.\n";
+            std::cerr << "Unexpected end of file.\n";
         } else if (isprint(c)) {
-            cerr << "Unexpected '" << (char)c << "' in expression.\n";
+            std::cerr << "Unexpected '" << (char)c << "' in expression.\n";
         } else {
-            cerr << "Unexpected << c << in expression.\n";
+            std::cerr << "Unexpected << c << in expression.\n";
         }
         return nullptr;
     }
@@ -223,25 +219,25 @@ Regex::parse_atom(istream& in, vector<Finite::Out*>* outs)
 
 /** Parses a range of characters, [a-z]. */
 Finite*
-Regex::parse_atom_range(istream& in, vector<Finite::Out*>* outs)
+Regex::parse_atom_range(std::istream& in, std::vector<Finite::Out*>* outs)
 {
     int first = in.get();
     if (!isalpha(first) && !isdigit(first)) {
-        cerr << "Expected a letter or number to start range.\n";
+        std::cerr << "Expected a letter or number to start range.\n";
         return nullptr;
     }
     if (in.get() != '-') {
-        cerr << "Expected a '-' to separate range.\n";
+        std::cerr << "Expected a '-' to separate range.\n";
         return nullptr;
     }
     
     int last = in.get();
     if (!isalpha(last) && !isdigit(last)) {
-        cerr << "Expected a letter or number to end range.\n";
+        std::cerr << "Expected a letter or number to end range.\n";
         return nullptr;
     }
     if (in.get() != ']') {
-        cerr << "Expected a ']' to end range.\n";
+        std::cerr << "Expected a ']' to end range.\n";
         return nullptr;
     }
     
@@ -253,11 +249,11 @@ Regex::parse_atom_range(istream& in, vector<Finite::Out*>* outs)
 
 /** Parses not within range of characters, [^a] or [^a-z]. */
 Finite*
-Regex::parse_atom_not(istream& in, vector<Finite::Out*>* outs)
+Regex::parse_atom_not(std::istream& in, std::vector<Finite::Out*>* outs)
 {
     int first = in.get();
     if (!isalpha(first) && !isdigit(first)) {
-        cerr << "Expected a letter or number after not.\n";
+        std::cerr << "Expected a letter or number after not.\n";
         return nullptr;
     }
     int last = first;
@@ -265,12 +261,12 @@ Regex::parse_atom_not(istream& in, vector<Finite::Out*>* outs)
         in.get();
         last = in.get();
         if (!isalpha(last) && !isdigit(last)) {
-            cerr << "Expected a letter or number to end range.\n";
+            std::cerr << "Expected a letter or number to end range.\n";
             return nullptr;
         }
     }
     if (in.get() != ']') {
-        cerr << "Expected a ']' to end range.\n";
+        std::cerr << "Expected a ']' to end range.\n";
         return nullptr;
     }
     
@@ -284,7 +280,7 @@ Regex::parse_atom_not(istream& in, vector<Finite::Out*>* outs)
 
 /** Parses an escape sequence, \[ \(, to match control characters. */
 Finite*
-Regex::parse_atom_escape(istream& in, vector<Finite::Out*>* outs)
+Regex::parse_atom_escape(std::istream& in, std::vector<Finite::Out*>* outs)
 {
     int c = in.get();
     
@@ -308,11 +304,11 @@ Regex::parse_atom_escape(istream& in, vector<Finite::Out*>* outs)
         case '?':  c = '?' ; break;
         default: {
             if (c == EOF) {
-                cerr << "Unexpected end of file.\n";
+                std::cerr << "Unexpected end of file.\n";
             } else if (isprint(c)) {
-                cerr << "Unknown escape sequence '" << (char)c << "'.\n";
+                std::cerr << "Unknown escape sequence '" << (char)c << "'.\n";
             } else {
-                cerr << "Unexpected control character.\n";
+                std::cerr << "Unexpected control character.\n";
             }
             return nullptr;
         }

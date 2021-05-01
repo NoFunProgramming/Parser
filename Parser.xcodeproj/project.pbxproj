@@ -14,7 +14,7 @@
 		961342AB261E14EC007C5345 /* lexer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BD9AFD25A96E110014EC35 /* lexer.cpp */; };
 		961342AC261E14EC007C5345 /* symbols.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BE754925B4D2D1000DC07F /* symbols.cpp */; };
 		961342AD261E14EC007C5345 /* state.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9639743A25BAA74800445D0A /* state.cpp */; };
-		961342AE261E14EC007C5345 /* generator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BE754425B4C3DA000DC07F /* generator.cpp */; };
+		961342AE261E14EC007C5345 /* grammar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BE754425B4C3DA000DC07F /* grammar.cpp */; };
 		961342AF261E14EC007C5345 /* test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96CACACB25E2ECF4004EF4B9 /* test.cpp */; };
 		9613FD07259C6248005AC19B /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9613FD06259C6248005AC19B /* main.cpp */; };
 		9639743C25BAA74800445D0A /* state.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9639743A25BAA74800445D0A /* state.cpp */; };
@@ -24,7 +24,7 @@
 		9699D33F2621769B001D56D5 /* calculator.bnf in Sources */ = {isa = PBXBuildFile; fileRef = 96A150792620CCBF009D761F /* calculator.bnf */; };
 		96B7D325259CDAAA00196100 /* finite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96B7D323259CDAAA00196100 /* finite.cpp */; };
 		96BD9AFF25A96E110014EC35 /* lexer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BD9AFD25A96E110014EC35 /* lexer.cpp */; };
-		96BE754625B4C3DA000DC07F /* generator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BE754425B4C3DA000DC07F /* generator.cpp */; };
+		96BE754625B4C3DA000DC07F /* grammar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BE754425B4C3DA000DC07F /* grammar.cpp */; };
 		96BE754B25B4D2D1000DC07F /* symbols.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BE754925B4D2D1000DC07F /* symbols.cpp */; };
 		96CA746D25E1BCD00006D782 /* parser in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9613FD03259C6248005AC19B /* parser */; };
 /* End PBXBuildFile section */
@@ -108,8 +108,8 @@
 		96B7D324259CDAAA00196100 /* finite.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = finite.hpp; sourceTree = "<group>"; };
 		96BD9AFD25A96E110014EC35 /* lexer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lexer.cpp; sourceTree = "<group>"; };
 		96BD9AFE25A96E110014EC35 /* lexer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = lexer.hpp; sourceTree = "<group>"; };
-		96BE754425B4C3DA000DC07F /* generator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = generator.cpp; sourceTree = "<group>"; };
-		96BE754525B4C3DA000DC07F /* generator.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = generator.hpp; sourceTree = "<group>"; };
+		96BE754425B4C3DA000DC07F /* grammar.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = grammar.cpp; sourceTree = "<group>"; };
+		96BE754525B4C3DA000DC07F /* grammar.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = grammar.hpp; sourceTree = "<group>"; };
 		96BE754925B4D2D1000DC07F /* symbols.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = symbols.cpp; sourceTree = "<group>"; };
 		96BE754A25B4D2D1000DC07F /* symbols.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = symbols.hpp; sourceTree = "<group>"; };
 		96CACACB25E2ECF4004EF4B9 /* test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = test.cpp; sourceTree = "<group>"; };
@@ -175,8 +175,8 @@
 				96BE754925B4D2D1000DC07F /* symbols.cpp */,
 				9639743B25BAA74800445D0A /* state.hpp */,
 				9639743A25BAA74800445D0A /* state.cpp */,
-				96BE754525B4C3DA000DC07F /* generator.hpp */,
-				96BE754425B4C3DA000DC07F /* generator.cpp */,
+				96BE754525B4C3DA000DC07F /* grammar.hpp */,
+				96BE754425B4C3DA000DC07F /* grammar.cpp */,
 				96037E7C2626B91600CAED04 /* code.hpp */,
 				96037E7B2626B91600CAED04 /* code.cpp */,
 			);
@@ -301,7 +301,7 @@
 				961342AB261E14EC007C5345 /* lexer.cpp in Sources */,
 				961342AC261E14EC007C5345 /* symbols.cpp in Sources */,
 				961342AD261E14EC007C5345 /* state.cpp in Sources */,
-				961342AE261E14EC007C5345 /* generator.cpp in Sources */,
+				961342AE261E14EC007C5345 /* grammar.cpp in Sources */,
 				961342AF261E14EC007C5345 /* test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -310,7 +310,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				96BE754625B4C3DA000DC07F /* generator.cpp in Sources */,
+				96BE754625B4C3DA000DC07F /* grammar.cpp in Sources */,
 				9639743C25BAA74800445D0A /* state.cpp in Sources */,
 				96B7D325259CDAAA00196100 /* finite.cpp in Sources */,
 				9680CBA1259CF961006E19A4 /* regex.cpp in Sources */,

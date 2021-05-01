@@ -12,4 +12,3 @@ mul<Expr>: 'num'       &reduce_mul
     | mul '*' 'num'    &reduce_mul_num
     | '(' add ')'      &reduce_paren
     ;
-

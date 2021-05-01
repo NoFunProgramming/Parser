@@ -34,7 +34,12 @@ Nonterm::add_rule(const vector<Symbol*>& syms, const string& action)
 void Nonterm::print(ostream& out) const { out << name; }
 void Nonterm::write(ostream& out) const { out << "nonterm" << rank; }
 
-/******************************************************************************/
+/*******************************************************************************
+ * Methods called by solve for adding symbols to the set of firsts and
+ * follows for each nonterminal.  To solve for the firsts and follows of the
+ * grammar, the program will keep calling solve as long as a new symbols are
+ * being found and inserted into the set.
+ */
 void
 Nonterm::solve_first(bool *found)
 {

@@ -18,7 +18,7 @@ class State
     State(size_t id);
     
     /**
-     * Each state is a set of possible parse states.  At any given time while
+     * Each state is a set of possible parse rules.  At any given time while
      * parsing a valid input, the parser must be within at least one rule while
      * waiting for one of several symbols that could be next based on the
      * grammar.

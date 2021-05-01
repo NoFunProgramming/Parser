@@ -1,16 +1,17 @@
 #include "code.hpp"
 
+/******************************************************************************/
 void
-Code::write(Generator& gen, std::vector<State*>& states, std::ostream& out)
+Code::write(Grammar& grammar, std::ostream& out)
 {
     out << "#include \"calculator.hpp\"\n\n";
     out << "using std::unique_ptr;\n\n";
     out << "using std::vector;\n\n";
     
-    size_t nonterm_id = 0;
+    size_t id = 0;
     size_t rule_id = 0;
-    for (auto& nonterm : gen.nonterms) {
-        nonterm.second->rank = nonterm_id++;
+    for (auto& nonterm : grammar.nonterms) {
+        nonterm.second->rank = id++;
         for (auto& rule : nonterm.second->rules) {
             rule->id = rule_id++;
         }
@@ -19,16 +20,16 @@ Code::write(Generator& gen, std::vector<State*>& states, std::ostream& out)
     write_struct(out);
 
     out << "Symbol endmark;\n\n";
-    for (auto& term : gen.terms) {
+    for (auto& term : grammar.terms) {
         write_declare(term.second.get(), out);
     }
-    for (auto& term : gen.terms) {
+    for (auto& term : grammar.terms) {
         write_define(term.second.get(), out);
     }
 
-    gen.lexer.write(out);
+    grammar.lexer.write(out);
     
-    for (auto& nonterm : gen.nonterms) {
+    for (auto& nonterm : grammar.nonterms) {
         write_declare(nonterm.second.get(), out);
         for (auto& rule : nonterm.second->rules) {
             write_proto(rule.get(), out);
@@ -39,19 +40,19 @@ Code::write(Generator& gen, std::vector<State*>& states, std::ostream& out)
         out << std::endl;
     }
     
-    for (auto& nonterm : gen.all) {
+    for (auto& nonterm : grammar.all) {
         for (auto& rule : nonterm->rules) {
             write_action(rule.get(), out);
             write_define(rule.get(), out);
         }
     }
     
-    for (auto& state : gen.states) {
+    for (auto& state : grammar.states) {
         out << "extern State state" << state->id << ";\n";
     }
     out << std::endl;
     
-    for (auto& s : gen.states) {
+    for (auto& s : grammar.states) {
         write_shift(s.get(), out);
         write_accept(s.get(), out);
         write_reduce(s.get(), out);
@@ -59,7 +60,7 @@ Code::write(Generator& gen, std::vector<State*>& states, std::ostream& out)
     }
     out << std::endl;
     
-    for (auto& s : gen.states) {
+    for (auto& s : grammar.states) {
         write_define(s.get(), out);
     }
 
@@ -111,12 +112,10 @@ Code::write_declare(Term* term, std::ostream& out)
 {
     out << "Value* scan" << term->rank << "(Table*, const std::string&);\n";
     
-    out << "Symbol "; term->write(out);
+    out << "Symbol term" << term->rank;
     out << " = {\"" << term->name << "\"};\n";
 
-    out << "Accept term" << term->rank << "_accept = {&";
-    term->write(out);
-    out << ", ";
+    out << "Accept term" << term->rank << "_accept = {&term" << term->rank << ", ";
     if (!term->action.empty()) {
         out << "&scan" << term->rank << "";
     } else {
@@ -299,22 +298,22 @@ Code::write_define(State* state, std::ostream& out)
     out << "state" << state->id;
     out << " = {" << state->id;
 
-    if (state->actions->shift.size() > 0) {
+    if (state->actions->shift.size()) {
         out << ", shift" << state->id;
     } else {
         out << ", nullptr";
     }
-    if (state->actions->accept.size() > 0) {
+    if (state->actions->accept.size()) {
         out << ", accept" << state->id;
     } else {
         out << ", nullptr";
     }
-    if (state->actions->reduce.size() > 0) {
+    if (state->actions->reduce.size()) {
         out << ", reduce" << state->id;
     } else {
         out << ", nullptr";
     }
-    if (state->gotos.size() > 0) {
+    if (state->gotos.size()) {
         out << ", go" << state->id;
     } else {
         out << ", nullptr";

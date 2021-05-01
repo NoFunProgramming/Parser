@@ -40,7 +40,7 @@
  * write the generated source code to the standard output.
  */
 
-#include "generator.hpp"
+#include "grammar.hpp"
 #include "code.hpp"
 
 #include <iostream>
@@ -49,7 +49,7 @@
 int
 main(int argc, const char * argv[])
 {
-    Generator generator;
+    Grammar generator;
 
     bool ok = generator.read_grammar(std::cin);
     if (!ok) {
@@ -64,7 +64,7 @@ main(int argc, const char * argv[])
         states.push_back(s.get());
     }
     
-    Code::write(generator, states, std::cout);
+    Code::write(generator, std::cout);
 
     return 0;
 }

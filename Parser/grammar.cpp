@@ -1,19 +1,18 @@
-#include "generator.hpp"
+#include "grammar.hpp"
 
 #include <iostream>
 
 using std::string;
 using std::vector;
 using std::istream;
-using std::cerr;
 using std::make_unique;
 
 /******************************************************************************/
-Generator::Generator():
+Grammar::Grammar():
     start(nullptr){}
 
 bool
-Generator::read_grammar(std::istream& in)
+Grammar::read_grammar(std::istream& in)
 {
     while (true) {
         in >> std::ws;
@@ -46,7 +45,7 @@ Generator::read_grammar(std::istream& in)
 
 /******************************************************************************/
 void
-Generator::solve()
+Grammar::solve()
 {
     if (all.size() == 0 || all.front()->rules.size() == 0) {
         return;
@@ -110,7 +109,7 @@ Generator::solve()
 
 /******************************************************************************/
 void
-Generator::print_grammar(std::ostream& out) const
+Grammar::print_grammar(std::ostream& out) const
 {
     for (auto nonterm : all) {
         nonterm->print_rules(out);
@@ -134,7 +133,7 @@ Generator::print_grammar(std::ostream& out) const
 }
 
 void
-Generator::print_states(std::ostream& out) const
+Grammar::print_states(std::ostream& out) const
 {
     for (auto& state : states) {
         state->print(out);
@@ -145,7 +144,7 @@ Generator::print_states(std::ostream& out) const
 
 /******************************************************************************/
 Term*
-Generator::intern_term(std::istream& in)
+Grammar::intern_term(std::istream& in)
 {
     string name;
     if (!read_term_name(in, &name)) {
@@ -162,7 +161,7 @@ Generator::intern_term(std::istream& in)
 }
 
 Nonterm*
-Generator::intern_nonterm(istream& in)
+Grammar::intern_nonterm(istream& in)
 {
     string name;
     if (!read_nonterm_name(in, &name)) {
@@ -176,7 +175,7 @@ Generator::intern_nonterm(istream& in)
 
 /******************************************************************************/
 bool
-Generator::read_term(istream& in)
+Grammar::read_term(istream& in)
 {
     string name;
     if (!read_term_name(in, &name)) {
@@ -197,7 +196,7 @@ Generator::read_term(istream& in)
 
     in >> std::ws;
     if (in.get() != ';') {
-        cerr << "Terminals end with a semicolon.\n";
+        std::cerr << "Terminals end with a semicolon.\n";
         return false;
     }
         
@@ -222,11 +221,11 @@ Generator::read_term(istream& in)
 
 /******************************************************************************/
 bool
-Generator::read_rules(istream& in)
+Grammar::read_rules(istream& in)
 {
     string name;
     if (!read_nonterm_name(in, &name)) {
-        cerr << "Rule must start with a nonterminal.\n";
+        std::cerr << "Rule must start with a nonterminal.\n";
         return false;
     }
     string type;
@@ -234,7 +233,7 @@ Generator::read_rules(istream& in)
         return false;
     }
     if (in.get() != ':') {
-        cerr << "Expected a colon after the nonterminal name.\n";
+        std::cerr << "Expected a colon after the nonterminal name.\n";
         return false;
     }
     
@@ -272,7 +271,7 @@ Generator::read_rules(istream& in)
 }
 
 bool
-Generator::read_product(istream& in, vector<Symbol*>* syms)
+Grammar::read_product(istream& in, vector<Symbol*>* syms)
 {
     while (in.peek() != EOF) {
         in >> std::ws;
@@ -297,7 +296,7 @@ Generator::read_product(istream& in, vector<Symbol*>* syms)
                 return false;
             }
         } else {
-            cerr << "Expected character in rule.\n";
+            std::cerr << "Expected character in rule.\n";
             return false;
         }
     }
@@ -305,7 +304,7 @@ Generator::read_product(istream& in, vector<Symbol*>* syms)
 }
 
 bool
-Generator::read_include(istream& in)
+Grammar::read_include(istream& in)
 {
     std::string text;
     while (in.peek() != EOF) {
@@ -323,7 +322,7 @@ Generator::read_include(istream& in)
 }
 
 bool
-Generator::read_comment(istream& in)
+Grammar::read_comment(istream& in)
 {
     if (in.peek() != '/') {
         return true;
@@ -340,7 +339,7 @@ Generator::read_comment(istream& in)
     bool star = false;
     while (true) {
         if (in.peek() == EOF) {
-            cerr << "Unexpected end of file in comment.\n";
+            std::cerr << "Unexpected end of file in comment.\n";
             return false;
         }
         if (star) {
@@ -362,34 +361,34 @@ Generator::read_comment(istream& in)
 
 /******************************************************************************/
 bool
-Generator::read_term_name(istream& in, string* name)
+Grammar::read_term_name(istream& in, string* name)
 {
     if (in.get() != '\'') {
-        cerr << "Expected quote to start terminal name.\n";
+        std::cerr << "Expected quote to start terminal name.\n";
         return false;
     }
     while (isprint(in.peek()) && in.peek() != '\'') {
         name->push_back(in.get());
     }
     if (in.get() != '\'') {
-        cerr << "Expected quote to end terminal name.\n";
+        std::cerr << "Expected quote to end terminal name.\n";
         return false;
     }
     if (name->empty()) {
-        cerr << "Terminal names require at least one character.\n";
+        std::cerr << "Terminal names require at least one character.\n";
         return false;
     }
     return true;
 }
 
 bool
-Generator::read_nonterm_name(istream& in, string* name)
+Grammar::read_nonterm_name(istream& in, string* name)
 {
     while (isalpha(in.peek())) {
         name->push_back(in.get());
     }
     if (name->empty()) {
-        cerr << "Nonterminal names require at least one character.\n";
+        std::cerr << "Nonterminal names require at least one character.\n";
         return false;
     }
     return true;
@@ -397,7 +396,7 @@ Generator::read_nonterm_name(istream& in, string* name)
 
 /******************************************************************************/
 bool
-Generator::read_type(istream& in, string* type)
+Grammar::read_type(istream& in, string* type)
 {
     in >> std::ws;
     if (in.peek() == '<') {
@@ -416,7 +415,7 @@ Generator::read_type(istream& in, string* type)
         if (isalpha(c)) {
             type->push_back(in.get());
         } else {
-            cerr << "Unexpected character in type name.\n";
+            std::cerr << "Unexpected character in type name.\n";
             return false;
         }
     }
@@ -424,13 +423,13 @@ Generator::read_type(istream& in, string* type)
     if (!type->empty()) {
         return true;
     } else {
-        cerr << "Type names require at least one character.\n";
+        std::cerr << "Type names require at least one character.\n";
         return false;
     }
 }
 
 bool
-Generator::read_regex(istream& in, string* regex)
+Grammar::read_regex(istream& in, string* regex)
 {
     in >> std::ws;
     if (in.peek() == '&' || in.peek() == ';') {
@@ -446,7 +445,7 @@ Generator::read_regex(istream& in, string* regex)
         if (isprint(c)) {
             regex->push_back(in.get());
         } else {
-            cerr << "Unexpected character in regular expression.\n";
+            std::cerr << "Unexpected character in regular expression.\n";
             return false;
         }
     }
@@ -454,13 +453,13 @@ Generator::read_regex(istream& in, string* regex)
     if (!regex->empty()) {
         return true;
     } else {
-        cerr << "Regex pattern must have one character.\n";
+        std::cerr << "Regex pattern must have one character.\n";
         return false;
     }
 }
 
 bool
-Generator::read_action(istream& in, string* action)
+Grammar::read_action(istream& in, string* action)
 {
     in >> std::ws;
     if (in.peek() == '&') {
@@ -482,7 +481,7 @@ Generator::read_action(istream& in, string* action)
         } else if (c == '_') {
             action->push_back(in.get());
         } else {
-            cerr << "Unexpected character in action method name.\n";
+            std::cerr << "Unexpected character in action method name.\n";
             return false;
         }
     }
@@ -490,14 +489,14 @@ Generator::read_action(istream& in, string* action)
     if (!action->empty()) {
         return true;
     } else {
-        cerr << "Action name must have one character.\n";
+        std::cerr << "Action name must have one character.\n";
         return false;
     }
 }
 
 /******************************************************************************/
 void
-Generator::solve_first()
+Grammar::solve_first()
 {
     bool found = false;
     do {
@@ -509,7 +508,7 @@ Generator::solve_first()
 }
 
 void
-Generator::solve_follows(Symbol* endmark)
+Grammar::solve_follows(Symbol* endmark)
 {
     if (all.size() == 0 || all.front()->rules.size() == 0) {
         return;

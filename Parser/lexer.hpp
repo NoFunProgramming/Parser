@@ -114,6 +114,10 @@ class Lexer
     State* initial;
     std::set<std::unique_ptr<State>, State::Compare> states;
     
+    /*******************************************************************************
+     * Contains a finite automaton for pattern matching.  Builds a new NFA
+     * object by connecting each character in a string as a sequence of states.
+     */
     class Literal {
       public:
         static std::unique_ptr<Literal> parse(const std::string& in, Accept* accept);

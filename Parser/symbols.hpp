@@ -112,14 +112,8 @@ class Nonterm : public Symbol
     void print_follows(std::ostream& out) const;
         
   private:
-    /**
-     * Methods called by solve for adding symbols to the set of firsts and
-     * follows for each nonterminal.  To solve for the firsts and follows of the
-     * grammar, the program will keep calling solve as long as a new symbols are
-     * being found and inserted into the set.
-     */
+    /** Called by solve for finind the set of firsts and follows. */
     void insert_firsts(Rule* rule, bool* found);
-    
     void insert_follows(const std::set<Symbol*>& syms, bool* found);
     void insert_follows(std::vector<Symbol*>::iterator symbol,
                         std::vector<Symbol*>::iterator end,

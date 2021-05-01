@@ -7,6 +7,23 @@
 #include <sstream>
 #include <iostream>
 
+void test_finite();
+void test_regex();
+void test_lexer();
+void test_grammar();
+
+/******************************************************************************/
+int
+main(int argc, const char * argv[])
+{
+    //test_finite();
+    //test_regex();
+    //test_lexer();
+    test_grammar();
+
+    return 0;
+}
+
 /*******************************************************************************
  * Defines an automaton to match tokens in a string.  Outputs from each state
  * determine the next active states based on the characters read from the
@@ -68,7 +85,7 @@ test_grammar()
     
     std::stringstream in(test);
  
-    Generator generator;
+    Grammar generator;
     
     bool ok = generator.read_grammar(in);
     if (!ok) {
@@ -151,18 +168,4 @@ test_regex()
             break;
         }
     }
-}
-
-
-
-/******************************************************************************/
-int
-main(int argc, const char * argv[])
-{
-    //test_finite();
-    //test_regex();
-    //test_lexer();
-    test_grammar();
-
-    return 0;
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Generates source code for parsing a regular language.  The class reads in a
+ * Grammar of a regular language.  The class reads in a
  * user defined grammar and outputs source code that can be compiled into
  * another program to parse an input string.  Action methods can be associated
  * with every rule of the grammar and are called when that pattern is found
@@ -27,10 +27,10 @@
  * are define as a sequence of symbols, known as a production rule. Terminals
  * are shown in quotes and are defined by a pattern of input characters.
  */
-class Generator
+class Grammar
 {
   public:
-    Generator();
+    Grammar();
     
     /** Reads in the grammar that defines the parser. */
     bool read_grammar(std::istream& in);
