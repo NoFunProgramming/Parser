@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		96037E7D2626B91600CAED04 /* code.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96037E7B2626B91600CAED04 /* code.cpp */; };
-		96037E7E2626B91600CAED04 /* code.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96037E7B2626B91600CAED04 /* code.cpp */; };
+		96037E7D2626B91600CAED04 /* table.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96037E7B2626B91600CAED04 /* table.cpp */; };
+		96037E7E2626B91600CAED04 /* table.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96037E7B2626B91600CAED04 /* table.cpp */; };
 		961342A9261E14EC007C5345 /* finite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96B7D323259CDAAA00196100 /* finite.cpp */; };
 		961342AA261E14EC007C5345 /* regex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9680CB9F259CF961006E19A4 /* regex.cpp */; };
 		961342AB261E14EC007C5345 /* lexer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96BD9AFD25A96E110014EC35 /* lexer.cpp */; };
@@ -18,6 +18,8 @@
 		961342AF261E14EC007C5345 /* test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96CACACB25E2ECF4004EF4B9 /* test.cpp */; };
 		9613FD07259C6248005AC19B /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9613FD06259C6248005AC19B /* main.cpp */; };
 		9639743C25BAA74800445D0A /* state.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9639743A25BAA74800445D0A /* state.cpp */; };
+		963E79BA263DBA0100602F66 /* literal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 963E79B8263DBA0100602F66 /* literal.cpp */; };
+		963E79BB263DBA0100602F66 /* literal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 963E79B8263DBA0100602F66 /* literal.cpp */; };
 		9680CBA1259CF961006E19A4 /* regex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9680CB9F259CF961006E19A4 /* regex.cpp */; };
 		9699D31426216EBA001D56D5 /* calculator.bnf in Sources */ = {isa = PBXBuildFile; fileRef = 96A150792620CCBF009D761F /* calculator.bnf */; };
 		9699D32E26217511001D56D5 /* calculator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 96A150752620B68D009D761F /* calculator.cpp */; };
@@ -89,13 +91,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		96037E7B2626B91600CAED04 /* code.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = code.cpp; sourceTree = "<group>"; };
-		96037E7C2626B91600CAED04 /* code.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = code.hpp; sourceTree = "<group>"; };
+		96037E7B2626B91600CAED04 /* table.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = table.cpp; sourceTree = "<group>"; };
+		96037E7C2626B91600CAED04 /* table.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = table.hpp; sourceTree = "<group>"; };
 		9613429C261E135E007C5345 /* test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test; sourceTree = BUILT_PRODUCTS_DIR; };
 		9613FD03259C6248005AC19B /* parser */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = parser; sourceTree = BUILT_PRODUCTS_DIR; };
 		9613FD06259C6248005AC19B /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		9639743A25BAA74800445D0A /* state.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = state.cpp; sourceTree = "<group>"; };
 		9639743B25BAA74800445D0A /* state.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = state.hpp; sourceTree = "<group>"; };
+		963E79B8263DBA0100602F66 /* literal.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = literal.cpp; sourceTree = "<group>"; };
+		963E79B9263DBA0100602F66 /* literal.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = literal.hpp; sourceTree = "<group>"; };
 		963F0EEC259E539600E5D128 /* readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = readme.md; sourceTree = "<group>"; };
 		9680CB9F259CF961006E19A4 /* regex.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = regex.cpp; sourceTree = "<group>"; };
 		9680CBA0259CF961006E19A4 /* regex.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = regex.hpp; sourceTree = "<group>"; };
@@ -167,6 +171,8 @@
 				9613FD06259C6248005AC19B /* main.cpp */,
 				96B7D324259CDAAA00196100 /* finite.hpp */,
 				96B7D323259CDAAA00196100 /* finite.cpp */,
+				963E79B9263DBA0100602F66 /* literal.hpp */,
+				963E79B8263DBA0100602F66 /* literal.cpp */,
 				9680CBA0259CF961006E19A4 /* regex.hpp */,
 				9680CB9F259CF961006E19A4 /* regex.cpp */,
 				96BD9AFE25A96E110014EC35 /* lexer.hpp */,
@@ -177,8 +183,8 @@
 				9639743A25BAA74800445D0A /* state.cpp */,
 				96BE754525B4C3DA000DC07F /* grammar.hpp */,
 				96BE754425B4C3DA000DC07F /* grammar.cpp */,
-				96037E7C2626B91600CAED04 /* code.hpp */,
-				96037E7B2626B91600CAED04 /* code.cpp */,
+				96037E7C2626B91600CAED04 /* table.hpp */,
+				96037E7B2626B91600CAED04 /* table.cpp */,
 			);
 			path = Parser;
 			sourceTree = "<group>";
@@ -296,9 +302,10 @@
 			files = (
 				9699D31426216EBA001D56D5 /* calculator.bnf in Sources */,
 				961342A9261E14EC007C5345 /* finite.cpp in Sources */,
-				96037E7E2626B91600CAED04 /* code.cpp in Sources */,
+				96037E7E2626B91600CAED04 /* table.cpp in Sources */,
 				961342AA261E14EC007C5345 /* regex.cpp in Sources */,
 				961342AB261E14EC007C5345 /* lexer.cpp in Sources */,
+				963E79BB263DBA0100602F66 /* literal.cpp in Sources */,
 				961342AC261E14EC007C5345 /* symbols.cpp in Sources */,
 				961342AD261E14EC007C5345 /* state.cpp in Sources */,
 				961342AE261E14EC007C5345 /* grammar.cpp in Sources */,
@@ -314,9 +321,10 @@
 				9639743C25BAA74800445D0A /* state.cpp in Sources */,
 				96B7D325259CDAAA00196100 /* finite.cpp in Sources */,
 				9680CBA1259CF961006E19A4 /* regex.cpp in Sources */,
-				96037E7D2626B91600CAED04 /* code.cpp in Sources */,
+				96037E7D2626B91600CAED04 /* table.cpp in Sources */,
 				96BD9AFF25A96E110014EC35 /* lexer.cpp in Sources */,
 				9613FD07259C6248005AC19B /* main.cpp in Sources */,
+				963E79BA263DBA0100602F66 /* literal.cpp in Sources */,
 				96BE754B25B4D2D1000DC07F /* symbols.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

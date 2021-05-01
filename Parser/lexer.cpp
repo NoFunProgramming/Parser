@@ -13,7 +13,7 @@ Lexer::Lexer():
  * into a single DFA.
  */
 bool
-Lexer::add(Accept* accept, const std::string& regex)
+Lexer::add_regex(Accept* accept, const std::string& regex)
 {
     std::unique_ptr<Regex> expr = Regex::parse(regex, accept);
     if (!expr) {
@@ -26,9 +26,9 @@ Lexer::add(Accept* accept, const std::string& regex)
 }
 
 bool
-Lexer::add_series(Accept* accept, const std::string& series)
+Lexer::add_literal(Accept* accept, const std::string& series)
 {
-    std::unique_ptr<Literal> expr = Literal::parse(series, accept);
+    std::unique_ptr<Literal> expr = Literal::build(series, accept);
     if (!expr) {
         std::cerr << "Unable to parse character series.\n";
         return false;
@@ -54,10 +54,10 @@ Lexer::solve()
     /** Build the first state from the start state of all expressions. */
     std::unique_ptr<State> first = std::make_unique<State>(states.size());
     for (auto& expr : exprs) {
-        first->add_finite(expr->get_start());
+        first->add_finite(expr->start);
     }
     for (auto& expr : literals) {
-        first->add_finite(expr->get_start());
+        first->add_finite(expr->start);
     }
     
     first->solve_closure();
@@ -126,18 +126,14 @@ Lexer::write(std::ostream& out) const
     for (auto& state : states) {
         out << "extern Node node" << state->id << ";\n";
     }
-    out << "\n";
-//    for (auto& state : states) {
-//        state->write_proto(out);
-//    }
-//    out << "\n";
+    out << std::endl;
     for (auto& state : states) {
         state->write(out);
     }
     for (auto& state : states) {
         state->write_struct(out);
     }
-    out << "\n";
+    out << std::endl;
 }
 
 /******************************************************************************/
@@ -192,9 +188,9 @@ Lexer::State::solve_closure()
 void
 Lexer::State::solve_accept()
 {
-    auto lowest = min_element(items.begin(), items.end(), Finite::lower);
+    auto lowest = min_element(items.begin(), items.end(), Finite::lower_rank);
     if (lowest != items.end()) {
-        accept = (*lowest)->get_accept();
+        accept = (*lowest)->accept;
     }
 }
 
@@ -213,8 +209,6 @@ Lexer::State::write_struct(std::ostream& out) {
     out << "Node node" << id;
     out << " = {&scan" << id;
     if (accept) {
-        //out << ", \"" << accept->name << "\"";
-        //out << ", &term" << accept->rank;
         out << ", &term" << accept->rank << "_accept";
     } else {
         out << ", nullptr";
@@ -270,94 +264,3 @@ Lexer::State::Range::write(std::ostream& out) const
     }
 }
 
-/******************************************************************************/
-Lexer::Literal::Literal():
-    start(nullptr) {}
-
-Finite* Lexer::Literal::get_start() { return start; }
-
-std::unique_ptr<Lexer::Literal>
-Lexer::Literal::parse(const std::string& in, Accept* accept)
-{
-    std::unique_ptr<Literal> result(std::make_unique<Literal>());
-    
-    std::istringstream input(in);
-    
-    result->start = result->parse_term(input, accept);
-    
-    if (!result->start) {
-        std::cerr << "Unable to parse expression '" << in << "'.\n";
-        result.reset();
-    }
-
-    return result;
-}
-
-/**
- * Builds a new state and retains ownership.  No memory leaks occur if any
- * exceptions or errors occur during subset construction, as the states vector
- * contains all fragments of the automaton.
- */
-Finite*
-Lexer::Literal::add_state() {
-    states.emplace_back(std::make_unique<Finite>());
-    return states.back().get();
-}
-
-Finite*
-Lexer::Literal::add_state(Accept* accept) {
-    states.emplace_back(std::make_unique<Finite>(accept));
-    return states.back().get();
-}
-
-
-Finite*
-Lexer::Literal::parse_term(std::istream& in, Accept* accept)
-{
-    Finite* fact = add_state();
-    Finite* term = fact;
-    
-    while (true)
-    {
-        int c = in.get();
-        if (!isprint(c)) {
-            cerr << "Expected a printable character.\n";
-            return nullptr;
-        }
-        
-        if (c == '\\') {
-            c = in.get();
-            switch (c) {
-                case 'n': c = '\n'; break;
-                case 'r': c = '\r'; break;
-                case 't': c = '\t'; break;
-                case 'a': c = '\a'; break;
-                case 'b': c = '\b'; break;
-                case 'e': c = '\e'; break;
-                case 'f': c = '\f'; break;
-                case 'v': c = '\v'; break;
-                case '\\': c = '\\'; break;
-                case '\'': c = '\''; break;
-                case '"':  c = '"' ; break;
-                case '?':  c = '?' ; break;
-                default: {
-                    cerr << "Unknown escape sequence.\n";
-                    return nullptr;
-                }
-            }
-        }
-        
-        if (in.peek() == EOF) {
-            Finite* next = add_state(accept);
-            term->add_out(c, next);
-            break;
-        }
-        else {
-            Finite* next = add_state();
-            term->add_out(c, next);
-            term = next;
-        }
-    }
-    
-    return fact;
-}

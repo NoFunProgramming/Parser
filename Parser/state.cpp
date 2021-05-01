@@ -215,7 +215,7 @@ State::Item::print(ostream& out) const
     rule->nonterm->print(out);
     out << ": ";
     
-    bool first = true;    
+    bool first = true;
     for (size_t i = 0; i < rule->product.size(); i++) {
         if (i == mark) {
             if (!first) {

@@ -1,30 +1,20 @@
 /*******************************************************************************
- * Writes the source code for a lexer.  The lexer identifies tokens defined by
- * user provided regular expressions.  This class combines multiple regular
- * expressions into a single deterministic finite automaton (DFA).  After adding
- * all expressions, call solve and then write to generate the source code for
- * the lexer.
+ * Writes the source code for a lexer which identifies tokens defined by user
+ * provided regular expressions. After adding all expressions, call solve and
+ * then write to generate the source code for the lexer.
  *
- * The source code will define a structure for each state in DFA. This
- * structure contains a method that take a character and returns either a new
- * state in the DFA or a null pointer.  The null indicates that the pattern
- * matching is complete and the accept value, if any, for the current state is
- * the type of token identified.
- *
- *      Accept num("number", 0);
- *      Accept id("identifier", 1);
- *
- *      Lexer lexer;
- *      lexer.add(&num, "[0-9]+");
- *      lexer.add(&id, "[a-e]([a-e]|[0-9])*");
- *
- *      lexer.solve();
- *      lexer.write(std::cout);
+ * The source code defines a structure for each scan state. The code provides
+ * a function for getting the next state based on the input character.  If the
+ * function returns a null pointer the pattern matching is complete.  Check the
+ * last known state for an accept object to find the matched pattern.  If the
+ * last state is not accepting, then an unexpected character was found in the
+ * input.
  */
 
 #ifndef lexer_hpp
 #define lexer_hpp
 
+#include "literal.hpp"
 #include "regex.hpp"
 
 #include <vector>
@@ -33,24 +23,21 @@
 #include <iostream>
 
 /*******************************************************************************
- * Builds a lexer for identifying tokens in an input string.  The lexer
- * combines multiple regular expressions into a single deterministic finite
- * automaton (DFA).  This DFA can then be written to source code and later
- * compiled into another program to identify tokens in am input string.
+ * Builds a lexer for identifying tokens in an input string.  The lexer combines
+ * multiple regular expressions into a single deterministic finite automaton
+ * (DFA).  This DFA can then be written to source code and later compiled into
+ * another program to identify tokens in an input string.
  */
 class Lexer
 {
   public:
     Lexer();
 
-    /**
-     * Adds a user define regular expression pattern to the lexer.  The method
-     * returns true if the provided expression is valid.
-     */
-    bool add(Accept* accept, const std::string& regex);
-    bool add_series(Accept* accept, const std::string& series);
+    /** Add patterns to match in the input string. */
+    bool add_regex(Accept* accept, const std::string& regex);
+    bool add_literal(Accept* accept, const std::string& series);
     
-    /** After adding expressions, call solve to build to DFA. */
+    /** After adding all expressions, call solve to build to DFA. */
     void solve();
 
     /** After solving for the DFA, call write to generate the source code. */
@@ -58,6 +45,7 @@ class Lexer
     
   private:
     std::vector<std::unique_ptr<Regex>> exprs;
+    std::vector<std::unique_ptr<Literal>> literals;
 
     /**
      * State of the deterministic finite automaton.  The DFA is built by finding
@@ -87,8 +75,7 @@ class Lexer
         void write_struct(std::ostream& out);
         void write(std::ostream& out);
 
-        /** Check if two states are really the same DFA state. */
-        struct Compare {
+        struct is_same {
             bool operator() (const std::unique_ptr<State>& left,
                              const std::unique_ptr<State>& right) const {
                 return left->items < right->items;
@@ -111,31 +98,8 @@ class Lexer
     };
     
     /** The DFA is defined by an initial state and unique sets of NFA states. */
+    std::set<std::unique_ptr<State>, State::is_same> states;
     State* initial;
-    std::set<std::unique_ptr<State>, State::Compare> states;
-    
-    /*******************************************************************************
-     * Contains a finite automaton for pattern matching.  Builds a new NFA
-     * object by connecting each character in a string as a sequence of states.
-     */
-    class Literal {
-      public:
-        static std::unique_ptr<Literal> parse(const std::string& in, Accept* accept);
-        Literal();
-        
-        Finite* get_start();
-
-      private:
-        /** States of the NFA, owned by the literal object. */
-        Finite* start;
-        std::vector<std::unique_ptr<Finite>> states;
-        Finite* add_state();
-        Finite* add_state(Accept* accept);
-
-        Finite* parse_term(std::istream& in, Accept* accept);
-    };
-    
-    std::vector<std::unique_ptr<Literal>> literals;
 };
 
 #endif

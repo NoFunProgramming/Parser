@@ -9,11 +9,16 @@ using std::unique_ptr;
 int
 main(int argc, const char * argv[])
 {
-    std::stringstream in("(5 + 5) * 5");
-    
+    if (argc != 2) {
+        std::cerr << "Expected a single input argument.\n";
+        return 1;
+    }
+        
+    std::stringstream in(argv[1]);
+        
     Table table;
     
-    Parser parser;
+    Calculator parser;
     parser.init();
 
     do {
@@ -26,7 +31,12 @@ main(int argc, const char * argv[])
     return 0;
 }
 
-/******************************************************************************/
+/*******************************************************************************
+ * Implementation of the actions specified for the grammar rules.
+ */
+Expr::Expr(int value):
+    value(value){}
+
 unique_ptr<Expr>
 scan_num(Table* table, const std::string& text)
 {
@@ -76,53 +86,54 @@ reduce_paren(Table* table, unique_ptr<Expr>& E1)
 }
 
 /******************************************************************************/
-Parser::Parser() :
+Calculator::Calculator() :
     node(nullptr){}
 
 void
-Parser::init()
+Calculator::init()
 {
     text.clear();
-    node = node_start();
+    node = Start_Node;
 
     states.clear();
     symbols.clear();
     values.clear();
     
-    states.push_back(state_start());
-    symbols.push_back(symbol_end());
+    // TODO Push the start symbol.
+    states.push_back(Start_State);
+    symbols.push_back(Endmark);
     values.push_back(nullptr);
 }
 
-/******************************************************************************/
+/*******************************************************************************
+ */
 bool
-Parser::scan(Table* table, int c)
+Calculator::scan(Table* table, int c)
 {
     while (true)
     {
         if (c == EOF) {
-            Accept* accept = find_term(node);
-            if (accept) {
-                Value* value = nullptr;
-                if (accept->scan) {
-                    value = accept->scan(table, text);
-                }
-                bool ok = advance(table, accept->term, value);
-                if (!ok) {
-                    return false;
-                }
-                ok = advance(table, symbol_end(), nullptr);
-                if (!ok) {
-                    return false;
-                }
-                return true;
-            }
-            else {
+            Accept* accept = is_accept(node);
+            if (!accept && node != Start_Node) {
                 std::cout << "Unexpected end of file.\n";
                 return false;
             }
+            
+            Value* value = nullptr;
+            if (accept) {
+                if (accept->scan) {
+                    value = accept->scan(table, text);
+                }
+                if (!advance(table, accept->term, value)) {
+                    return false;
+                }
+            }
+            if (!advance(table, Endmark, nullptr)) {
+                return false;
+            }
+            return true;
         }
-        else if (node == node_start() && c == ' ') {
+        else if (node == Start_Node && isspace(c)) {
             return true;
         }
         else {
@@ -133,23 +144,21 @@ Parser::scan(Table* table, int c)
                 return true;
             }
             else {
-                Accept* accept = find_term(node);
-                if (accept) {
-                    Value* value = nullptr;
-                    if (accept->scan) {
-                        value = accept->scan(table, text);
-                    }
-                    bool ok = advance(table, accept->term, value);
-                    if (!ok) {
-                        return false;
-                    }
-                    node = node_start();
-                    text.clear();
-                }
-                else {
+                Accept* accept = is_accept(node);
+                if (!accept) {
                     std::cout << "Unexpected character." << (char)c << "\n";
                     return false;
                 }
+                
+                Value* value = nullptr;
+                if (accept->scan) {
+                    value = accept->scan(table, text);
+                }
+                if (!advance(table, accept->term, value)) {
+                    return false;
+                }
+                node = Start_Node;
+                text.clear();
             }
         }
     }
@@ -157,7 +166,7 @@ Parser::scan(Table* table, int c)
 
 /******************************************************************************/
 bool
-Parser::advance(Table* table, Symbol* sym, Value* val)
+Calculator::advance(Table* table, Symbol* sym, Value* val)
 {
     while (true)
     {
@@ -195,7 +204,7 @@ Parser::advance(Table* table, Symbol* sym, Value* val)
         }
         else {
             std::cout << "Error, unexpected symbol ";
-            std::cout << "'" << symbol_name(sym) << "'.\n";
+            std::cout << "'" << sym->name << "'.\n";
             return false;
         }
     }
@@ -203,7 +212,7 @@ Parser::advance(Table* table, Symbol* sym, Value* val)
 
 /******************************************************************************/
 void
-Parser::push(State* state, Symbol* sym, Value* val)
+Calculator::push(State* state, Symbol* sym, Value* val)
 {
     states.push_back(state);
     symbols.push_back(sym);
@@ -211,7 +220,7 @@ Parser::push(State* state, Symbol* sym, Value* val)
 }
 
 void
-Parser::pop(size_t count)
+Calculator::pop(size_t count)
 {
     for (size_t i = 0; i < count; i++) {
         states.pop_back();

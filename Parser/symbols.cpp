@@ -1,29 +1,25 @@
 #include "symbols.hpp"
 
-using std::string;
-using std::vector;
-using std::ostream;
-
 /******************************************************************************/
-Term::Term(const string& name, size_t rank):
+Term::Term(const std::string& name, size_t rank):
     name(name),
     rank(rank){}
 
-void Term::print(ostream& out) const { out << "'" << name << "'"; }
-void Term::write(ostream& out) const { out << "term" << rank; }
+void Term::print(std::ostream& out) const { out << "'" << name << "'"; }
+void Term::write(std::ostream& out) const { out << "term" << rank; }
 
 /******************************************************************************/
-void Endmark::print(ostream& out) const { out << "$"; }
-void Endmark::write(ostream& out) const { out << "endmark"; }
+void Endmark::print(std::ostream& out) const { out << "$"; }
+void Endmark::write(std::ostream& out) const { out << "endmark"; }
 
 /******************************************************************************/
-Nonterm::Nonterm(const string& name):
+Nonterm::Nonterm(const std::string& name):
     name(name),
     rank(0),
     empty_first(false){}
 
 void
-Nonterm::add_rule(const vector<Symbol*>& syms, const string& action)
+Nonterm::add_rule(const std::vector<Symbol*>& syms, const std::string& action)
 {
     rules.emplace_back(std::make_unique<Rule>(this, action));
     Rule* rule = rules.back().get();
@@ -31,10 +27,10 @@ Nonterm::add_rule(const vector<Symbol*>& syms, const string& action)
     rule->product.insert(rule->product.end(), syms.begin(), syms.end());
 }
 
-void Nonterm::print(ostream& out) const { out << name; }
-void Nonterm::write(ostream& out) const { out << "nonterm" << rank; }
+void Nonterm::print(std::ostream& out) const { out << name; }
+void Nonterm::write(std::ostream& out) const { out << "nonterm" << rank; }
 
-/*******************************************************************************
+/**
  * Methods called by solve for adding symbols to the set of firsts and
  * follows for each nonterminal.  To solve for the firsts and follows of the
  * grammar, the program will keep calling solve as long as a new symbols are
@@ -77,7 +73,6 @@ Nonterm::insert_firsts(Rule* rule, bool* found)
     }
 }
 
-/******************************************************************************/
 void
 Nonterm::solve_follows(bool *found)
 {
@@ -110,8 +105,8 @@ Nonterm::insert_follows(const std::set<Symbol*>& syms, bool* found)
 }
 
 void
-Nonterm::insert_follows(vector<Symbol*>::iterator sym,
-                        vector<Symbol*>::iterator end,
+Nonterm::insert_follows(std::vector<Symbol*>::iterator sym,
+                        std::vector<Symbol*>::iterator end,
                         bool* epsilon, bool* found)
 {
     for (; sym < end; sym++) {
@@ -134,9 +129,8 @@ Nonterm::insert_follows(vector<Symbol*>::iterator sym,
     *epsilon = true;
 }
 
-/******************************************************************************/
 void
-Nonterm::print_rules(ostream& out) const
+Nonterm::print_rules(std::ostream& out) const
 {
     bool bar = false;
     for (auto& rule : rules) {
@@ -161,7 +155,7 @@ Nonterm::print_rules(ostream& out) const
 }
 
 void
-Nonterm::print_firsts(ostream& out) const
+Nonterm::print_firsts(std::ostream& out) const
 {
     out << "  ";
     print(out);
@@ -180,7 +174,7 @@ Nonterm::print_firsts(ostream& out) const
 }
 
 void
-Nonterm::print_follows(ostream& out) const
+Nonterm::print_follows(std::ostream& out) const
 {
     out << "  ";
     print(out);
@@ -198,13 +192,13 @@ Nonterm::print_follows(ostream& out) const
 }
 
 /******************************************************************************/
-Nonterm::Rule::Rule(Nonterm* nonterm, const string& action):
+Nonterm::Rule::Rule(Nonterm* nonterm, const std::string& action):
     nonterm (nonterm),
     action  (action),
     id      (0){}
 
 void
-Nonterm::Rule::print(ostream& out) const
+Nonterm::Rule::print(std::ostream& out) const
 {
     out << nonterm->name << ":";
 
@@ -220,6 +214,6 @@ Nonterm::Rule::print(ostream& out) const
 }
 
 void
-Nonterm::Rule::write(ostream& out) const {
+Nonterm::Rule::write(std::ostream& out) const {
     out << "rule" << id;
 }

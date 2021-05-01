@@ -1,49 +1,51 @@
-#include "code.hpp"
+#include "table.hpp"
 
 /******************************************************************************/
 void
-Code::write(Grammar& grammar, std::ostream& out)
+Table::write(const Grammar& grammar, std::ostream& out)
 {
-    out << "#include \"calculator.hpp\"\n\n";
+    for (auto include : grammar.includes) {
+        out << include << std::endl;
+    }
     out << "using std::unique_ptr;\n\n";
     out << "using std::vector;\n\n";
     
     size_t id = 0;
     size_t rule_id = 0;
-    for (auto& nonterm : grammar.nonterms) {
-        nonterm.second->rank = id++;
-        for (auto& rule : nonterm.second->rules) {
+    for (auto nonterm : grammar.all) {
+        nonterm->rank = id++;
+        for (auto& rule : nonterm->rules) {
             rule->id = rule_id++;
         }
     }
     
-    write_struct(out);
+    declare_structs(out);
 
     out << "Symbol endmark;\n\n";
     for (auto& term : grammar.terms) {
-        write_declare(term.second.get(), out);
+        declare_terms(term.second.get(), out);
     }
     for (auto& term : grammar.terms) {
-        write_define(term.second.get(), out);
+        define_term_actions(term.second.get(), out);
     }
 
     grammar.lexer.write(out);
     
     for (auto& nonterm : grammar.nonterms) {
-        write_declare(nonterm.second.get(), out);
+        declare_nonterm(nonterm.second.get(), out);
         for (auto& rule : nonterm.second->rules) {
-            write_proto(rule.get(), out);
+            declare_action(rule.get(), out);
         }
         for (auto& rule : nonterm.second->rules) {
-            write_declare(rule.get(), out);
+            declare_rule(rule.get(), out);
         }
         out << std::endl;
     }
     
     for (auto& nonterm : grammar.all) {
         for (auto& rule : nonterm->rules) {
-            write_action(rule.get(), out);
-            write_define(rule.get(), out);
+            define_action(rule.get(), out);
+            define_action_call(rule.get(), out);
         }
     }
     
@@ -53,28 +55,25 @@ Code::write(Grammar& grammar, std::ostream& out)
     out << std::endl;
     
     for (auto& s : grammar.states) {
-        write_shift(s.get(), out);
-        write_accept(s.get(), out);
-        write_reduce(s.get(), out);
-        write_goto(s.get(), out);
+        define_shifts(s.get(), out);
+        define_accepts(s.get(), out);
+        define_reduces(s.get(), out);
+        define_gotos(s.get(), out);
     }
     out << std::endl;
     
     for (auto& s : grammar.states) {
-        write_define(s.get(), out);
+        declare_state(s.get(), out);
     }
+    out << std::endl;
 
-    write_functions(out);
+    define_functions(out);
 }
 
 /******************************************************************************/
 void
-Code::write_struct(std::ostream& out)
+Table::declare_structs(std::ostream& out)
 {
-    out << "struct Symbol {\n";
-    out << "    const char* name;\n";
-    out << "};\n\n";
-    
     out << "struct Node {\n";
     out << "    Node* (*scan)(int c);\n";
     out << "    Accept* accept;\n";
@@ -108,7 +107,7 @@ Code::write_struct(std::ostream& out)
 
 /******************************************************************************/
 void
-Code::write_declare(Term* term, std::ostream& out)
+Table::declare_terms(Term* term, std::ostream& out)
 {
     out << "Value* scan" << term->rank << "(Table*, const std::string&);\n";
     
@@ -125,7 +124,7 @@ Code::write_declare(Term* term, std::ostream& out)
 }
 
 void
-Code::write_define(Term* term, std::ostream& out)
+Table::define_term_actions(Term* term, std::ostream& out)
 {
     if (term->action.empty())
         return;
@@ -134,23 +133,23 @@ Code::write_define(Term* term, std::ostream& out)
     out << term->action << "(Table*, const std::string&);\n\n";
 
     out << "Value*\n";
-    out << "scan" << term->rank << "(Table* table, const std::string& s) {\n";
+    out << "scan" << term->rank << "(Table* t, const std::string& s) {\n";
     out << "    unique_ptr<" << term->type << "> value = ";
-    out << term->action << "(table, s);\n";
+    out << term->action << "(t, s);\n";
     out << "    return value.release();\n";
     out << "}\n\n";
 }
 
 /******************************************************************************/
 void
-Code::write_declare(Nonterm* nonterm, std::ostream& out)
+Table::declare_nonterm(Nonterm* nonterm, std::ostream& out)
 {
     out << "Symbol nonterm" << nonterm->rank;
     out << " = {\"" << nonterm->name << "\"};\n";
 }
 
 void
-Code::write_declare(Nonterm::Rule* rule, std::ostream& out)
+Table::declare_rule(Nonterm::Rule* rule, std::ostream& out)
 {
     out << "Rule rule" << rule->id << " = ";
     out << "{&nonterm" << rule->nonterm->rank << ", ";
@@ -163,7 +162,7 @@ Code::write_declare(Nonterm::Rule* rule, std::ostream& out)
 }
 
 void
-Code::write_proto(Nonterm::Rule* rule, std::ostream& out)
+Table::declare_action(Nonterm::Rule* rule, std::ostream& out)
 {
     out << "Value* ";
     out << rule->action << "(Table*, vector<Value*>&);\n";
@@ -171,7 +170,7 @@ Code::write_proto(Nonterm::Rule* rule, std::ostream& out)
 
 /******************************************************************************/
 void
-Code::write_action(Nonterm::Rule* rule, std::ostream& out)
+Table::define_action(Nonterm::Rule* rule, std::ostream& out)
 {
     if (!rule->nonterm->type.empty()) {
         out << "unique_ptr<" << rule->nonterm->type << ">\n";
@@ -197,7 +196,7 @@ Code::write_action(Nonterm::Rule* rule, std::ostream& out)
 }
 
 void
-Code::write_define(Nonterm::Rule* rule, std::ostream& out)
+Table::define_action_call(Nonterm::Rule* rule, std::ostream& out)
 {
     out << "Value*\n";
     out << rule->action << "(Table* table, vector<Value*>& values) {\n";
@@ -234,65 +233,8 @@ Code::write_define(Nonterm::Rule* rule, std::ostream& out)
     out << "}\n\n";
 }
 
-/******************************************************************************/
 void
-Code::write_shift(State* state, std::ostream& out)
-{
-    if (state->actions->shift.size() ==  0)
-        return;
-
-    out << "Shift shift" << state->id << "[] = {\n";
-    for (auto& act : state->actions->shift) {
-        out << "    {&"; act.first->write(out);
-        out << ", &state" << act.second->id << "},\n";
-    }
-    out << "    {nullptr, nullptr}};\n";
-}
-
-void
-Code::write_accept(State* state, std::ostream& out)
-{
-    if (state->actions->accept.size() ==  0)
-        return;
-    
-    out << "Reduce accept" << state->id << "[] = {\n";
-    for (auto& act : state->actions->accept) {
-        out << "    {&"; act.first->write(out);
-        out << ", &"; act.second->write(out); out << "},\n";
-    }
-    out << "    {nullptr, nullptr}};\n";
-}
-
-void
-Code::write_reduce(State* state, std::ostream& out)
-{
-    if (state->actions->reduce.size() ==  0)
-        return;
-    
-    out << "Reduce reduce" << state->id << "[] = {\n";
-    for (auto& act : state->actions->reduce) {
-        out << "    {&"; act.first->write(out);
-        out << ", &"; act.second->write(out); out << "},\n";
-    }
-    out << "    {nullptr, nullptr}};\n";
-}
-
-void
-Code::write_goto(State* state, std::ostream& out)
-{
-    if (state->gotos.size() ==  0)
-        return;
-
-    out << "Go go" << state->id << "[] = {\n";
-    for (auto& go : state->gotos) {
-        out << "    {&"; go.first->write(out);
-        out << ", &state" << go.second->id << "},\n";
-    }
-    out << "    {nullptr, nullptr}};\n";
-}
-
-void
-Code::write_define(State* state, std::ostream& out)
+Table::declare_state(State* state, std::ostream& out)
 {
     out << "State ";
     out << "state" << state->id;
@@ -321,26 +263,80 @@ Code::write_define(State* state, std::ostream& out)
     out << "};\n";
 }
 
+void
+Table::define_shifts(State* state, std::ostream& out)
+{
+    if (state->actions->shift.size() ==  0)
+        return;
+
+    out << "Shift shift" << state->id << "[] = {\n";
+    for (auto& act : state->actions->shift) {
+        out << "    {&"; act.first->write(out);
+        out << ", &state" << act.second->id << "},\n";
+    }
+    out << "    {nullptr, nullptr}};\n";
+}
+
+void
+Table::define_accepts(State* state, std::ostream& out)
+{
+    if (state->actions->accept.size() ==  0)
+        return;
+    
+    out << "Reduce accept" << state->id << "[] = {\n";
+    for (auto& act : state->actions->accept) {
+        out << "    {&"; act.first->write(out);
+        out << ", &"; act.second->write(out); out << "},\n";
+    }
+    out << "    {nullptr, nullptr}};\n";
+}
+
+void
+Table::define_reduces(State* state, std::ostream& out)
+{
+    if (state->actions->reduce.size() ==  0)
+        return;
+    
+    out << "Reduce reduce" << state->id << "[] = {\n";
+    for (auto& act : state->actions->reduce) {
+        out << "    {&"; act.first->write(out);
+        out << ", &"; act.second->write(out); out << "},\n";
+    }
+    out << "    {nullptr, nullptr}};\n";
+}
+
+void
+Table::define_gotos(State* state, std::ostream& out)
+{
+    if (state->gotos.size() ==  0)
+        return;
+
+    out << "Go go" << state->id << "[] = {\n";
+    for (auto& go : state->gotos) {
+        out << "    {&"; go.first->write(out);
+        out << ", &state" << go.second->id << "},\n";
+    }
+    out << "    {nullptr, nullptr}};\n";
+}
+
 /******************************************************************************/
 void
-Code::write_functions(std::ostream& out)
+Table::define_functions(std::ostream& out)
 {
-    out << "\nNode*\n";
+    out << "Node*\n";
     out << "next_node(Node* node, int c) {\n";
     out << "    return node->scan(c);\n";
     out << "}\n\n";
 
     out << "Accept*\n";
-    out << "find_term(Node* node) {\n";
+    out << "is_accept(Node* node) {\n";
     out << "    return node->accept;\n";
     out << "}\n\n";
 
-    out << "const char* symbol_name(Symbol* sym) { return sym->name;}\n\n";
-    
-    out << "Node*  node_start() { return &node0; }\n";
-    out << "State* state_start() { return &state0; }\n";
-    out << "Symbol* symbol_end() { return &endmark; }\n\n";
-    
+    out << "Node*   Start_Node  = &node0;\n";
+    out << "State*  Start_State = &state0;\n";
+    out << "Symbol* Endmark     = &endmark;\n";
+
     out << "State*\n";
     out << "find_shift(State* state, Symbol* sym) {\n";
     out << "    if (!state->shift)\n";

@@ -12,8 +12,6 @@ Finite::Finite():
 Finite::Finite(Accept* accept):
     accept(accept){}
 
-Accept* Finite::get_accept() { return accept; }
-
 /**
  * Simulates a NFA.  Will continually read from an input stream, following
  * the outputs base on each character, until no new states are found.  At that
@@ -44,7 +42,7 @@ Finite::scan(std::istream* in)
         }
     }
     
-    auto lowest = min_element(current.begin(), current.end(), lower);
+    auto lowest = min_element(current.begin(), current.end(), lower_rank);
     if (lowest != current.end()) {
         return (*lowest)->accept;
     } else {
@@ -66,9 +64,9 @@ Finite::closure(std::set<Finite*>* states)
 }
 
 void
-Finite::closure(std::set<Finite*>* states, std::vector<Finite*>* stack)
+Finite::closure(std::set<Finite*>* states, std::vector<Finite*>* stack) const
 {
-    for (std::unique_ptr<Out>& out: outs) {
+    for (auto& out: outs) {
         if (out->is_epsilon()) {
             Finite* next = out->next;
             if (next) {
@@ -82,9 +80,9 @@ Finite::closure(std::set<Finite*>* states, std::vector<Finite*>* stack)
 }
 
 void
-Finite::move(char c, std::set<Finite*>* next)
+Finite::move(char c, std::set<Finite*>* next) const
 {
-    for (std::unique_ptr<Out>& out : outs) {
+    for (auto& out : outs) {
         if (out->in_range(c) && out->next) {
             next->insert(out->next);
         }
@@ -92,7 +90,7 @@ Finite::move(char c, std::set<Finite*>* next)
 }
 
 bool
-Finite::lower(Finite* left, Finite* right)
+Finite::lower_rank(const Finite* left, const Finite* right)
 {
     if (left->accept && right->accept) {
         return left->accept->rank < right->accept->rank;

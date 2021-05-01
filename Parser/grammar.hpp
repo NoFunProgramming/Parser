@@ -1,11 +1,6 @@
 /*******************************************************************************
- * Grammar of a regular language.  The class reads in a
- * user defined grammar and outputs source code that can be compiled into
- * another program to parse an input string.  Action methods can be associated
- * with every rule of the grammar and are called when that pattern is found
- * within the input string.  User provided action methods and the generated
- * source code for the parser can be combined to build programs such as a
- * compiler.
+ * Represents a user defined grammar.  Provides a class to read a grammar in
+ * Backus-Naur Form (BNF) and then solve for its parse table.
  */
 
 #ifndef parser_hpp
@@ -21,63 +16,73 @@
 #include <sstream>
 
 /*******************************************************************************
- * Writes a language parser.  The parser reads in grammar rules and outputs
- * source code that parses a regular language.  The grammar is defined by two
- * types of symbols: terminals and nonterminals.  The nonterminal themselves
- * are define as a sequence of symbols, known as a production rule. Terminals
- * are shown in quotes and are defined by a pattern of input characters.
+ * Grammar of a regular language.  The class reads in a user defined grammar and
+ * and solves for all possible parse states of the language.  The class keeps
+ * a set of all unique terminal and nonterminals found in the language.  Action
+ * method names can be associated with every grammar rule and then stored in the
+ * parse table.  Implemented action methods and the parse table can be combined
+ * to build a parser or a compiler.
  */
 class Grammar
 {
   public:
     Grammar();
     
-    /** Reads in the grammar that defines the parser. */
+    /** Reads in the user defined grammar. */
     bool read_grammar(std::istream& in);
     
-    /** After reading, solve for all possible parse states. */
-    void solve();
-        
-    void print_grammar(std::ostream& out) const;
-    void print_states(std::ostream& out) const;
-
-  //private:
-    /**
-     * While reading in a grammar, the parser builds a set of unique terminal
-     * and nonterminal names.  The parser can then store production rules as
-     * vectors of pointers to these terminal and nonterminal symbols.
-     */
+    /** After reading, solve for all of the possible parse states. */
+    void solve_states();
+            
+    /** Unique terminals and nonterminals of the grammar. */
     std::map<std::string, std::unique_ptr<Term>> terms;
     std::map<std::string, std::unique_ptr<Nonterm>> nonterms;
-    std::vector<std::unique_ptr<Accept>> accepts;
     std::vector<Nonterm*> all;
     Endmark endmark;
-         
+    
+    /**
+     * While reading rules the grammar will also build a lexer for finding
+     * terminals in an input string.  Each accept state corresponds to a
+     * terminal of the same rank.
+     */
+    Lexer lexer;
+    std::vector<std::unique_ptr<Accept>> accepts;
+
+    /** Unique parse states of the grammar. */
+    struct is_same {
+        bool operator() (const std::unique_ptr<State>& lhs,
+                         const std::unique_ptr<State>& rhs) const {
+            return *lhs < *rhs;
+        }
+    };
+    std::set<std::unique_ptr<State>, is_same> states;
+    State* start;
+    
+    std::vector<std::string> includes;
+    
+    void print_grammar(std::ostream& out) const;
+    void print_states(std::ostream& out) const;
+    
+  private:
     /** Recursive decent parser for reading grammar rules. */
     bool read_term(std::istream& in);
     bool read_rules(std::istream& in);
     bool read_product(std::istream& in, std::vector<Symbol*>* syms);
     bool read_comment(std::istream& in);
-    
-    /** User defined includes to appear at the top of the generated file. */
-    std::vector<std::string> includes;
-    bool read_include(std::istream& in);
-
-    /** Interns symbol names while reading production rules. */
-    Term* intern_term(std::istream& in);
-    Nonterm* intern_nonterm(std::istream& in);
-        
-    /** Reads a valid name for a symbol. */
+            
     bool read_term_name(std::istream& in, std::string* name);
     bool read_nonterm_name(std::istream& in, std::string* name);
     
-    /** Attributes of the grammar rules. */
+    /** Reads attributes of the symbols. */
     bool read_type(std::istream& in, std::string* type);
     bool read_regex(std::istream& in, std::string* regex);
     bool read_action(std::istream& in, std::string* action);
-        
-    /** Lexer to scan an input for terminals. */
-    Lexer lexer;
+    
+    bool read_include(std::istream& in);
+    
+    /** Interns symbol names while reading production rules. */
+    Term* intern_term(std::istream& in);
+    Nonterm* intern_nonterm(std::istream& in);
 
     /**
      * The first step to finding all possible parse states is finding all
@@ -86,19 +91,6 @@ class Grammar
      */
     void solve_first();
     void solve_follows(Symbol* endmark);
-
-    /**
-     * Set of all possible unique parse states.  The compare method determines
-     * if the next parse state for a given symbol has already been found.
-     */
-    struct Compare {
-        bool operator() (const std::unique_ptr<State>& lhs,
-                         const std::unique_ptr<State>& rhs) const {
-            return *lhs < *rhs;
-        }
-    };
-    std::set<std::unique_ptr<State>, Compare> states;
-    State* start;
 };
 
 #endif

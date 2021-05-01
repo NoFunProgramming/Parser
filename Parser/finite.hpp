@@ -29,21 +29,15 @@ class Accept {
 /*******************************************************************************
  * State in the finite automata.  Each state contains an array of outputs that
  * determines the next states to move to after reading an input character.  The
- * presences of an accept object indicates a match when in this state.
+ * presences of an accept pointer indicates a match when in this state.
  */
 class Finite {
   public:
     Finite();
     Finite(Accept* accept);
-    
-    Accept* get_accept();
+    Accept* accept;
 
-    /**
-     * Checks an input stream for a pattern starting from this state.  Scan
-     * continually reads from an input stream, following the outputs for each
-     * character, until no new states are found.  At that point scan will return
-     * the lowest ranked accept of the last found states.
-     */
+    /** Checks an input stream for a pattern starting from this state. */
     Accept* scan(std::istream* in);
     
     /**
@@ -75,17 +69,15 @@ class Finite {
     Out* add_epsilon(Finite* next);
         
     /** Finds output targets with the given character in its range. */
-    void move(char c, std::set<Finite*>* next);
+    void move(char c, std::set<Finite*>* next) const;
     
     /** Follows empty transitions until no new states are found. */
     static void closure(std::set<Finite*>* states);
-    void closure(std::set<Finite*>* states, std::vector<Finite*>* stack);
+    void closure(std::set<Finite*>* states, std::vector<Finite*>* stack) const;
     
-    /** Compare states to find the lowest rank. */
-    static bool lower(Finite* left, Finite* right);
+    static bool lower_rank(const Finite* left, const Finite* right);
     
   private:
-    Accept* accept;
     std::vector<std::unique_ptr<Out>> outs;
 };
 

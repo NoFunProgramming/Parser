@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 #include <set>
-#include <sstream>
+#include <iostream>
 
 /*******************************************************************************
  * Base class for all types of symbols such as terminals and nonterminals.
@@ -53,10 +53,9 @@ class Endmark : public Symbol
 };
 
 /*******************************************************************************
- * Nonterminals of the grammar.  To form the language, every nonterminal of the
- * grammar represent a sequnce of symbols, either terminals or nonterminals.
- * These nonterminals have additional properties, such as the first and
- * following terminals which are used to solve for all possible parse states.
+ * Nonterminals of the grammar.  To form the language the nonterminals of the
+ * grammar define rules that are valid sequnces of terminals and nonterminals
+ * in the input string.
  */
 class Nonterm : public Symbol
 {
@@ -112,7 +111,7 @@ class Nonterm : public Symbol
     void print_follows(std::ostream& out) const;
         
   private:
-    /** Called by solve for finind the set of firsts and follows. */
+    /** Called by solve for finding the set of firsts and follows. */
     void insert_firsts(Rule* rule, bool* found);
     void insert_follows(const std::set<Symbol*>& syms, bool* found);
     void insert_follows(std::vector<Symbol*>::iterator symbol,

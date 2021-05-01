@@ -18,7 +18,7 @@ Grammar::read_grammar(std::istream& in)
         in >> std::ws;
         if (in.peek() == EOF) {
             break;
-        }        
+        }
         if (!read_comment(in)) {
             return false;
         }
@@ -45,7 +45,7 @@ Grammar::read_grammar(std::istream& in)
 
 /******************************************************************************/
 void
-Grammar::solve()
+Grammar::solve_states()
 {
     if (all.size() == 0 || all.front()->rules.size() == 0) {
         return;
@@ -155,7 +155,7 @@ Grammar::intern_term(std::istream& in)
         Term* term = terms[name].get();
 
         accepts.emplace_back(std::make_unique<Accept>(name, term->rank));
-        lexer.add_series(accepts.back().get(), name);
+        lexer.add_literal(accepts.back().get(), name);
     }
     return terms[name].get();
 }
@@ -211,9 +211,9 @@ Grammar::read_term(istream& in)
     Accept* accept = accepts.back().get();
     
     if (!regex.empty()) {
-        lexer.add(accept, regex);
+        lexer.add_regex(accept, regex);
     } else {
-        lexer.add_series(accept, term->name);
+        lexer.add_literal(accept, term->name);
     }
 
     return true;
@@ -420,12 +420,7 @@ Grammar::read_type(istream& in, string* type)
         }
     }
     
-    if (!type->empty()) {
-        return true;
-    } else {
-        std::cerr << "Type names require at least one character.\n";
-        return false;
-    }
+    return true;
 }
 
 bool

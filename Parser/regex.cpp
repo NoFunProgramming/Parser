@@ -34,8 +34,6 @@ Regex::parse(const std::string& in, Accept* accept)
     return result;
 }
 
-Finite* Regex::get_start() { return start; }
-
 /**
  * Builds a new state and retains ownership.  No memory leaks occur if any
  * exceptions or errors occur during subset construction, as the states vector

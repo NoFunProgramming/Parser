@@ -1,8 +1,8 @@
 #include "finite.hpp"
 #include "regex.hpp"
 #include "lexer.hpp"
-#include "generator.hpp"
-#include "code.hpp"
+#include "grammar.hpp"
+#include "table.hpp"
 
 #include <sstream>
 #include <iostream>
@@ -61,6 +61,69 @@ test_finite()
 }
 
 /*******************************************************************************
+ * Converts regular expressions into finite automata for finding patterns in
+ * strings.  After building, the Regex object will contain a non-deterministic
+ * finite automaton (NFA).  Define a start state and connect it to the first
+ * state of each NFA.  Calling scan from this new start will return the
+ * accepted pattern, defined by a regular expession, found in the string.
+ */
+void
+test_regex()
+{
+    Accept number("number", 0);
+    Accept identifier("identifier", 1);
+    
+    std::unique_ptr<Regex> num = Regex::parse("[0-9]+", &number);
+    std::unique_ptr<Regex> id  = Regex::parse("[a-z]([a-z]|[0-9])*", &identifier);
+    if (!num || !id) {
+        std::cerr << "Unable to parse expression.\n";
+        return;
+    }
+
+    Finite start;
+    start.add_epsilon(num->start);
+    start.add_epsilon(id->start);
+    
+    std::stringstream in("test var3 12");
+    
+    while (in.peek() != EOF) {
+        in >> std::ws;
+        Accept* accept = start.scan(&in);
+        if (accept) {
+            std::cout << "Found a " << accept->name << ".\n";
+        } else {
+            std::cout << "Did not match expression.\n";
+            break;
+        }
+    }
+}
+
+/*******************************************************************************
+ * Writes the source code for a lexer.  This class combines multiple regular
+ * expressions into a single deterministic finite automaton (DFA).  After adding
+ * all expressions, call solve and then write to generate the source code.
+ *
+ * The output source code will define a structure for each state in DFA. This
+ * structure contains a method that take a character and returns either the next
+ * state in the DFA or a null pointer.  The null indicates that the pattern
+ * matching is complete and the accepted value, if any, for the current state is
+ * the type of token identified in the string.
+ */
+void
+test_lexer()
+{
+    Accept num("number", 0);
+    Accept id("identifier", 1);
+
+    Lexer lexer;
+    lexer.add_regex(&num, "[0-9]+");
+    lexer.add_regex(&id, "[a-e]([a-e]|[0-9])*");
+
+    lexer.solve();
+    lexer.write(std::cout);
+}
+
+/*******************************************************************************
  * Writes the source code for a parser.  The class reads in a user defined
  * grammar and outputs source code that can be compiled into another program to
  * parse an input string.  Action methods can be associated with every rule of
@@ -85,87 +148,19 @@ test_grammar()
     
     std::stringstream in(test);
  
-    Grammar generator;
+    Grammar grammar;
     
-    bool ok = generator.read_grammar(in);
+    bool ok = grammar.read_grammar(in);
     if (!ok) {
         std::cerr << "Unable to read grammar.\n";
         return;
     }
-    generator.solve();
-//    std::cout << "/*";
-//    parser.print_grammar(std::cout);
-//    parser.print_states(std::cout);
-//    std::cout << "*/";
-    //generator.write(std::cout);
+    grammar.solve_states();
+    std::cout << "/*\n";
+    grammar.print_grammar(std::cout);
+    //grammar.print_states(std::cout);
+    std::cout << "*/\n";
     
-    std::vector<State*> states;
-    for (auto& s : generator.states) {
-        states.push_back(s.get());
-    }
-    
-    Code::write(generator, states, std::cout);
+    Table::write(grammar, std::cout);
 }
 
-/*******************************************************************************
- * Writes the source code for a lexer.  This class combines multiple regular
- * expressions into a single deterministic finite automaton (DFA).  After adding
- * all expressions, call solve and then write to generate the source code.
- *
- * The output source code will define a structure for each state in DFA. This
- * structure contains a method that take a character and returns either the next
- * state in the DFA or a null pointer.  The null indicates that the pattern
- * matching is complete and the accepted value, if any, for the current state is
- * the type of token identified in the string.
- */
-void
-test_lexer()
-{
-    Accept num("number", 0);
-    Accept id("identifier", 1);
-
-    Lexer lexer;
-    lexer.add(&num, "[0-9]+");
-    lexer.add(&id, "[a-e]([a-e]|[0-9])*");
-
-    lexer.solve();
-    lexer.write(std::cout);
-}
-
-/*******************************************************************************
- * Converts regular expressions into finite automata for finding patterns in
- * strings.  After building, the Regex object will contain a non-deterministic
- * finite automaton (NFA).  Define a start state and connect it to the first
- * state of each NFA.  Calling scan from this new start will return the
- * accepted pattern, defined by a regular expession, found in the string.
- */
-void
-test_regex()
-{
-    Accept number("number", 0);
-    Accept identifier("identifier", 1);
-    
-    std::unique_ptr<Regex> num = Regex::parse("[0-9]+", &number);
-    std::unique_ptr<Regex> id  = Regex::parse("[a-z]([a-z]|[0-9])*", &identifier);
-    if (!num || !id) {
-        std::cerr << "Unable to parse expression.\n";
-        return;
-    }
-
-    Finite start;
-    start.add_epsilon(num->get_start());
-    start.add_epsilon(id->get_start());
-    
-    std::stringstream in("test var3 12");
-    
-    while (in.peek() != EOF) {
-        in >> std::ws;
-        Accept* accept = start.scan(&in);
-        if (accept) {
-            std::cout << "Found a " << accept->name << ".\n";
-        } else {
-            std::cout << "Did not match expression.\n";
-            break;
-        }
-    }
-}
