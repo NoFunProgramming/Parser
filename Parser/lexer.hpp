@@ -64,6 +64,7 @@ class Lexer
         
         /** Map a range of characters to the next DFA state. */
         void add_next(int first, int last, State* next);
+        State* get_next(int c);
 
         /** Solving for the next states in the DFA from this state. */
         void move(char c, std::set<Finite*>* next);
@@ -81,6 +82,8 @@ class Lexer
                 return left->items < right->items;
             }
         };
+        
+        static bool lower(State* left, State* right);
         
         /** Character range for connecting states. */
         struct Range {
@@ -100,6 +103,23 @@ class Lexer
     /** The DFA is defined by an initial state and unique sets of NFA states. */
     std::set<std::unique_ptr<State>, State::is_same> states;
     State* initial;
+    
+    // TODO Document the groups.
+    class Group {
+      public:
+        void insert(State* state);
+
+        bool belongs(State* state, const std::set<Group>& all) const;
+        std::vector<Group> divide(const std::set<Group>& PI) const;
+        State* represent(std::map<State*, State*>& replace, State* start);
+
+        bool operator<(const Group& other) const;
+        bool operator==(const Group& other) const;
+
+      private:
+        std::set<State*> states;
+        static bool same_group(State* s1, State* s2, const std::set<Group>& all);
+    };
 };
 
 #endif

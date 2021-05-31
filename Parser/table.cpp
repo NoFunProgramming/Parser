@@ -9,7 +9,8 @@ Table::write(const Grammar& grammar, std::ostream& out)
     }
     out << "using std::unique_ptr;\n\n";
     out << "using std::vector;\n\n";
-    
+        
+    // TODO Number nonterm not in a rule.
     size_t id = 0;
     size_t rule_id = 0;
     for (auto nonterm : grammar.all) {
@@ -179,9 +180,9 @@ Table::define_action(Nonterm::Rule* rule, std::ostream& out)
     }
 
     out << rule->action << "(";
-    out << "Table*, ";
+    out << "Table*";
 
-    bool comma = false;
+    bool comma = true;
     for (auto sym : rule->product) {
         if (!sym->type.empty()) {
             if (comma) {
@@ -214,9 +215,9 @@ Table::define_action_call(Nonterm::Rule* rule, std::ostream& out)
 
     out << "    unique_ptr<" << rule->nonterm->type << "> ";
     out << "R = "<< rule->action << "(";
-    out << "table, ";
+    out << "table";
 
-    bool comma = false;
+    bool comma = true;
     for (int i = 0; i < rule->product.size(); i++) {
         if (!rule->product[i]->type.empty()) {
             if (comma) {

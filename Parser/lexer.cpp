@@ -156,6 +156,17 @@ Lexer::State::add_next(int first, int last, State* next) {
     nexts[Range(first, last)] = next;
 }
 
+Lexer::State*
+Lexer::State::get_next(int c)
+{
+    for (auto next : nexts) {
+        if (c >= next.first.first && c <= next.first.last) {
+            return next.second;
+        }
+    }
+    return nullptr;
+}
+
 void
 Lexer::State::move(char c, std::set<Finite*>* found) {
     for (Finite* item : items) {
@@ -191,6 +202,18 @@ Lexer::State::solve_accept()
     auto lowest = min_element(items.begin(), items.end(), Finite::lower_rank);
     if (lowest != items.end()) {
         accept = (*lowest)->accept;
+    }
+}
+
+bool
+Lexer::State::lower(State* left, State* right)
+{
+    if (left->accept && right->accept) {
+        return left->accept->rank < right->accept->rank;
+    } else if (left->accept) {
+        return true;
+    } else {
+        return false;
     }
 }
 
@@ -262,5 +285,106 @@ Lexer::State::Range::write(std::ostream& out) const
             out << "(c <= " << last << ")";
         }
     }
+}
+
+/******************************************************************************/
+void
+Lexer::Group::insert(State* state) {
+    states.insert(state);
+}
+
+bool
+Lexer::Group::belongs(State* state, const std::set<Group>& all) const
+{
+    if (states.size() < 1) {
+        return false;
+    }
+
+    State* check = *states.begin();
+    for (int c = 0; c <= CHAR_MAX; c++) {
+        State* check_next = check->get_next(c);
+        State* state_next = state->get_next(c);
+        if (check_next || state_next) {
+            if (!check_next || !state_next) {
+                return false;
+            } else if (!same_group(check_next, state_next, all)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool
+Lexer::Group::same_group(State* s1, State* s2, const std::set<Group>& all)
+{
+    for (auto check : all) {
+        if (check.states.count(s1) > 0) {
+            if (check.states.count(s2) > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+    return false;
+}
+
+std::vector<Lexer::Group>
+Lexer::Group::divide(const std::set<Group>& PI) const
+{
+    std::vector<Group> result;
+
+    for (auto state : states) {
+        bool found = false;
+        for (auto& group : result) {
+            if (group.belongs(state, PI)) {
+                group.states.insert(state);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            Group added;
+            added.states.insert(state);
+            result.push_back(added);
+        }
+    }
+    return result;
+}
+
+/*
+ * Find a state to represent all states in a group.  If
+ */
+
+Lexer::State*
+Lexer::Group::represent(std::map<State*, State*>& replace, State* start)
+{
+    State* result = nullptr;
+    for (auto s : states) {
+        if (s == start) {
+            result = s;
+            break;
+        }
+    }
+    if (!result) {
+        auto lowest = min_element(states.begin(), states.end(), State::lower);
+        result = *lowest;
+    }
+
+    for (State* state : states) {
+        replace[state] = result;
+    }
+    return result;
+}
+
+bool
+Lexer::Group::operator<(const Group& other) const {
+    return states < other.states;
+}
+
+bool
+Lexer::Group::operator==(const Group& other) const {
+    return states == other.states;
 }
 
