@@ -2,7 +2,7 @@
 #include "regex.hpp"
 #include "lexer.hpp"
 #include "grammar.hpp"
-#include "table.hpp"
+#include "code.hpp"
 
 #include <sstream>
 #include <iostream>
@@ -161,6 +161,6 @@ test_grammar()
     //grammar.print_states(std::cout);
     std::cout << "*/\n";
     
-    Table::write(grammar, std::cout);
+    Code::write(grammar, std::cout);
 }
 

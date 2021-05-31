@@ -4,8 +4,8 @@
  * or compilers.
  */
 
-#ifndef table_hpp
-#define table_hpp
+#ifndef code_hpp
+#define code_hpp
 
 #include "grammar.hpp"
 #include <iostream>
@@ -15,7 +15,7 @@
  * provides functions to find the next action based on the current parse state
  * and given input symbol.
  */
-class Table
+class Code
 {
   public:
     static void write(const Grammar& grammar, std::ostream& out);

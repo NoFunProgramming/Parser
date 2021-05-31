@@ -1,8 +1,8 @@
-#include "table.hpp"
+#include "code.hpp"
 
 /******************************************************************************/
 void
-Table::write(const Grammar& grammar, std::ostream& out)
+Code::write(const Grammar& grammar, std::ostream& out)
 {
     for (auto include : grammar.includes) {
         out << include << std::endl;
@@ -73,7 +73,7 @@ Table::write(const Grammar& grammar, std::ostream& out)
 
 /******************************************************************************/
 void
-Table::declare_structs(std::ostream& out)
+Code::declare_structs(std::ostream& out)
 {
     out << "struct Node {\n";
     out << "    Node* (*scan)(int c);\n";
@@ -108,7 +108,7 @@ Table::declare_structs(std::ostream& out)
 
 /******************************************************************************/
 void
-Table::declare_terms(Term* term, std::ostream& out)
+Code::declare_terms(Term* term, std::ostream& out)
 {
     out << "Value* scan" << term->rank << "(Table*, const std::string&);\n";
     
@@ -125,7 +125,7 @@ Table::declare_terms(Term* term, std::ostream& out)
 }
 
 void
-Table::define_term_actions(Term* term, std::ostream& out)
+Code::define_term_actions(Term* term, std::ostream& out)
 {
     if (term->action.empty())
         return;
@@ -143,14 +143,14 @@ Table::define_term_actions(Term* term, std::ostream& out)
 
 /******************************************************************************/
 void
-Table::declare_nonterm(Nonterm* nonterm, std::ostream& out)
+Code::declare_nonterm(Nonterm* nonterm, std::ostream& out)
 {
     out << "Symbol nonterm" << nonterm->rank;
     out << " = {\"" << nonterm->name << "\"};\n";
 }
 
 void
-Table::declare_rule(Nonterm::Rule* rule, std::ostream& out)
+Code::declare_rule(Nonterm::Rule* rule, std::ostream& out)
 {
     out << "Rule rule" << rule->id << " = ";
     out << "{&nonterm" << rule->nonterm->rank << ", ";
@@ -163,7 +163,7 @@ Table::declare_rule(Nonterm::Rule* rule, std::ostream& out)
 }
 
 void
-Table::declare_action(Nonterm::Rule* rule, std::ostream& out)
+Code::declare_action(Nonterm::Rule* rule, std::ostream& out)
 {
     out << "Value* ";
     out << rule->action << "(Table*, vector<Value*>&);\n";
@@ -171,7 +171,7 @@ Table::declare_action(Nonterm::Rule* rule, std::ostream& out)
 
 /******************************************************************************/
 void
-Table::define_action(Nonterm::Rule* rule, std::ostream& out)
+Code::define_action(Nonterm::Rule* rule, std::ostream& out)
 {
     if (!rule->nonterm->type.empty()) {
         out << "unique_ptr<" << rule->nonterm->type << ">\n";
@@ -197,7 +197,7 @@ Table::define_action(Nonterm::Rule* rule, std::ostream& out)
 }
 
 void
-Table::define_action_call(Nonterm::Rule* rule, std::ostream& out)
+Code::define_action_call(Nonterm::Rule* rule, std::ostream& out)
 {
     out << "Value*\n";
     out << rule->action << "(Table* table, vector<Value*>& values) {\n";
@@ -235,7 +235,7 @@ Table::define_action_call(Nonterm::Rule* rule, std::ostream& out)
 }
 
 void
-Table::declare_state(State* state, std::ostream& out)
+Code::declare_state(State* state, std::ostream& out)
 {
     out << "State ";
     out << "state" << state->id;
@@ -265,7 +265,7 @@ Table::declare_state(State* state, std::ostream& out)
 }
 
 void
-Table::define_shifts(State* state, std::ostream& out)
+Code::define_shifts(State* state, std::ostream& out)
 {
     if (state->actions->shift.size() ==  0)
         return;
@@ -279,7 +279,7 @@ Table::define_shifts(State* state, std::ostream& out)
 }
 
 void
-Table::define_accepts(State* state, std::ostream& out)
+Code::define_accepts(State* state, std::ostream& out)
 {
     if (state->actions->accept.size() ==  0)
         return;
@@ -293,7 +293,7 @@ Table::define_accepts(State* state, std::ostream& out)
 }
 
 void
-Table::define_reduces(State* state, std::ostream& out)
+Code::define_reduces(State* state, std::ostream& out)
 {
     if (state->actions->reduce.size() ==  0)
         return;
@@ -307,7 +307,7 @@ Table::define_reduces(State* state, std::ostream& out)
 }
 
 void
-Table::define_gotos(State* state, std::ostream& out)
+Code::define_gotos(State* state, std::ostream& out)
 {
     if (state->gotos.size() ==  0)
         return;
@@ -322,7 +322,7 @@ Table::define_gotos(State* state, std::ostream& out)
 
 /******************************************************************************/
 void
-Table::define_functions(std::ostream& out)
+Code::define_functions(std::ostream& out)
 {
     out << "Node*\n";
     out << "next_node(Node* node, int c) {\n";

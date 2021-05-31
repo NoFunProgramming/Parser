@@ -6,7 +6,7 @@
  */
 
 #include "grammar.hpp"
-#include "table.hpp"
+#include "code.hpp"
 
 #include <iostream>
 
@@ -22,7 +22,7 @@ main(int argc, const char * argv[])
     }
 
     grammar.solve_states();
-    Table::write(grammar, std::cout);
+    Code::write(grammar, std::cout);
 
     return 0;
 }
