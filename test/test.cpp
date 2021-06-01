@@ -2,6 +2,7 @@
 #include "regex.hpp"
 #include "lexer.hpp"
 #include "grammar.hpp"
+#include "display.hpp"
 #include "code.hpp"
 
 #include <sstream>
@@ -18,8 +19,8 @@ main(int argc, const char * argv[])
 {
     //test_finite();
     //test_regex();
-    //test_lexer();
-    test_grammar();
+    test_lexer();
+    //test_grammar();
 
     return 0;
 }
@@ -116,11 +117,14 @@ test_lexer()
     Accept id("identifier", 1);
 
     Lexer lexer;
-    lexer.add_regex(&num, "[0-9]+");
+    lexer.add_regex(&num, "0h[0-9]+");
+    lexer.add_regex(&num, "0x[0-9]+");
     lexer.add_regex(&id, "[a-e]([a-e]|[0-9])*");
 
     lexer.solve();
-    lexer.write(std::cout);
+    lexer.reduce();
+    //lexer.write(std::cout);
+    Display::print(lexer, std::cout);
 }
 
 /*******************************************************************************

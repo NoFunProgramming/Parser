@@ -113,6 +113,53 @@ Lexer::solve()
     }
 }
 
+void
+Lexer::reduce()
+{
+    std::set<Group> current = partition();
+    std::set<Group> found = current;
+
+    while (true) {
+        for (auto group : current) {
+            std::vector<Group> divided = group.divide(current);
+            found.erase(group);
+            copy(divided.begin(), divided.end(), inserter(found, found.end()));
+        }
+        if (current == found) {
+            break;
+        } else {
+            current = found;
+        }
+    }
+
+    std::map<State*, State*> replacement;
+    for (auto group : current) {
+        State* prime = group.represent(replacement, initial);
+        primes.insert(prime);
+    }
+    for (State* prime : primes) {
+        prime->replace(replacement);
+        prime->reduce();
+    }
+}
+
+std::set<Lexer::Group>
+Lexer::partition()
+{
+    //std::map<Term*, Group> split;
+    std::map<Accept*, Group> split;
+    for (auto& state : states) {
+        split[state->accept].insert(state.get());
+    }
+
+    std::set<Group> result;
+    for (auto group : split) {
+        result.insert(group.second);
+    }
+    return result;
+}
+
+
 /**
  * Writes the source code for a lexer.  The source code will define a structure
  * for each state in DFA. This structure contains a method that take a character
@@ -203,6 +250,41 @@ Lexer::State::solve_accept()
     if (lowest != items.end()) {
         accept = (*lowest)->accept;
     }
+}
+
+void
+Lexer::State::replace(std::map<State*, State*> prime)
+{
+    for (auto& next : nexts) {
+        if (prime.count(next.second) > 0) {
+            next.second = prime[next.second];
+        }
+    }
+}
+
+void
+Lexer::State::reduce()
+{
+    std::map<State::Range, State*> updated;
+
+    auto itr = nexts.begin();
+    while (itr != nexts.end()) {
+        int first = itr->first.first;
+        int last  = itr->first.last;
+        State* next = itr->second;
+        itr++;
+
+        bool matches = true;
+        while (itr != nexts.end() && matches) {
+            matches = itr->second == next && (last + 1) == itr->first.first;
+            if (matches) {
+                last = itr->first.last;
+                itr++;
+            }
+        }
+        updated[State::Range(first, last)] = next;
+    }
+    nexts = updated;
 }
 
 bool
@@ -352,10 +434,6 @@ Lexer::Group::divide(const std::set<Group>& PI) const
     }
     return result;
 }
-
-/*
- * Find a state to represent all states in a group.  If
- */
 
 Lexer::State*
 Lexer::Group::represent(std::map<State*, State*>& replace, State* start)

@@ -39,6 +39,8 @@ class Lexer
     
     /** After adding all expressions, call solve to build to DFA. */
     void solve();
+    
+    void reduce();
 
     /** After solving for the DFA, call write to generate the source code. */
     void write(std::ostream& out) const;
@@ -47,6 +49,7 @@ class Lexer
     std::vector<std::unique_ptr<Regex>> exprs;
     std::vector<std::unique_ptr<Literal>> literals;
 
+  public:
     /**
      * State of the deterministic finite automaton.  The DFA is built by finding
      * new states that are the possible sets of finite states of a NFA while
@@ -71,6 +74,9 @@ class Lexer
         void solve_closure();
         void solve_accept();
         
+        void replace(std::map<State*, State*> prime);
+        void reduce();
+        
         /** Writes the source code for the lexer. */
         void write_proto(std::ostream& out);
         void write_struct(std::ostream& out);
@@ -94,7 +100,6 @@ class Lexer
             void write(std::ostream& out) const;
         };
         
-      private:
         Accept* accept;
         std::set<Finite*> items;
         std::map<Range, State*> nexts;
@@ -104,13 +109,15 @@ class Lexer
     std::set<std::unique_ptr<State>, State::is_same> states;
     State* initial;
     
-    // TODO Document the groups.
+    /** Groups of states are for minimizing the number of DFA states. */
     class Group {
       public:
         void insert(State* state);
 
         bool belongs(State* state, const std::set<Group>& all) const;
         std::vector<Group> divide(const std::set<Group>& PI) const;
+        
+        /** Find a state that represents all states in the group. */
         State* represent(std::map<State*, State*>& replace, State* start);
 
         bool operator<(const Group& other) const;
@@ -120,6 +127,11 @@ class Lexer
         std::set<State*> states;
         static bool same_group(State* s1, State* s2, const std::set<Group>& all);
     };
+    
+    std::set<State*> primes;
+
+    /** Initial partion of the states. */
+    std::set<Group> partition();
 };
 
 #endif
