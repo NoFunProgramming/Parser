@@ -54,9 +54,9 @@ class State
     /** Shift or reduce actions given the next symbol. */
     class Actions {
       public:
-        std::map<Term*, State*> shift;
-        std::map<Symbol*, Nonterm::Rule*> accept;
-        std::map<Symbol*, Nonterm::Rule*> reduce;
+        std::map<const Symbol*, State*> shift;
+        std::map<const Symbol*, Nonterm::Rule*> accept;
+        std::map<const Symbol*, Nonterm::Rule*> reduce;
     };
     std::unique_ptr<Actions> actions;
     void solve_actions(Item accept);

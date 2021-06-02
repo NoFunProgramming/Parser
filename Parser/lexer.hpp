@@ -40,6 +40,7 @@ class Lexer
     /** After adding all expressions, call solve to build to DFA. */
     void solve();
     
+    /** After building the DFA, call reduce to minimize the states. */
     void reduce();
 
     /** After solving for the DFA, call write to generate the source code. */
@@ -78,6 +79,7 @@ class Lexer
         void reduce();
         
         /** Writes the source code for the lexer. */
+        // TODO Move to the code class.
         void write_proto(std::ostream& out);
         void write_struct(std::ostream& out);
         void write(std::ostream& out);

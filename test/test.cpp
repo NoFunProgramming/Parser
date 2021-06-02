@@ -19,8 +19,8 @@ main(int argc, const char * argv[])
 {
     //test_finite();
     //test_regex();
-    test_lexer();
-    //test_grammar();
+    //test_lexer();
+    test_grammar();
 
     return 0;
 }
@@ -160,11 +160,14 @@ test_grammar()
         return;
     }
     grammar.solve_states();
-    std::cout << "/*\n";
-    grammar.print_grammar(std::cout);
-    //grammar.print_states(std::cout);
-    std::cout << "*/\n";
+//    std::cout << "/*\n";
+//    grammar.print_grammar(std::cout);
+//    //grammar.print_states(std::cout);
+//    std::cout << "*/\n";
     
-    Code::write(grammar, std::cout);
+    //Display::print(grammar, std::cout);
+    Display::print_actions(grammar, std::cout);
+    
+    //Code::write(grammar, std::cout);
 }
 
