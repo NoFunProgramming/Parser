@@ -38,6 +38,7 @@ class Grammar
     std::map<std::string, std::unique_ptr<Term>> terms;
     std::map<std::string, std::unique_ptr<Nonterm>> nonterms;
     std::vector<Nonterm*> all;
+    std::vector<Nonterm::Rule*> all_rules;
     Endmark endmark;
     
     /**

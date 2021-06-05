@@ -258,12 +258,16 @@ Grammar::read_rules(istream& in)
         in >> std::ws;
         if (in.peek() == ';') {
             in.get();
-            nonterm->add_rule(syms, action);
+            Nonterm::Rule* rule = nonterm->add_rule(syms, action);
+            rule->id = all_rules.size();
+            all_rules.push_back(rule);
             break;
         }
         else if (in.peek() == '|') {
             in.get();
-            nonterm->add_rule(syms, action);
+            Nonterm::Rule* rule = nonterm->add_rule(syms, action);
+            rule->id = all_rules.size();
+            all_rules.push_back(rule);
             syms.clear();
         }
     }

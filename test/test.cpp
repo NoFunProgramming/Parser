@@ -166,8 +166,8 @@ test_grammar()
 //    std::cout << "*/\n";
     
     //Display::print(grammar, std::cout);
-    Display::print_actions(grammar, std::cout);
+    //Display::print_actions(grammar, std::cout);
     
-    //Code::write(grammar, std::cout);
+    Code::write(grammar, std::cout);
 }
 

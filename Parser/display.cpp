@@ -45,82 +45,32 @@ Display::print(const Lexer::State::Range& range, std::ostream& out)
     }
 }
 
-
 void
 Display::print(const Grammar& grammar, std::ostream& out)
 {
-    print_terms(grammar, out);
-}
-
-void
-Display::print_terms(const Grammar& grammar, std::ostream& out)
-{
-    out << "  ";
-    for (auto& term : grammar.terms) {
-        out << term.second->name << " ";
-    }
-    out << "$  ";
-    for (auto& nonterm : grammar.nonterms) {
-        out << nonterm.second->name << " ";
-    }
-
     
-    
-    out << "\n";
-    for (auto& state : grammar.states) {
-        print_state(grammar, *state, out);
-        out << "\n";
-    }
-}
-
-
-
-
-void
-Display::print_state(const Grammar& grammar,
-                     const State& state,
-                     std::ostream& out)
-{
-    State::Actions* actions = state.actions.get();
-    
-    out << state.id << ")";
-    for (auto& term : grammar.terms) {
-        auto found = actions->shift.find(term.second.get());
-        if (found != actions->shift.end()) {
-            out << "S" << found->second->id << " ";
-            continue;
-        }
-        auto reduce = actions->reduce.find(term.second.get());
-        if (reduce != actions->reduce.end()) {
-            out << "R" << reduce->second->id << " ";
-            continue;
-        }
-        out << "   ";
-    }
-    auto reduce = actions->reduce.find(&grammar.endmark);
-    if (reduce != actions->reduce.end()) {
-        out << "R" << reduce->second->id << " ";
-    }
-    
-    for (auto& nonterm : grammar.nonterms) {
-        auto found = state.gotos.find(nonterm.second.get());
-        if (found != state.gotos.end()) {
-            out << found->second->id << " ";
-            continue;
-        }
-        out << "   ";
-    }
 }
 
 void
 Display::print_actions(const Grammar& grammar, std::ostream& out)
 {
+    std::vector<State*> states;
+    for (auto& state : grammar.states) {
+        states.push_back(state.get());
+    }
+    struct {
+        bool operator()(State* a, State* b) const { return a->id < b->id; }
+    } Compare;
+    
+    std::sort(states.begin(), states.end(), Compare);
+    
+    
     size_t len = max_length(grammar);
     std::string name;
     name = "";
     name.insert(name.end(), len - name.size(), ' ');
     out << name << " ";
-    for (auto& state : grammar.states) {
+    for (auto& state : states) {
         out << state->id << "  ";
     }
     out << "\n";
@@ -129,7 +79,7 @@ Display::print_actions(const Grammar& grammar, std::ostream& out)
         name = term.second->name;
         name.insert(name.end(), len - name.size(), ' ');
         out << name << " ";
-        for (auto& state : grammar.states) {
+        for (auto& state : states) {
             print_action(term.second.get(), state->actions.get(), out);
         }
         out << "\n";
@@ -137,18 +87,26 @@ Display::print_actions(const Grammar& grammar, std::ostream& out)
     name = "$";
     name.insert(name.end(), len - name.size(), ' ');
     out << name << " ";
-
-    for (auto& state : grammar.states) {
+    for (auto& state : states) {
         print_action(&grammar.endmark, state->actions.get(), out);
     }
     out << "\n";
+    out << "\n";
+
     for (auto& nonterm : grammar.nonterms) {
         name = nonterm.second->name;
         name.insert(name.end(), len - name.size(), ' ');
         out << name << " ";
-        for (auto& state : grammar.states) {
-            print_goto(nonterm.second.get(), state.get(), out);
+        for (auto& state : states) {
+            print_goto(nonterm.second.get(), state, out);
         }
+        out << "\n";
+    }
+    
+    out << "\n";
+    for (auto rule : grammar.all_rules) {
+        out << "r" << rule->id << " ";
+        rule->print(out);
         out << "\n";
     }
 }
@@ -179,7 +137,7 @@ Display::print_goto(Symbol* symbol, State* state, std::ostream& out)
 {
     auto found = state->gotos.find(symbol);
     if (found != state->gotos.end()) {
-        out << found->second->id << " ";
+        out << found->second->id << "  ";
         return;
     }
     out << "   ";

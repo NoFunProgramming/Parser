@@ -86,7 +86,7 @@ class Nonterm : public Symbol
     };
     
     std::vector<std::unique_ptr<Rule>> rules;
-    void add_rule(const std::vector<Symbol*>& syms, const std::string& action);
+    Nonterm::Rule* add_rule(const std::vector<Symbol*>& syms, const std::string& action);
 
     /**
      * To find all possible parse states, the first step is to solve for all

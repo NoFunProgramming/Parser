@@ -18,13 +18,14 @@ Nonterm::Nonterm(const std::string& name):
     rank(0),
     empty_first(false){}
 
-void
+Nonterm::Rule*
 Nonterm::add_rule(const std::vector<Symbol*>& syms, const std::string& action)
 {
     rules.emplace_back(std::make_unique<Rule>(this, action));
     Rule* rule = rules.back().get();
     
     rule->product.insert(rule->product.end(), syms.begin(), syms.end());
+    return rule;
 }
 
 void Nonterm::print(std::ostream& out) const { out << name; }
@@ -200,7 +201,7 @@ Nonterm::Rule::Rule(Nonterm* nonterm, const std::string& action):
 void
 Nonterm::Rule::print(std::ostream& out) const
 {
-    out << nonterm->name << ":";
+    out << nonterm->name << " : ";
 
     bool space = false;
     for (auto sym : product) {

@@ -30,6 +30,10 @@ class Code
     static void declare_nonterm(Nonterm* nonterm, std::ostream& out);
     static void declare_rule(Nonterm::Rule* rule, std::ostream& out);
     static void declare_action(Nonterm::Rule* rule, std::ostream& out);
+    
+    static void declare_states(const Grammar& grammar, std::ostream& out);
+    static void declare_rules(const Grammar& grammar, std::ostream& out);
+    static void define_gotos(const Grammar& grammar, std::ostream& out);
 
     static void define_action(Nonterm::Rule* rule, std::ostream& out);
     static void define_action_call(Nonterm::Rule* rule, std::ostream& out);
