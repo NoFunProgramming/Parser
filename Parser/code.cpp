@@ -37,9 +37,6 @@ Code::write(const Grammar& grammar, std::ostream& out)
         for (auto& rule : nonterm.second->rules) {
             declare_action(rule.get(), out);
         }
-//        for (auto& rule : nonterm.second->rules) {
-//            declare_rule(rule.get(), out);
-//        }
         out << std::endl;
     }
     
@@ -57,14 +54,6 @@ Code::write(const Grammar& grammar, std::ostream& out)
     }
     out << std::endl;
     
-//    for (auto& s : grammar.states) {
-//        define_shifts(s.get(), out);
-//        define_accepts(s.get(), out);
-//        define_reduces(s.get(), out);
-//        define_gotos(s.get(), out);
-//    }
-//    out << std::endl;
-        
     for (auto& s : grammar.states) {
         out << "struct Act act" << s->id << "[] = {";
         //out << "struct Act **act" << s->id << " = {";
@@ -98,13 +87,6 @@ Code::write(const Grammar& grammar, std::ostream& out)
     
     declare_states(grammar, out);
 
-
-    
-//    for (auto& s : grammar.states) {
-//        declare_state(s.get(), out);
-//    }
-//    out << std::endl;
-
     define_functions(out);
 }
 
@@ -116,32 +98,7 @@ Code::declare_structs(std::ostream& out)
     out << "    Node* (*scan)(int c);\n";
     out << "    Accept* accept;\n";
     out << "};\n\n";
-    
-//    out << "class State;\n\n";
-    
-//    out << "struct Shift {\n";
-//    out << "    Symbol* sym;\n";
-//    out << "    State*  state;\n";
-//    out << "};\n\n";
-
-//    out << "struct Reduce {\n";
-//    out << "    Symbol* sym;\n";
-//    out << "    Rule*   rule;\n";
-//    out << "};\n\n";
-//
-//    out << "struct Go {\n";
-//    out << "    Symbol* sym;\n";
-//    out << "    State*  state;\n";
-//    out << "};\n\n";
-    
-//    out << "struct State {\n";
-//    out << "    int     id;\n";
-//    out << "    Shift*  shift;\n";
-//    out << "    Reduce* accept;\n";
-//    out << "    Reduce* reduce;\n";
-//    out << "    Go*     next;\n";
-//    out << "};\n\n";
-    
+        
     out << "struct Act {\n";
     out << "    Symbol* sym;\n";
     out << "    char    type;\n";
@@ -156,13 +113,7 @@ Code::declare_structs(std::ostream& out)
     out << "struct St {\n";
     out << "    struct Act* act;\n";
     out << "    struct Gos* gos;\n";
-    out << "};\n\n";
-    
-//    out << "struct Rs {\n";
-//    out << "    Symbol* nonterm;\n";
-//    out << "    Value* (*reduce)(Table*, std::vector<Value*>&);\n";
-//    out << "    size_t length;\n";
-//    out << "};\n";
+    out << "};\n\n";    
 }
 
 /******************************************************************************/
@@ -207,19 +158,6 @@ Code::declare_nonterm(Nonterm* nonterm, std::ostream& out)
     out << "Symbol nonterm" << nonterm->rank;
     out << " = {\"" << nonterm->name << "\"};\n";
 }
-
-//void
-//Code::declare_rule(Nonterm::Rule* rule, std::ostream& out)
-//{
-//    out << "Rule rule" << rule->id << " = ";
-//    out << "{&nonterm" << rule->nonterm->rank << ", ";
-//    if (!rule->action.empty()) {
-//        out << "&" << rule->action;
-//    } else {
-//        out << "nullptr";
-//    }
-//    out << ", " << rule->product.size() << "};\n";
-//}
 
 void
 Code::declare_action(Nonterm::Rule* rule, std::ostream& out)
@@ -292,93 +230,6 @@ Code::define_action_call(Nonterm::Rule* rule, std::ostream& out)
     out << "    return R.release();\n";
     out << "}\n\n";
 }
-
-//void
-//Code::declare_state(State* state, std::ostream& out)
-//{
-//    out << "State ";
-//    out << "state" << state->id;
-//    out << " = {" << state->id;
-//
-//    if (state->actions->shift.size()) {
-//        out << ", shift" << state->id;
-//    } else {
-//        out << ", nullptr";
-//    }
-//    if (state->actions->accept.size()) {
-//        out << ", accept" << state->id;
-//    } else {
-//        out << ", nullptr";
-//    }
-//    if (state->actions->reduce.size()) {
-//        out << ", reduce" << state->id;
-//    } else {
-//        out << ", nullptr";
-//    }
-//    if (state->gotos.size()) {
-//        out << ", go" << state->id;
-//    } else {
-//        out << ", nullptr";
-//    }
-//    out << "};\n";
-//}
-
-//void
-//Code::define_shifts(State* state, std::ostream& out)
-//{
-//    if (state->actions->shift.size() ==  0)
-//        return;
-//
-//    out << "Shift shift" << state->id << "[] = {\n";
-//    for (auto& act : state->actions->shift) {
-//        out << "    {&"; act.first->write(out);
-//        out << ", &state" << act.second->id << "},\n";
-//    }
-//    out << "    {nullptr, nullptr}};\n";
-//}
-//
-//void
-//Code::define_accepts(State* state, std::ostream& out)
-//{
-//    if (state->actions->accept.size() ==  0)
-//        return;
-//
-//    out << "Reduce accept" << state->id << "[] = {\n";
-//    for (auto& act : state->actions->accept) {
-//        out << "    {&"; act.first->write(out);
-//        out << ", &"; act.second->write(out); out << "},\n";
-//    }
-//    out << "    {nullptr, nullptr}};\n";
-//}
-//
-//void
-//Code::define_reduces(State* state, std::ostream& out)
-//{
-//    if (state->actions->reduce.size() ==  0)
-//        return;
-//
-//    out << "Reduce reduce" << state->id << "[] = {\n";
-//    for (auto& act : state->actions->reduce) {
-//        out << "    {&"; act.first->write(out);
-//        out << ", &"; act.second->write(out); out << "},\n";
-//    }
-//    out << "    {nullptr, nullptr}};\n";
-//}
-//
-//void
-//Code::define_gotos(State* state, std::ostream& out)
-//{
-//    if (state->gotos.size() ==  0)
-//        return;
-//
-//    out << "Go go" << state->id << "[] = {\n";
-//    for (auto& go : state->gotos) {
-//        out << "    {&"; go.first->write(out);
-//        out << ", &state" << go.second->id << "},\n";
-//    }
-//    out << "    {nullptr, nullptr}};\n";
-//}
-
 /******************************************************************************/
 void
 Code::define_functions(std::ostream& out)
@@ -397,18 +248,6 @@ Code::define_functions(std::ostream& out)
     //out << "State*  Start_State = &state0;\n";
     out << "Symbol* Endmark     = &endmark;\n";
 
-//    out << "State*\n";
-//    out << "find_shift(State* state, Symbol* sym) {\n";
-//    out << "    if (!state->shift)\n";
-//    out << "        return nullptr;\n";
-//    out << "    for (Shift* s = state->shift; s->sym; s++) {\n";
-//    out << "        if (s->sym == sym) {\n";
-//    out << "            return s->state;\n";
-//    out << "        }\n";
-//    out << "    }\n";
-//    out << "    return nullptr;\n";
-//    out << "}\n\n";
-    
     out << "int\n";
     out << "find_shift2(int state, Symbol* sym) {\n";
     out << "    for (Act* s = sts[state].act; s->sym; s++) {\n";
@@ -419,18 +258,6 @@ Code::define_functions(std::ostream& out)
     out << "    return -1;\n";
     out << "}\n\n";
 
-
-//    out << "Rule*\n";
-//    out << "find_accept(State* state, Symbol* sym) {\n";
-//    out << "    if (!state->accept)\n";
-//    out << "        return nullptr;\n";
-//    out << "    for (Reduce* r = state->accept; r->sym; r++) {\n";
-//    out << "        if (r->sym == sym) {\n";
-//    out << "            return r->rule;\n";
-//    out << "        }\n";
-//    out << "    }\n";
-//    out << "    return nullptr;\n";
-//    out << "}\n\n";
     
     out << "int\n";
     out << "find_accept2(int state, Symbol* sym) {\n";
@@ -442,18 +269,6 @@ Code::define_functions(std::ostream& out)
     out << "    return -1;\n";
     out << "}\n\n";
 
-
-//    out << "Rule*\n";
-//    out << "find_reduce(State* state, Symbol* sym) {\n";
-//    out << "    if (!state->reduce)\n";
-//    out << "        return nullptr;\n";
-//    out << "   for (Reduce* r = state->reduce; r->sym; r++) {\n";
-//    out << "        if (r->sym == sym) {\n";
-//    out << "            return r->rule;\n";
-//    out << "        }\n";
-//    out << "    }\n";
-//    out << "    return nullptr;\n";
-//    out << "}\n\n";
     
     out << "int\n";
     out << "find_reduce2(int state, Symbol* sym) {\n";
@@ -466,18 +281,6 @@ Code::define_functions(std::ostream& out)
     out << "}\n\n";
 
 
-//    out << "State*\n";
-//    out << "find_goto(State* state, Symbol* sym) {\n";
-//    out << "   if (!state->next)\n";
-//    out << "       return nullptr;\n";
-//    out << "   for (Go* g = state->next; g->sym; g++) {\n";
-//    out << "       if (g->sym == sym) {\n";
-//    out << "           return g->state;\n";
-//    out << "       }\n";
-//    out << "   }\n";
-//    out << "   return nullptr;\n";
-//    out << "}\n\n";
-    
     out << "int\n";
     out << "find_goto2(int state, Symbol* sym) {\n";
     out << "   for (Gos* g = sts[state].gos; g->sym; g++) {\n";
@@ -509,17 +312,6 @@ Code::declare_states(const Grammar& grammar, std::ostream& out)
     for (auto& state : states) {
         out << "    {act" << state->id << ", gos" << state->id << "},\n";
     }
-//    for (auto& nonterm : grammar.all) {
-//        for (auto& rule : nonterm->rules) {
-//            out << "  {&nonterm" << rule->nonterm->rank << ", ";
-//            if (!rule->action.empty()) {
-//                out << "&" << rule->action;
-//            } else {
-//                out << "nullptr";
-//            }
-//            out << ", " << rule->product.size() << "},\n";
-//        }
-//    }
     out << "};\n";
 }
 
