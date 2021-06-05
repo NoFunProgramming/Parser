@@ -158,11 +158,11 @@ Code::declare_structs(std::ostream& out)
     out << "    struct Gos* gos;\n";
     out << "};\n\n";
     
-    out << "struct Rs {\n";
-    out << "    Symbol* nonterm;\n";
-    out << "    Value* (*reduce)(Table*, std::vector<Value*>&);\n";
-    out << "    size_t length;\n";
-    out << "};\n";
+//    out << "struct Rs {\n";
+//    out << "    Symbol* nonterm;\n";
+//    out << "    Value* (*reduce)(Table*, std::vector<Value*>&);\n";
+//    out << "    size_t length;\n";
+//    out << "};\n";
 }
 
 /******************************************************************************/
@@ -408,6 +408,17 @@ Code::define_functions(std::ostream& out)
     out << "    }\n";
     out << "    return nullptr;\n";
     out << "}\n\n";
+    
+    out << "int\n";
+    out << "find_shift2(int state, Symbol* sym) {\n";
+    out << "    for (Act* s = sts[state].act; s->sym; s++) {\n";
+    out << "        if (s->sym == sym && s->type == 'S') {\n";
+    out << "            return s->next;\n";
+    out << "        }\n";
+    out << "    }\n";
+    out << "    return -1;\n";
+    out << "}\n\n";
+
 
     out << "Rule*\n";
     out << "find_accept(State* state, Symbol* sym) {\n";
@@ -420,6 +431,17 @@ Code::define_functions(std::ostream& out)
     out << "    }\n";
     out << "    return nullptr;\n";
     out << "}\n\n";
+    
+    out << "int\n";
+    out << "find_accept2(int state, Symbol* sym) {\n";
+    out << "    for (Act* s = sts[state].act; s->sym; s++) {\n";
+    out << "        if (s->sym == sym && s->type == 'A') {\n";
+    out << "            return s->next;\n";
+    out << "        }\n";
+    out << "    }\n";
+    out << "    return -1;\n";
+    out << "}\n\n";
+
 
     out << "Rule*\n";
     out << "find_reduce(State* state, Symbol* sym) {\n";
@@ -432,6 +454,17 @@ Code::define_functions(std::ostream& out)
     out << "    }\n";
     out << "    return nullptr;\n";
     out << "}\n\n";
+    
+    out << "int\n";
+    out << "find_reduce2(int state, Symbol* sym) {\n";
+    out << "    for (Act* s = sts[state].act; s->sym; s++) {\n";
+    out << "        if (s->sym == sym && s->type == 'R') {\n";
+    out << "            return s->next;\n";
+    out << "        }\n";
+    out << "    }\n";
+    out << "    return -1;\n";
+    out << "}\n\n";
+
 
     out << "State*\n";
     out << "find_goto(State* state, Symbol* sym) {\n";
@@ -444,14 +477,36 @@ Code::define_functions(std::ostream& out)
     out << "   }\n";
     out << "   return nullptr;\n";
     out << "}\n\n";
+    
+    out << "int\n";
+    out << "find_goto2(int state, Symbol* sym) {\n";
+    out << "   for (Gos* g = sts[state].gos; g->sym; g++) {\n";
+    out << "       if (g->sym == sym) {\n";
+    out << "           return g->state;\n";
+    out << "       }\n";
+    out << "   }\n";
+    out << "   return -1;\n";
+    out << "}\n\n";
+
 }
 
 
 void
 Code::declare_states(const Grammar& grammar, std::ostream& out)
 {
-    out << "St sts[] = {\n";
+    std::vector<State*> states;
     for (auto& state : grammar.states) {
+        states.push_back(state.get());
+    }
+    struct {
+        bool operator()(State* a, State* b) const { return a->id < b->id; }
+    } Compare;
+    
+    std::sort(states.begin(), states.end(), Compare);
+
+    
+    out << "St sts[] = {\n";
+    for (auto& state : states) {
         out << "    {act" << state->id << ", gos" << state->id << "},\n";
     }
 //    for (auto& nonterm : grammar.all) {

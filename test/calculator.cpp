@@ -101,6 +101,7 @@ Calculator::init()
     
     // TODO Push the start symbol.
     states.push_back(Start_State);
+    states2.push_back(0);
     symbols.push_back(Endmark);
     values.push_back(nullptr);
 }
@@ -171,36 +172,49 @@ Calculator::advance(Table* table, Symbol* sym, Value* val)
     while (true)
     {
         State* top = states.back();
-        
+        int top2 = states2.back();
+                
         State* shift = find_shift(top, sym);
+        int shift2 = find_shift2(top2, sym);
+        //assert(shift2 != -1);
         if (shift) {
-            push(shift, sym, val);
+            push(shift, shift2, sym, val);
             return true;
         }
         
         Rule* accept = find_accept(top, sym);
+        int accept2 = find_accept2(top2, sym);
+        //assert(accept2 != -1);
         if (accept) {
             Value* result = nullptr;
-            if (accept->reduce) {
-                result = accept->reduce(table, values);
+            if (accept->reduce && rs[accept2].reduce) {
+                //result = accept->reduce(table, values);
+                result = rs[accept2].reduce(table, values);
             }
             pop(accept->length);
             top = states.back();
+            top2 = states2.back();
             State* found = find_goto(top, accept->nonterm);
-            push(found, accept->nonterm, result);
+            int found2 = find_goto2(top2, accept->nonterm);
+            push(found, found2, accept->nonterm, result);
             return true;
         }
 
         Rule* rule = find_reduce(top, sym);
+        int rule2 = find_reduce2(top2, sym);
+        //assert(rule2 != -1);
         if (rule) {
             Value* result = nullptr;
-            if (rule->reduce) {
-                result = rule->reduce(table, values);
+            if (rule->reduce && rs[rule2].reduce) {
+                //result = rule->reduce(table, values);
+                result = rs[rule2].reduce(table, values);
             }
             pop(rule->length);
             top = states.back();
+            top2 = states2.back();
             State* found = find_goto(top, rule->nonterm);
-            push(found, rule->nonterm, result);
+            int found2 = find_goto2(top2, rule->nonterm);
+            push(found, found2, rule->nonterm, result);
         }
         else {
             std::cout << "Error, unexpected symbol ";
@@ -212,9 +226,10 @@ Calculator::advance(Table* table, Symbol* sym, Value* val)
 
 /******************************************************************************/
 void
-Calculator::push(State* state, Symbol* sym, Value* val)
+Calculator::push(State* state, int s, Symbol* sym, Value* val)
 {
     states.push_back(state);
+    states2.push_back(s);
     symbols.push_back(sym);
     values.push_back(val);
 }
@@ -224,6 +239,7 @@ Calculator::pop(size_t count)
 {
     for (size_t i = 0; i < count; i++) {
         states.pop_back();
+        states2.pop_back();
         symbols.pop_back();
         values.pop_back();
     }

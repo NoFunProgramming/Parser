@@ -56,10 +56,23 @@ class State;
 extern State* Start_State;
 extern Symbol* Endmark;
 
+struct Rs {
+    Symbol* nonterm;
+    Value* (*reduce)(Table*, std::vector<Value*>&);
+    size_t length;
+};
+
+extern Rs rs[];
+
 State* find_shift (State*, Symbol* sym);
 Rule*  find_reduce(State*, Symbol* sym);
 Rule*  find_accept(State*, Symbol* sym);
 State* find_goto  (State*, Symbol* sym);
+
+int find_shift2 (int, Symbol* sym);
+int  find_reduce2(int, Symbol* sym);
+int  find_accept2(int, Symbol* sym);
+int find_goto2  (int, Symbol* sym);
 
 /*******************************************************************************
  * Example calculator program.  The program maintains a stack of parse states,
@@ -78,11 +91,12 @@ class Calculator {
     std::vector<State*>  states;
     std::vector<Symbol*> symbols;
     std::vector<Value*>  values;
+    std::vector<int>  states2;
     
     bool advance(Table* table, Symbol* sym, Value* val);
 
     /** Utility methods for adding to the stack. */
-    void push(State* state, Symbol* sym, Value* val);
+    void push(State* state, int s, Symbol* sym, Value* val);
     void pop(size_t count);
 };
 
