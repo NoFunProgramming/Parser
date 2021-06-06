@@ -41,6 +41,14 @@ struct Accept {
     Value* (*scan)(Table*, const std::string&);
 };
 
+struct N {
+    int (*next)(int c);
+    Symbol* term;
+    Value* (*scan)(Table*, const std::string&);
+};
+
+extern N ns[];
+
 struct Rule {
     Symbol* nonterm;
     Value* (*reduce)(Table*, std::vector<Value*>&);
@@ -58,20 +66,22 @@ extern Symbol* Endmark;
 
 struct Rs {
     Symbol* nonterm;
-    Value* (*reduce)(Table*, std::vector<Value*>&);
     size_t length;
+    Value* (*reduce)(Table*, std::vector<Value*>&);
 };
 
 extern Rs rs[];
 
-State* find_shift (State*, Symbol* sym);
-Rule*  find_reduce(State*, Symbol* sym);
-Rule*  find_accept(State*, Symbol* sym);
-State* find_goto  (State*, Symbol* sym);
+//State* find_shift (State*, Symbol* sym);
+//Rule*  find_reduce(State*, Symbol* sym);
+//Rule*  find_accept(State*, Symbol* sym);
+//State* find_goto  (State*, Symbol* sym);
 
-int find_shift2 (int, Symbol* sym);
-int  find_reduce2(int, Symbol* sym);
-int  find_accept2(int, Symbol* sym);
+char find_action(int state, Symbol* sym, int* next);
+
+//int find_shift2 (int, Symbol* sym);
+//int  find_reduce2(int, Symbol* sym);
+//int  find_accept2(int, Symbol* sym);
 int find_goto2  (int, Symbol* sym);
 
 /*******************************************************************************
@@ -87,6 +97,7 @@ class Calculator {
         
   private:
     Node* node;
+    int node2;
     std::string text;
     std::vector<State*>  states;
     std::vector<Symbol*> symbols;

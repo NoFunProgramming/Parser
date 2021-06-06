@@ -23,6 +23,7 @@ class Accept {
   public:
     Accept(const std::string& name, size_t rank);
     std::string name;
+    std::string scan;
     size_t rank;
 };
 

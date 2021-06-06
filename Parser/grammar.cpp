@@ -210,6 +210,9 @@ Grammar::read_term(istream& in)
     accepts.emplace_back(make_unique<Accept>(term->name, term->rank));
     Accept* accept = accepts.back().get();
     
+    // TODO Check this location.
+    accept->scan = action;
+    
     if (!regex.empty()) {
         lexer.add_regex(accept, regex);
     } else {

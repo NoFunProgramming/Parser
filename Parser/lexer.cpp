@@ -170,6 +170,18 @@ Lexer::partition()
 void
 Lexer::write(std::ostream& out) const
 {
+    std::vector<State*> sorted;
+    for (auto& state : states) {
+        sorted.push_back(state.get());
+    }
+    struct {
+        bool operator()(State* a, State* b) const { return a->id < b->id; }
+    } Compare;
+    
+    std::sort(sorted.begin(), sorted.end(), Compare);
+
+    
+    
     for (auto& state : states) {
         out << "extern Node node" << state->id << ";\n";
     }
@@ -180,7 +192,18 @@ Lexer::write(std::ostream& out) const
     for (auto& state : states) {
         state->write_struct(out);
     }
-    out << std::endl;
+    
+    for (auto& state : sorted) {
+        state->write2(out);
+    }
+
+    
+    out << "N ns[] = {\n";
+    for (auto& state : sorted) {
+        state->write_struct2(out);
+    }
+    out << "};\n";
+    
 }
 
 /******************************************************************************/
@@ -310,7 +333,8 @@ Lexer::State::write_proto(std::ostream& out) {
 }
 
 void
-Lexer::State::write_struct(std::ostream& out) {
+Lexer::State::write_struct(std::ostream& out)
+{
     out << "Node node" << id;
     out << " = {&scan" << id;
     if (accept) {
@@ -319,6 +343,25 @@ Lexer::State::write_struct(std::ostream& out) {
         out << ", nullptr";
     }
     out << "};\n";
+}
+
+void
+Lexer::State::write_struct2(std::ostream& out)
+{
+    out << "    {&scanX" << id;
+    if (accept) {
+        out << ", &term" << accept->rank;
+        if (accept->scan.size() > 0) {
+            out << ", &scan" << accept->rank << "";
+            //out << ", &" << accept->scan << "";
+        } else {
+            out << ", nullptr";
+        }
+    } else {
+        out << ", nullptr";
+        out << ", nullptr";
+    }
+    out << "},\n";
 }
 
 void
@@ -336,6 +379,24 @@ Lexer::State::write(std::ostream& out)
     out << "    return nullptr;\n";
     out << "}\n\n";
 }
+
+void
+Lexer::State::write2(std::ostream& out)
+{
+    out << "int\n";
+    out << "scanX" << id << "(int c) {\n";
+    for (auto next : nexts) {
+        out << "    if (";
+        next.first.write(out);
+        out << ") {\n";
+        out << "        return " << next.second->id << ";\n";
+        out << "    }\n";
+    }
+    out << "    return -1;\n";
+    out << "}\n\n";
+}
+
+
 
 /******************************************************************************/
 Lexer::State::Range::Range(int first, int last):

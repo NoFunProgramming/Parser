@@ -94,6 +94,7 @@ Calculator::init()
 {
     text.clear();
     node = Start_Node;
+    node2 = 0;
 
     states.clear();
     symbols.clear();
@@ -116,7 +117,8 @@ Calculator::scan(Table* table, int c)
     {
         if (c == EOF) {
             Accept* accept = is_accept(node);
-            if (!accept && node != Start_Node) {
+            //if (!accept && node != Start_Node) {
+            if (!ns[node2].term && node2 != 0) {
                 std::cout << "Unexpected end of file.\n";
                 return false;
             }
@@ -176,46 +178,53 @@ Calculator::advance(Table* table, Symbol* sym, Value* val)
         int top2 = states2.back();
                 
         //State* shift = find_shift(top, sym);
-        int shift2 = find_shift2(top2, sym);
+        //int shift2 = find_shift2(top2, sym);
+        
+        int next = 0;
+        char type = find_action(top2, sym, &next);
+        
         //assert(shift2 != -1);
-        if (shift2 != -1) {
-            push(nullptr, shift2, sym, val);
+        //if (shift2 != -1) {
+        if (type == 'S') {
+            push(nullptr, next, sym, val);
             return true;
         }
         
         //Rule* accept = find_accept(top, sym);
-        int accept2 = find_accept2(top2, sym);
+        //int accept2 = find_accept2(top2, sym);
         //assert(accept2 != -1);
-        if (accept2 != -1) {
+        //if (accept2 != -1) {
+        if (type == 'A') {
             Value* result = nullptr;
-            if (rs[accept2].reduce) {
+            if (rs[next].reduce) {
                 //result = accept->reduce(table, values);
-                result = rs[accept2].reduce(table, values);
+                result = rs[next].reduce(table, values);
             }
-            pop(rs[accept2].length);
+            pop(rs[next].length);
             top = states.back();
             top2 = states2.back();
             //State* found = find_goto(top, accept->nonterm);
-            int found2 = find_goto2(top2, rs[accept2].nonterm);
-            push(nullptr, found2, rs[accept2].nonterm, result);
+            int found2 = find_goto2(top2, rs[next].nonterm);
+            push(nullptr, found2, rs[next].nonterm, result);
             return true;
         }
 
         //Rule* rule = find_reduce(top, sym);
-        int rule2 = find_reduce2(top2, sym);
+        //int rule2 = find_reduce2(top2, sym);
         //assert(rule2 != -1);
-        if (rule2 != -1) {
+        //if (rule2 != -1) {
+        if (type == 'R') {
             Value* result = nullptr;
-            if (rs[rule2].reduce) {
+            if (rs[next].reduce) {
                 //result = rule->reduce(table, values);
-                result = rs[rule2].reduce(table, values);
+                result = rs[next].reduce(table, values);
             }
-            pop(rs[rule2].length);
+            pop(rs[next].length);
             top = states.back();
             top2 = states2.back();
             //State* found = find_goto(top, rule->nonterm);
-            int found2 = find_goto2(top2, rs[rule2].nonterm);
-            push(nullptr, found2, rs[rule2].nonterm, result);
+            int found2 = find_goto2(top2, rs[next].nonterm);
+            push(nullptr, found2, rs[next].nonterm, result);
         }
         else {
             std::cout << "Error, unexpected symbol ";

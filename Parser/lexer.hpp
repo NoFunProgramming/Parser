@@ -82,7 +82,9 @@ class Lexer
         // TODO Move to the code class.
         void write_proto(std::ostream& out);
         void write_struct(std::ostream& out);
+        void write_struct2(std::ostream& out);
         void write(std::ostream& out);
+        void write2(std::ostream& out);
 
         struct is_same {
             bool operator() (const std::unique_ptr<State>& left,
