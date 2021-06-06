@@ -86,14 +86,13 @@ reduce_paren(Table* table, unique_ptr<Expr>& E1)
 }
 
 /******************************************************************************/
-Calculator::Calculator() :
-    node(nullptr){}
+Calculator::Calculator(){}
 
 void
 Calculator::init()
 {
     text.clear();
-    node = Start_Node;
+    //node = Start_Node;
     node2 = 0;
 
     states.clear();
@@ -116,7 +115,7 @@ Calculator::scan(Table* table, int c)
     while (true)
     {
         if (c == EOF) {
-            Accept* accept = is_accept(node);
+            //Accept* accept = is_accept(node);
             //if (!accept && node != Start_Node) {
             if (!ns[node2].term && node2 != 0) {
                 std::cout << "Unexpected end of file.\n";
@@ -124,11 +123,14 @@ Calculator::scan(Table* table, int c)
             }
             
             Value* value = nullptr;
-            if (accept) {
-                if (accept->scan) {
-                    value = accept->scan(table, text);
+            //if (accept) {
+            //    if (accept->scan) {
+            if (ns[node2].term) {
+                if (ns[node2].scan) {
+                    //value = accept->scan(table, text);
+                    value = ns[node2].scan(table, text);
                 }
-                if (!advance(table, accept->term, value)) {
+                if (!advance(table, ns[node2].term, value)) {
                     return false;
                 }
             }
@@ -137,31 +139,36 @@ Calculator::scan(Table* table, int c)
             }
             return true;
         }
-        else if (node == Start_Node && isspace(c)) {
+        //else if (node == Start_Node && isspace(c)) {
+        else if (node2 == 0 && isspace(c)) {
             return true;
         }
         else {
-            Node* next = next_node(node, c);
-            if (next) {
+            //Node* next = next_node(node, c);
+            int next2 = ns[node2].next(c);
+            if (next2 != -1) {
                 text.push_back(c);
-                node = next;
+                //node = next;
+                node2 = next2;
                 return true;
             }
             else {
-                Accept* accept = is_accept(node);
-                if (!accept) {
+                //Accept* accept = is_accept(node);
+                //if (!accept) {
+                if (ns[node2].term == NULL) {
                     std::cout << "Unexpected character." << (char)c << "\n";
                     return false;
                 }
                 
                 Value* value = nullptr;
-                if (accept->scan) {
-                    value = accept->scan(table, text);
+                if (ns[node2].scan) {
+                    value = ns[node2].scan(table, text);
                 }
-                if (!advance(table, accept->term, value)) {
+                if (!advance(table, ns[node2].term, value)) {
                     return false;
                 }
-                node = Start_Node;
+                //node = Start_Node;
+                node2 = 0;
                 text.clear();
             }
         }

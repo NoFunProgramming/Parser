@@ -96,7 +96,7 @@ class Calculator {
     bool scan(Table* table, int c);
         
   private:
-    Node* node;
+    //Node* node;
     int node2;
     std::string text;
     std::vector<State*>  states;
