@@ -316,6 +316,10 @@ Lexer::State::lower(State* left, State* right)
 void
 Lexer::State::write(std::ostream& out)
 {
+    if (nexts.size() == 0) {
+        return;
+    }
+    
     out << "int\n";
     out << "scanX" << id << "(int c) {\n";
     for (auto next : nexts) {
@@ -330,7 +334,12 @@ Lexer::State::write(std::ostream& out)
 void
 Lexer::State::write_struct(std::ostream& out)
 {
-    out << "    {&scanX" << id;
+    if (nexts.size() > 0) {
+        out << "    {&scanX" << id;
+    } else {
+        out << "    {nullptr";
+    }
+
     if (accept) {
         out << ", &term" << accept->rank;
         if (accept->scan.size() > 0) {

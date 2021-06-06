@@ -12,12 +12,8 @@ Code::write(const Grammar& grammar, std::ostream& out)
         
     // TODO Number nonterm not in a rule.
     size_t id = 0;
-    size_t rule_id = 0;
     for (auto nonterm : grammar.all) {
         nonterm->rank = id++;
-        for (auto& rule : nonterm->rules) {
-            rule->id = rule_id++;
-        }
     }
 
     out << "Symbol endmark;\n";
@@ -34,20 +30,16 @@ Code::write(const Grammar& grammar, std::ostream& out)
 
     grammar.lexer.write(out);
     
-    declare_structs(out);
-
     for (auto& nonterm : grammar.nonterms) {
         declare_nonterm(nonterm.second.get(), out);
         out << std::endl;
     }
     out << std::endl;
     
-    for (auto& nonterm : grammar.all) {
-        for (auto& rule : nonterm->rules) {
-            define_action(rule.get(), out);
-            define_action_cast(rule.get(), out);
-            define_action_call(rule.get(), out);
-        }
+    for (auto rule : grammar.all_rules) {
+        define_action(rule, out);
+        define_action_cast(rule, out);
+        define_action_call(rule, out);
     }
     
     declare_rules(grammar, out);
@@ -57,44 +49,12 @@ Code::write(const Grammar& grammar, std::ostream& out)
     }
     out << std::endl;
     
-    define_gotos(grammar, out);
+    for (auto& s : grammar.states) {
+        define_gotos(s.get(), out);
+    }
+    out << std::endl;
+    
     declare_states(grammar, out);
-    define_functions(out);
-}
-
-void
-Code::define_actions(State* s, std::ostream& out)
-{
-    out << "struct Act act" << s->id << "[] = {";
-
-    bool comma = false;
-    for (auto& act : s->actions->shift) {
-        if (comma) { out << ", "; } else { comma = true; }
-        out << "{&"; act.first->write(out);
-        out << ", 'S', " << act.second->id; out << "}";
-    }
-
-    for (auto& act : s->actions->reduce) {
-        if (comma) { out << ", "; } else { comma = true; }
-        out << "{&"; act.first->write(out);
-        out << ", 'R', " << act.second->id << "}";
-    }
-
-    for (auto& act : s->actions->accept) {
-        if (comma) { out << ", "; } else { comma = true; }
-        out << "{&"; act.first->write(out);
-        out << ", 'A', " << act.second->id << "}";
-    }
-
-    if (comma) { out << ", "; }
-    out << "{nullptr, 0, 0}";
-    out << "};\n";
-}
-
-/******************************************************************************/
-void
-Code::declare_structs(std::ostream& out)
-{
 }
 
 /******************************************************************************/
@@ -199,7 +159,7 @@ Code::define_action_call(Nonterm::Rule* rule, std::ostream& out)
     out << "}\n\n";
 }
 
-
+/******************************************************************************/
 void
 Code::declare_rules(const Grammar& grammar, std::ostream& out)
 {
@@ -217,6 +177,48 @@ Code::declare_rules(const Grammar& grammar, std::ostream& out)
         }
     }
     out << "};\n\n";
+}
+
+void
+Code::define_actions(State* s, std::ostream& out)
+{
+    out << "struct Act act" << s->id << "[] = {";
+
+    for (auto& act : s->actions->shift) {
+        out << "{&"; act.first->write(out);
+        out << ", 'S', " << act.second->id; out << "}, ";
+    }
+
+    for (auto& act : s->actions->reduce) {
+        out << "{&"; act.first->write(out);
+        out << ", 'R', " << act.second->id << "}, ";
+    }
+
+    for (auto& act : s->actions->accept) {
+        out << "{&"; act.first->write(out);
+        out << ", 'A', " << act.second->id << "}, ";
+    }
+
+    out << "{nullptr, 0, 0}";
+    out << "};\n";
+}
+
+void
+Code::define_gotos(State* s, std::ostream& out)
+{
+    if (!s->gotos.size())
+        return;
+    
+    out << "struct Go go" << s->id << "[] = {";
+
+    for (auto& g : s->gotos) {
+        out << "{&";
+        g.first->write(out);
+        out << ", " << g.second->id << "}, ";
+    }
+    
+    out << "{nullptr, 0}";
+    out << "};\n";
 }
 
 void
@@ -245,54 +247,3 @@ Code::declare_states(const Grammar& grammar, std::ostream& out)
     out << "};\n\n";
 }
 
-void
-Code::define_gotos(const Grammar& grammar, std::ostream& out)
-{
-    for (auto& s : grammar.states) {
-        if (s->gotos.size() == 0) {
-            continue;
-        }
-        
-        out << "struct Go go" << s->id << "[] = {";
-
-        bool comma = false;
-        for (auto& g : s->gotos) {
-            if (comma) { out << ", "; } else { comma = true; }
-            out << "{&"; g.first->write(out);
-            out << ", " << g.second->id; out << "}";
-        }
-        
-        if (comma) { out << ", "; }
-        out << "{nullptr, 0}";
-        out << "};\n";
-    }
-    out << std::endl;
-}
-
-/******************************************************************************/
-void
-Code::define_functions(std::ostream& out)
-{
-//    out << "char\n";
-//    out << "find_action(int state, Symbol* sym, int* next) {\n";
-//    out << "    for (Act* s = states[state].act; s->sym; s++) {\n";
-//    out << "        if (s->sym == sym) {\n";
-//    out << "            *next = s->next;\n";
-//    out << "            return s->type;\n";
-//    out << "        }\n";
-//    out << "    }\n";
-//    out << "    return -1;\n";
-//    out << "}\n\n";
-//
-//    out << "int\n";
-//    out << "find_goto(int state, Symbol* sym) {\n";
-//    out << "   if (!states[state].go)\n";
-//    out << "        return -1;\n";
-//    out << "   for (Go* g = states[state].go; g->sym; g++) {\n";
-//    out << "       if (g->sym == sym) {\n";
-//    out << "           return g->state;\n";
-//    out << "       }\n";
-//    out << "   }\n";
-//    out << "   return -1;\n";
-//    out << "}\n\n";
-}

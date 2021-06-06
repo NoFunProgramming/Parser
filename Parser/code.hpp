@@ -21,8 +21,6 @@ class Code
     static void write(const Grammar& grammar, std::ostream& out);
 
   private:
-    static void declare_structs(std::ostream& out);
-
     static void declare_terms(Term* term, std::ostream& out);
     static void define_term_actions(Term* term, std::ostream& out);
     static void declare_nonterm(Nonterm* nonterm, std::ostream& out);
@@ -30,13 +28,12 @@ class Code
     static void define_action(Nonterm::Rule* rule, std::ostream& out);
     static void define_action_cast(Nonterm::Rule* rule, std::ostream& out);
     static void define_action_call(Nonterm::Rule* rule, std::ostream& out);
-    static void define_functions(std::ostream& out);
     
     static void define_actions(State* state, std::ostream& out);
     
     static void declare_rules(const Grammar& grammar, std::ostream& out);
     static void declare_states(const Grammar& grammar, std::ostream& out);
-    static void define_gotos(const Grammar& grammar, std::ostream& out);
+    static void define_gotos(State* state, std::ostream& out);
 };
 
 #endif

@@ -245,6 +245,7 @@ Grammar::read_rules(istream& in)
     }
     Nonterm* nonterm = nonterms[name].get();
     nonterm->type = type;
+    //nonterm->rank = all.size();
     all.push_back(nonterm);
     
     vector<Symbol*> syms;
