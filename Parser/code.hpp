@@ -19,12 +19,18 @@ class Code
 {
   public:
     static void write(const Grammar& grammar, std::ostream& out);
+    
+    /** After solving for the DFA, call write to generate the source code. */
+    static void write(const Lexer& lexer, std::ostream& out);
 
   private:
     static void declare_terms(Term* term, std::ostream& out);
     static void define_term_actions(Term* term, std::ostream& out);
     static void declare_nonterm(Nonterm* nonterm, std::ostream& out);
-
+    
+    static void define_scan(Node* node, std::ostream& out);
+    static void define_node(Node* node, std::ostream& out);
+    
     static void define_action(Nonterm::Rule* rule, std::ostream& out);
     static void define_action_cast(Nonterm::Rule* rule, std::ostream& out);
     static void define_action_call(Nonterm::Rule* rule, std::ostream& out);

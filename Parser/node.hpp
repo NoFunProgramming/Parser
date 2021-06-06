@@ -35,11 +35,6 @@ class Node {
     void replace(std::map<Node*, Node*> prime);
     void reduce();
     
-    /** Writes the source code for the lexer. */
-    // TODO Move to the code class.
-    void write(std::ostream& out);
-    void write_struct(std::ostream& out);
-
     struct is_same {
         bool operator() (const std::unique_ptr<Node>& left,
                          const std::unique_ptr<Node>& right) const {

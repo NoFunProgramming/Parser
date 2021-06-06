@@ -116,52 +116,6 @@ Node::lower(Node* left, Node* right)
     }
 }
 
-/**
- * Writes the source code for a single state of the lexer.  The source code
- * defines a structure and a method for each state.  The method takes an input
- * character and returns either a new state in the DFA or a null pointer.
- */
-void
-Node::write(std::ostream& out)
-{
-    if (nexts.size() == 0) {
-        return;
-    }
-    
-    out << "int\n";
-    out << "scanX" << id << "(int c) {\n";
-    for (auto next : nexts) {
-        out << "    if (";
-        next.first.write(out);
-        out << ") { return " << next.second->id << "; }\n";
-    }
-    out << "    return -1;\n";
-    out << "}\n\n";
-}
-
-void
-Node::write_struct(std::ostream& out)
-{
-    if (nexts.size() > 0) {
-        out << "    {&scanX" << id;
-    } else {
-        out << "    {nullptr";
-    }
-
-    if (accept) {
-        out << ", &term" << accept->rank;
-        if (accept->scan.size() > 0) {
-            out << ", &scan" << accept->rank << "";
-        } else {
-            out << ", nullptr";
-        }
-    } else {
-        out << ", nullptr";
-        out << ", nullptr";
-    }
-    out << "},\n";
-}
-
 /******************************************************************************/
 Node::Range::Range(int first, int last):
     first(first), last(last) {}

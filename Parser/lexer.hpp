@@ -38,9 +38,6 @@ class Lexer
     
     /** After building the DFA, call reduce to minimize the states. */
     void reduce();
-
-    /** After solving for the DFA, call write to generate the source code. */
-    void write(std::ostream& out) const;
     
   private:
     std::vector<std::unique_ptr<Regex>> exprs;

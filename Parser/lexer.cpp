@@ -159,39 +159,6 @@ Lexer::partition()
     return result;
 }
 
-
-/**
- * Writes the source code for a lexer.  The source code will define a structure
- * for each state in DFA. This structure contains a method that take a character
- * and returns either a new state in the DFA or a null pointer.  The null
- * indicates that the pattern matching is complete and the accept value, if any,
- * for the current state is the type of token identified.
- */
-void
-Lexer::write(std::ostream& out) const
-{
-    std::vector<Node*> sorted;
-    for (auto& state : states) {
-        sorted.push_back(state.get());
-    }
-    struct {
-        bool operator()(Node* a, Node* b) const { return a->id < b->id; }
-    } Compare;
-    
-    std::sort(sorted.begin(), sorted.end(), Compare);
-
-    for (auto& state : sorted) {
-        state->write(out);
-    }
-    out << "\n";
-    
-    out << "Node nodes[] = {\n";
-    for (auto& state : sorted) {
-        state->write_struct(out);
-    }
-    out << "};\n";
-}
-
 /******************************************************************************/
 void
 Lexer::Group::insert(Node* state) {

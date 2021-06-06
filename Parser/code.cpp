@@ -28,7 +28,8 @@ Code::write(const Grammar& grammar, std::ostream& out)
         define_term_actions(term.second.get(), out);
     }
 
-    grammar.lexer.write(out);
+    //grammar.lexer.write(out);
+    write(grammar.lexer, out);
     
     for (auto& nonterm : grammar.nonterms) {
         declare_nonterm(nonterm.second.get(), out);
@@ -55,6 +56,38 @@ Code::write(const Grammar& grammar, std::ostream& out)
     out << std::endl;
     
     declare_states(grammar, out);
+}
+
+/**
+ * Writes the source code for a lexer.  The source code will define a structure
+ * for each state in DFA. This structure contains a method that take a character
+ * and returns either a new state in the DFA or a null pointer.  The null
+ * indicates that the pattern matching is complete and the accept value, if any,
+ * for the current state is the type of token identified.
+ */
+void
+Code::write(const Lexer& lexer, std::ostream& out)
+{
+    std::vector<Node*> sorted;
+    for (auto& state : lexer.states) {
+        sorted.push_back(state.get());
+    }
+    struct {
+        bool operator()(Node* a, Node* b) const { return a->id < b->id; }
+    } Compare;
+    
+    std::sort(sorted.begin(), sorted.end(), Compare);
+
+    for (auto& state : sorted) {
+        define_scan(state, out);
+    }
+    out << "\n";
+    
+    out << "Node nodes[] = {\n";
+    for (auto& state : sorted) {
+        define_node(state, out);
+    }
+    out << "};\n";
 }
 
 /******************************************************************************/
@@ -88,6 +121,52 @@ Code::declare_nonterm(Nonterm* nonterm, std::ostream& out)
 {
     out << "Symbol nonterm" << nonterm->rank;
     out << " = {\"" << nonterm->name << "\"};";
+}
+
+/**
+ * Writes the source code for a single state of the lexer.  The source code
+ * defines a structure and a method for each state.  The method takes an input
+ * character and returns either a new state in the DFA or a null pointer.
+ */
+void
+Code::define_scan(Node* node, std::ostream& out)
+{
+    if (node->nexts.size() == 0) {
+        return;
+    }
+    
+    out << "int\n";
+    out << "scanX" << node->id << "(int c) {\n";
+    for (auto next : node->nexts) {
+        out << "    if (";
+        next.first.write(out);
+        out << ") { return " << next.second->id << "; }\n";
+    }
+    out << "    return -1;\n";
+    out << "}\n\n";
+}
+
+void
+Code::define_node(Node* node, std::ostream& out)
+{
+    if (node->nexts.size() > 0) {
+        out << "    {&scanX" << node->id;
+    } else {
+        out << "    {nullptr";
+    }
+
+    if (node->accept) {
+        out << ", &term" << node->accept->rank;
+        if (node->accept->scan.size() > 0) {
+            out << ", &scan" << node->accept->rank << "";
+        } else {
+            out << ", nullptr";
+        }
+    } else {
+        out << ", nullptr";
+        out << ", nullptr";
+    }
+    out << "},\n";
 }
 
 /******************************************************************************/
