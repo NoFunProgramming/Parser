@@ -36,10 +36,7 @@ struct Symbol {
     const char* name;
 };
 
-struct Accept {
-    Symbol* term;
-    Value* (*scan)(Table*, const std::string&);
-};
+extern Symbol* Endmark;
 
 struct N {
     int (*next)(int c);
@@ -49,21 +46,6 @@ struct N {
 
 extern N ns[];
 
-struct Rule {
-    Symbol* nonterm;
-    Value* (*reduce)(Table*, std::vector<Value*>&);
-    size_t length;
-};
-
-class Node;
-extern Node* Start_Node;
-Node*   next_node(Node* node, int c);
-Accept* is_accept(Node* node);
-
-class State;
-extern State* Start_State;
-extern Symbol* Endmark;
-
 struct Rs {
     Symbol* nonterm;
     size_t length;
@@ -72,17 +54,8 @@ struct Rs {
 
 extern Rs rs[];
 
-//State* find_shift (State*, Symbol* sym);
-//Rule*  find_reduce(State*, Symbol* sym);
-//Rule*  find_accept(State*, Symbol* sym);
-//State* find_goto  (State*, Symbol* sym);
-
 char find_action(int state, Symbol* sym, int* next);
-
-//int find_shift2 (int, Symbol* sym);
-//int  find_reduce2(int, Symbol* sym);
-//int  find_accept2(int, Symbol* sym);
-int find_goto2  (int, Symbol* sym);
+int find_goto  (int, Symbol* sym);
 
 /*******************************************************************************
  * Example calculator program.  The program maintains a stack of parse states,
@@ -99,7 +72,7 @@ class Calculator {
     //Node* node;
     int node2;
     std::string text;
-    std::vector<State*>  states;
+    //std::vector<State*>  states;
     std::vector<Symbol*> symbols;
     std::vector<Value*>  values;
     std::vector<int>  states2;
@@ -107,7 +80,7 @@ class Calculator {
     bool advance(Table* table, Symbol* sym, Value* val);
 
     /** Utility methods for adding to the stack. */
-    void push(State* state, int s, Symbol* sym, Value* val);
+    void push(int s, Symbol* sym, Value* val);
     void pop(size_t count);
 };
 

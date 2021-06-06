@@ -7,7 +7,7 @@ Code::write(const Grammar& grammar, std::ostream& out)
     for (auto include : grammar.includes) {
         out << include << std::endl;
     }
-    out << "using std::unique_ptr;\n\n";
+    out << "using std::unique_ptr;\n";
     out << "using std::vector;\n\n";
         
     // TODO Number nonterm not in a rule.
@@ -19,48 +19,23 @@ Code::write(const Grammar& grammar, std::ostream& out)
             rule->id = rule_id++;
         }
     }
-    
-    out << "struct Node {\n";
-    out << "    Node* (*scan)(int c);\n";
-    out << "    Accept* accept;\n";
-    out << "};\n\n";
-    
-//    out << "struct N {\n";
-//    out << "    int (*next)(int c);\n";
-//    out << "    Symbol* term;\n";
-//    out << "    Value* (*scan)(Table*, const std::string &);\n";
-//    out << "};\n\n";
 
-
-    out << "Symbol endmark;\n\n";
+    out << "Symbol endmark;\n";
+    out << "Symbol* Endmark = &endmark;\n\n";
+    
     for (auto& term : grammar.terms) {
         declare_terms(term.second.get(), out);
     }
+    out << "\n";
+    
     for (auto& term : grammar.terms) {
         define_term_actions(term.second.get(), out);
     }
 
     grammar.lexer.write(out);
     
-    out << "Node*\n";
-    out << "next_node(Node* node, int c) {\n";
-    out << "    return node->scan(c);\n";
-    out << "}\n\n";
-
-    out << "Accept*\n";
-    out << "is_accept(Node* node) {\n";
-    out << "    return node->accept;\n";
-    out << "}\n\n";
-
-    out << "Node*   Start_Node  = &node0;\n";
-    //out << "State*  Start_State = &state0;\n";
-    out << "Symbol* Endmark     = &endmark;\n";
-
-    
-    out << "//***************************************************************\n";
     declare_structs(out);
 
-    
     for (auto& nonterm : grammar.nonterms) {
         declare_nonterm(nonterm.second.get(), out);
         out << std::endl;
@@ -70,6 +45,7 @@ Code::write(const Grammar& grammar, std::ostream& out)
     for (auto& nonterm : grammar.all) {
         for (auto& rule : nonterm->rules) {
             define_action(rule.get(), out);
+            define_action_cast(rule.get(), out);
             define_action_call(rule.get(), out);
         }
     }
@@ -77,45 +53,48 @@ Code::write(const Grammar& grammar, std::ostream& out)
     declare_rules(grammar, out);
         
     for (auto& s : grammar.states) {
-        out << "struct Act act" << s->id << "[] = {";
-
-        bool comma = false;
-        for (auto& act : s->actions->shift) {
-            if (comma) { out << ", "; } else { comma = true; }
-            out << "{&"; act.first->write(out);
-            out << ", 'S', " << act.second->id; out << "}";
-        }
-
-        for (auto& act : s->actions->reduce) {
-            if (comma) { out << ", "; } else { comma = true; }
-            out << "{&"; act.first->write(out);
-            out << ", 'R', " << act.second->id << "}";
-        }
-
-        for (auto& act : s->actions->accept) {
-            if (comma) { out << ", "; } else { comma = true; }
-            out << "{&"; act.first->write(out);
-            out << ", 'A', " << act.second->id << "}";
-        }
-
-        if (comma) { out << ", "; }
-        out << "{nullptr, 0, 0}";
-        out << "};\n";
+        define_actions(s.get(), out);
     }
     out << std::endl;
     
     define_gotos(grammar, out);
-    
     declare_states(grammar, out);
-
     define_functions(out);
+}
+
+void
+Code::define_actions(State* s, std::ostream& out)
+{
+    out << "struct Act act" << s->id << "[] = {";
+
+    bool comma = false;
+    for (auto& act : s->actions->shift) {
+        if (comma) { out << ", "; } else { comma = true; }
+        out << "{&"; act.first->write(out);
+        out << ", 'S', " << act.second->id; out << "}";
+    }
+
+    for (auto& act : s->actions->reduce) {
+        if (comma) { out << ", "; } else { comma = true; }
+        out << "{&"; act.first->write(out);
+        out << ", 'R', " << act.second->id << "}";
+    }
+
+    for (auto& act : s->actions->accept) {
+        if (comma) { out << ", "; } else { comma = true; }
+        out << "{&"; act.first->write(out);
+        out << ", 'A', " << act.second->id << "}";
+    }
+
+    if (comma) { out << ", "; }
+    out << "{nullptr, 0, 0}";
+    out << "};\n";
 }
 
 /******************************************************************************/
 void
 Code::declare_structs(std::ostream& out)
 {
-        
     out << "struct Act {\n";
     out << "    Symbol* sym;\n";
     out << "    char    type;\n";
@@ -137,18 +116,8 @@ Code::declare_structs(std::ostream& out)
 void
 Code::declare_terms(Term* term, std::ostream& out)
 {
-    out << "Value* scan" << term->rank << "(Table*, const std::string&);\n";
-    
     out << "Symbol term" << term->rank;
     out << " = {\"" << term->name << "\"};\n";
-
-    out << "Accept term" << term->rank << "_accept = {&term" << term->rank << ", ";
-    if (!term->action.empty()) {
-        out << "&scan" << term->rank << "";
-    } else {
-        out << "nullptr";
-    }
-    out << "};\n\n";
 }
 
 void
@@ -175,13 +144,6 @@ Code::declare_nonterm(Nonterm* nonterm, std::ostream& out)
     out << "Symbol nonterm" << nonterm->rank;
     out << " = {\"" << nonterm->name << "\"};";
 }
-
-//void
-//Code::declare_action(Nonterm::Rule* rule, std::ostream& out)
-//{
-//    out << "Value* ";
-//    out << rule->action << "(Table*, vector<Value*>&);\n";
-//}
 
 /******************************************************************************/
 void
@@ -211,7 +173,7 @@ Code::define_action(Nonterm::Rule* rule, std::ostream& out)
 }
 
 void
-Code::define_action_call(Nonterm::Rule* rule, std::ostream& out)
+Code::define_action_cast(Nonterm::Rule* rule, std::ostream& out)
 {
     out << "Value*\n";
     out << rule->action << "(Table* table, vector<Value*>& values) {\n";
@@ -226,7 +188,11 @@ Code::define_action_call(Nonterm::Rule* rule, std::ostream& out)
             out << "(values.end()[" << index << "]));\n";
         }
     }
+}
 
+void
+Code::define_action_call(Nonterm::Rule* rule, std::ostream& out)
+{
     out << "    unique_ptr<" << rule->nonterm->type << "> ";
     out << "R = "<< rule->action << "(";
     out << "table";
@@ -263,7 +229,7 @@ Code::define_functions(std::ostream& out)
     out << "}\n\n";
 
     out << "int\n";
-    out << "find_goto2(int state, Symbol* sym) {\n";
+    out << "find_goto(int state, Symbol* sym) {\n";
     out << "   if (!sts[state].gos)\n";
     out << "        return -1;\n";
     out << "   for (Gos* g = sts[state].gos; g->sym; g++) {\n";
@@ -273,9 +239,26 @@ Code::define_functions(std::ostream& out)
     out << "   }\n";
     out << "   return -1;\n";
     out << "}\n\n";
-
 }
 
+void
+Code::declare_rules(const Grammar& grammar, std::ostream& out)
+{
+    out << "Rs rs[] = {\n";
+    for (auto& nonterm : grammar.all) {
+        for (auto& rule : nonterm->rules) {
+            out << "  {&nonterm" << rule->nonterm->rank << ", ";
+            out << rule->product.size() << ", ";
+            if (!rule->action.empty()) {
+                out << "&" << rule->action;
+            } else {
+                out << "nullptr";
+            }
+            out << "},\n";
+        }
+    }
+    out << "};\n\n";
+}
 
 void
 Code::declare_states(const Grammar& grammar, std::ostream& out)
@@ -299,25 +282,6 @@ Code::declare_states(const Grammar& grammar, std::ostream& out)
             out << "nullptr";
         }
         out << "},\n";
-    }
-    out << "};\n\n";
-}
-
-void
-Code::declare_rules(const Grammar& grammar, std::ostream& out)
-{
-    out << "Rs rs[] = {\n";
-    for (auto& nonterm : grammar.all) {
-        for (auto& rule : nonterm->rules) {
-            out << "  {&nonterm" << rule->nonterm->rank << ", ";
-            out << rule->product.size() << ", ";
-            if (!rule->action.empty()) {
-                out << "&" << rule->action;
-            } else {
-                out << "nullptr";
-            }
-            out << "},\n";
-        }
     }
     out << "};\n\n";
 }
