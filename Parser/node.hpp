@@ -1,3 +1,9 @@
+/**
+ * State of the deterministic finite automaton.  The DFA is built by finding
+ * new states that are the possible sets of finite states of a NFA while
+ * reading input characters.  Ranges within each state map an input
+ * character to a single next state in the DFA.
+ */
 #ifndef node_hpp
 #define node_hpp
 
@@ -8,12 +14,6 @@
 #include <map>
 #include <iostream>
 
-/**
- * State of the deterministic finite automaton.  The DFA is built by finding
- * new states that are the possible sets of finite states of a NFA while
- * reading input characters.  Ranges within each state map an input
- * character to a single next state in the DFA.
- */
 class Node {
   public:
     Node(size_t id);

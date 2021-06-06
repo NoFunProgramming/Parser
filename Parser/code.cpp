@@ -28,7 +28,6 @@ Code::write(const Grammar& grammar, std::ostream& out)
         define_term_actions(term.second.get(), out);
     }
 
-    //grammar.lexer.write(out);
     write(grammar.lexer, out);
     
     for (auto& nonterm : grammar.nonterms) {
@@ -69,7 +68,7 @@ void
 Code::write(const Lexer& lexer, std::ostream& out)
 {
     std::vector<Node*> sorted;
-    for (auto& state : lexer.states) {
+    for (auto& state : lexer.nodes) {
         sorted.push_back(state.get());
     }
     struct {

@@ -52,7 +52,7 @@ void
 Lexer::solve()
 {
     /** Build the first state from the start state of all expressions. */
-    std::unique_ptr<Node> first = std::make_unique<Node>(states.size());
+    std::unique_ptr<Node> first = std::make_unique<Node>(nodes.size());
     for (auto& expr : exprs) {
         first->add_finite(expr->start);
     }
@@ -63,7 +63,7 @@ Lexer::solve()
     first->solve_closure();
     first->solve_accept();
     initial = first.get();
-    states.insert(std::move(first));
+    nodes.insert(std::move(first));
     
     std::vector<Node*> pending;
     pending.push_back(initial);
@@ -95,11 +95,11 @@ Lexer::solve()
             
             /** After searching check to see if the state was already found. */
             if (found.size() > 0) {
-                auto state = std::make_unique<Node>(states.size());
+                auto state = std::make_unique<Node>(nodes.size());
                 state->add_finite(found);
                 state->solve_closure();
                 
-                auto inserted = states.insert(std::move(state));
+                auto inserted = nodes.insert(std::move(state));
                 Node* next = inserted.first->get();
                 current->add_next(first, last, next);
                 
@@ -148,7 +148,7 @@ Lexer::partition()
 {
     //std::map<Term*, Group> split;
     std::map<Accept*, Group> split;
-    for (auto& state : states) {
+    for (auto& state : nodes) {
         split[state->accept].insert(state.get());
     }
 
@@ -162,17 +162,17 @@ Lexer::partition()
 /******************************************************************************/
 void
 Lexer::Group::insert(Node* state) {
-    states.insert(state);
+    nodes.insert(state);
 }
 
 bool
 Lexer::Group::belongs(Node* state, const std::set<Group>& all) const
 {
-    if (states.size() < 1) {
+    if (nodes.size() < 1) {
         return false;
     }
 
-    Node* check = *states.begin();
+    Node* check = *nodes.begin();
     for (int c = 0; c <= CHAR_MAX; c++) {
         Node* check_next = check->get_next(c);
         Node* state_next = state->get_next(c);
@@ -191,8 +191,8 @@ bool
 Lexer::Group::same_group(Node* s1, Node* s2, const std::set<Group>& all)
 {
     for (auto check : all) {
-        if (check.states.count(s1) > 0) {
-            if (check.states.count(s2) > 0) {
+        if (check.nodes.count(s1) > 0) {
+            if (check.nodes.count(s2) > 0) {
                 return true;
             } else {
                 return false;
@@ -207,18 +207,18 @@ Lexer::Group::divide(const std::set<Group>& PI) const
 {
     std::vector<Group> result;
 
-    for (auto state : states) {
+    for (auto state : nodes) {
         bool found = false;
         for (auto& group : result) {
             if (group.belongs(state, PI)) {
-                group.states.insert(state);
+                group.nodes.insert(state);
                 found = true;
                 break;
             }
         }
         if (!found) {
             Group added;
-            added.states.insert(state);
+            added.nodes.insert(state);
             result.push_back(added);
         }
     }
@@ -229,18 +229,18 @@ Node*
 Lexer::Group::represent(std::map<Node*, Node*>& replace, Node* start)
 {
     Node* result = nullptr;
-    for (auto s : states) {
+    for (auto s : nodes) {
         if (s == start) {
             result = s;
             break;
         }
     }
     if (!result) {
-        auto lowest = min_element(states.begin(), states.end(), Node::lower);
+        auto lowest = min_element(nodes.begin(), nodes.end(), Node::lower);
         result = *lowest;
     }
 
-    for (Node* state : states) {
+    for (Node* state : nodes) {
         replace[state] = result;
     }
     return result;
@@ -248,11 +248,11 @@ Lexer::Group::represent(std::map<Node*, Node*>& replace, Node* start)
 
 bool
 Lexer::Group::operator<(const Group& other) const {
-    return states < other.states;
+    return nodes < other.nodes;
 }
 
 bool
 Lexer::Group::operator==(const Group& other) const {
-    return states == other.states;
+    return nodes == other.nodes;
 }
 

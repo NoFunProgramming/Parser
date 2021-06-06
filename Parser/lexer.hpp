@@ -45,7 +45,7 @@ class Lexer
 
   public:    
     /** The DFA is defined by an initial state and unique sets of NFA states. */
-    std::set<std::unique_ptr<Node>, Node::is_same> states;
+    std::set<std::unique_ptr<Node>, Node::is_same> nodes;
     Node* initial;
     
     /** Groups of states are for minimizing the number of DFA states. */
@@ -63,7 +63,7 @@ class Lexer
         bool operator==(const Group& other) const;
 
       private:
-        std::set<Node*> states;
+        std::set<Node*> nodes;
         static bool same_group(Node* s1, Node* s2, const std::set<Group>& all);
     };
     
