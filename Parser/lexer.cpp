@@ -185,7 +185,7 @@ Lexer::write(std::ostream& out) const
     }
     out << "\n";
     
-    out << "N ns[] = {\n";
+    out << "Node nodes[] = {\n";
     for (auto& state : sorted) {
         state->write_struct(out);
     }

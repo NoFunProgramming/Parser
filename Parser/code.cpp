@@ -95,21 +95,6 @@ Code::define_actions(State* s, std::ostream& out)
 void
 Code::declare_structs(std::ostream& out)
 {
-    out << "struct Act {\n";
-    out << "    Symbol* sym;\n";
-    out << "    char    type;\n";
-    out << "    int     next;\n";
-    out << "};\n\n";
-    
-    out << "struct Gos {\n";
-    out << "    Symbol* sym;\n";
-    out << "    int  state;\n";
-    out << "};\n\n";
-    
-    out << "struct St {\n";
-    out << "    struct Act* act;\n";
-    out << "    struct Gos* gos;\n";
-    out << "};\n\n";
 }
 
 /******************************************************************************/
@@ -208,43 +193,17 @@ Code::define_action_call(Nonterm::Rule* rule, std::ostream& out)
             out << "E" << i;
         }
     }
-
     out << ");\n";
+    
     out << "    return R.release();\n";
     out << "}\n\n";
 }
-/******************************************************************************/
-void
-Code::define_functions(std::ostream& out)
-{
-    out << "char\n";
-    out << "find_action(int state, Symbol* sym, int* next) {\n";
-    out << "    for (Act* s = sts[state].act; s->sym; s++) {\n";
-    out << "        if (s->sym == sym) {\n";
-    out << "            *next = s->next;\n";
-    out << "            return s->type;\n";
-    out << "        }\n";
-    out << "    }\n";
-    out << "    return -1;\n";
-    out << "}\n\n";
 
-    out << "int\n";
-    out << "find_goto(int state, Symbol* sym) {\n";
-    out << "   if (!sts[state].gos)\n";
-    out << "        return -1;\n";
-    out << "   for (Gos* g = sts[state].gos; g->sym; g++) {\n";
-    out << "       if (g->sym == sym) {\n";
-    out << "           return g->state;\n";
-    out << "       }\n";
-    out << "   }\n";
-    out << "   return -1;\n";
-    out << "}\n\n";
-}
 
 void
 Code::declare_rules(const Grammar& grammar, std::ostream& out)
 {
-    out << "Rs rs[] = {\n";
+    out << "Rule rules[] = {\n";
     for (auto& nonterm : grammar.all) {
         for (auto& rule : nonterm->rules) {
             out << "  {&nonterm" << rule->nonterm->rank << ", ";
@@ -273,11 +232,11 @@ Code::declare_states(const Grammar& grammar, std::ostream& out)
     
     std::sort(states.begin(), states.end(), Compare);
     
-    out << "St sts[] = {\n";
+    out << "State states[] = {\n";
     for (auto& state : states) {
         out << "    {act" << state->id << ", ";
         if (state->gotos.size() > 0) {
-            out << "gos" << state->id;
+            out << "go" << state->id;
         } else {
             out << "nullptr";
         }
@@ -294,7 +253,7 @@ Code::define_gotos(const Grammar& grammar, std::ostream& out)
             continue;
         }
         
-        out << "struct Gos gos" << s->id << "[] = {";
+        out << "struct Go go" << s->id << "[] = {";
 
         bool comma = false;
         for (auto& g : s->gotos) {
@@ -308,4 +267,32 @@ Code::define_gotos(const Grammar& grammar, std::ostream& out)
         out << "};\n";
     }
     out << std::endl;
+}
+
+/******************************************************************************/
+void
+Code::define_functions(std::ostream& out)
+{
+//    out << "char\n";
+//    out << "find_action(int state, Symbol* sym, int* next) {\n";
+//    out << "    for (Act* s = states[state].act; s->sym; s++) {\n";
+//    out << "        if (s->sym == sym) {\n";
+//    out << "            *next = s->next;\n";
+//    out << "            return s->type;\n";
+//    out << "        }\n";
+//    out << "    }\n";
+//    out << "    return -1;\n";
+//    out << "}\n\n";
+//
+//    out << "int\n";
+//    out << "find_goto(int state, Symbol* sym) {\n";
+//    out << "   if (!states[state].go)\n";
+//    out << "        return -1;\n";
+//    out << "   for (Go* g = states[state].go; g->sym; g++) {\n";
+//    out << "       if (g->sym == sym) {\n";
+//    out << "           return g->state;\n";
+//    out << "       }\n";
+//    out << "   }\n";
+//    out << "   return -1;\n";
+//    out << "}\n\n";
 }

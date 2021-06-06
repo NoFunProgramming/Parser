@@ -92,17 +92,14 @@ void
 Calculator::init()
 {
     text.clear();
-    //node = Start_Node;
-    node2 = 0;
+    node = 0;
 
-    states2.clear();
+    states.clear();
     symbols.clear();
     values.clear();
     
     // TODO Push the start symbol.
-    //states.push_back(Start_State);
-    //states.push_back(nullptr);
-    states2.push_back(0);
+    states.push_back(0);
     symbols.push_back(Endmark);
     values.push_back(nullptr);
 }
@@ -115,22 +112,17 @@ Calculator::scan(Table* table, int c)
     while (true)
     {
         if (c == EOF) {
-            //Accept* accept = is_accept(node);
-            //if (!accept && node != Start_Node) {
-            if (!ns[node2].term && node2 != 0) {
+            if (!nodes[node].accept && node != 0) {
                 std::cout << "Unexpected end of file.\n";
                 return false;
             }
             
             Value* value = nullptr;
-            //if (accept) {
-            //    if (accept->scan) {
-            if (ns[node2].term) {
-                if (ns[node2].scan) {
-                    //value = accept->scan(table, text);
-                    value = ns[node2].scan(table, text);
+            if (nodes[node].accept) {
+                if (nodes[node].scan) {
+                    value = nodes[node].scan(table, text);
                 }
-                if (!advance(table, ns[node2].term, value)) {
+                if (!advance(table, nodes[node].accept, value)) {
                     return false;
                 }
             }
@@ -139,36 +131,33 @@ Calculator::scan(Table* table, int c)
             }
             return true;
         }
-        //else if (node == Start_Node && isspace(c)) {
-        else if (node2 == 0 && isspace(c)) {
+        else if (node == 0 && isspace(c)) {
             return true;
         }
         else {
-            //Node* next = next_node(node, c);
-            int next2 = ns[node2].next(c);
-            if (next2 != -1) {
+            int next = -1;
+            if (nodes[node].next) {
+                next = nodes[node].next(c);
+            };
+            if (next != -1) {
                 text.push_back(c);
-                //node = next;
-                node2 = next2;
+                node = next;
                 return true;
             }
             else {
-                //Accept* accept = is_accept(node);
-                //if (!accept) {
-                if (ns[node2].term == NULL) {
+                if (nodes[node].accept == NULL) {
                     std::cout << "Unexpected character." << (char)c << "\n";
                     return false;
                 }
                 
                 Value* value = nullptr;
-                if (ns[node2].scan) {
-                    value = ns[node2].scan(table, text);
+                if (nodes[node].scan) {
+                    value = nodes[node].scan(table, text);
                 }
-                if (!advance(table, ns[node2].term, value)) {
+                if (!advance(table, nodes[node].accept, value)) {
                     return false;
                 }
-                //node = Start_Node;
-                node2 = 0;
+                node = 0;
                 text.clear();
             }
         }
@@ -181,58 +170,47 @@ Calculator::advance(Table* table, Symbol* sym, Value* val)
 {
     while (true)
     {
-        //State* top = states.back();
-        int top2 = states2.back();
-                
-        
+        int top = states.back();
+                        
         int next = 0;
-        char type = find_action(top2, sym, &next);
+        char type = find_action(top, sym, &next);
         
-        if (type == 'S') {
-            push(next, sym, val);
-            return true;
-        }
-        
-        //Rule* accept = find_accept(top, sym);
-        //int accept2 = find_accept2(top2, sym);
-        //assert(accept2 != -1);
-        //if (accept2 != -1) {
-        if (type == 'A') {
-            Value* result = nullptr;
-            if (rs[next].reduce) {
-                //result = accept->reduce(table, values);
-                result = rs[next].reduce(table, values);
+        switch (type) {
+            case 'S': {
+                push(next, sym, val);
+                return true;
             }
-            pop(rs[next].length);
-            //top = states.back();
-            top2 = states2.back();
-            
-            int found2 = find_goto(top2, rs[next].nonterm);
-            push(found2, rs[next].nonterm, result);
-            return true;
-        }
-
-        //Rule* rule = find_reduce(top, sym);
-        //int rule2 = find_reduce2(top2, sym);
-        //assert(rule2 != -1);
-        //if (rule2 != -1) {
-        if (type == 'R') {
-            Value* result = nullptr;
-            if (rs[next].reduce) {
-                //result = rule->reduce(table, values);
-                result = rs[next].reduce(table, values);
+            case 'A': {
+                Value* result = nullptr;
+                if (rules[next].reduce) {
+                    result = rules[next].reduce(table, values);
+                }
+                pop(rules[next].length);
+                
+                top = states.back();
+                int found = find_goto(top, rules[next].nonterm);
+                
+                push(found, rules[next].nonterm, result);
+                return true;
             }
-            pop(rs[next].length);
-            //top = states.back();
-            top2 = states2.back();
-            
-            int found2 = find_goto(top2, rs[next].nonterm);
-            push(found2, rs[next].nonterm, result);
-        }
-        else {
-            std::cout << "Error, unexpected symbol ";
-            std::cout << "'" << sym->name << "'.\n";
-            return false;
+            case 'R': {
+                Value* result = nullptr;
+                if (rules[next].reduce) {
+                    result = rules[next].reduce(table, values);
+                }
+                pop(rules[next].length);
+                
+                top = states.back();
+                int found = find_goto(top, rules[next].nonterm);
+                
+                push(found, rules[next].nonterm, result);
+                break;
+            }
+            default: {
+                std::cout << "Error, unexpected symbol ";
+                std::cout << "'" << sym->name << "'.\n";
+                return false;
+            }
         }
     }
 }
@@ -241,8 +219,7 @@ Calculator::advance(Table* table, Symbol* sym, Value* val)
 void
 Calculator::push(int s, Symbol* sym, Value* val)
 {
-    //states.push_back(state);
-    states2.push_back(s);
+    states.push_back(s);
     symbols.push_back(sym);
     values.push_back(val);
 }
@@ -251,9 +228,31 @@ void
 Calculator::pop(size_t count)
 {
     for (size_t i = 0; i < count; i++) {
-        //states.pop_back();
-        states2.pop_back();
+        states.pop_back();
         symbols.pop_back();
         values.pop_back();
     }
+}
+
+char
+find_action(int state, Symbol* sym, int* next) {
+    for (Act* s = states[state].act; s->sym; s++) {
+        if (s->sym == sym) {
+            *next = s->next;
+            return s->type;
+        }
+    }
+    return -1;
+}
+
+int
+find_goto(int state, Symbol* sym) {
+   if (!states[state].go)
+        return -1;
+   for (Go* g = states[state].go; g->sym; g++) {
+       if (g->sym == sym) {
+           return g->state;
+       }
+   }
+   return -1;
 }
