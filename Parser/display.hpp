@@ -20,8 +20,8 @@ class Display
 
     
   private:
-    static void print(const Lexer::State& state, std::ostream& out);
-    static void print(const Lexer::State::Range& range, std::ostream& out);
+    static void print(const Node& state, std::ostream& out);
+    static void print(const Node::Range& range, std::ostream& out);
     
     static void print_terms(const Grammar& grammar, std::ostream& out);
     static void print_state(const Grammar& grammar, const State& state, std::ostream& out);

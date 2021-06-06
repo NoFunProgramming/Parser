@@ -9,7 +9,7 @@ Display::print(const Lexer& lexer, std::ostream& out)
 }
 
 void
-Display::print(const Lexer::State& state, std::ostream& out)
+Display::print(const Node& state, std::ostream& out)
 {
     out << "State " << state.id;
     if (state.accept) {
@@ -24,7 +24,7 @@ Display::print(const Lexer::State& state, std::ostream& out)
 }
 
 void
-Display::print(const Lexer::State::Range& range, std::ostream& out)
+Display::print(const Node::Range& range, std::ostream& out)
 {
     char first = range.first;
     char last  = range.last;

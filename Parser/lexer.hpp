@@ -16,11 +16,7 @@
 
 #include "literal.hpp"
 #include "regex.hpp"
-
-#include <vector>
-#include <set>
-#include <map>
-#include <iostream>
+#include "node.hpp"
 
 /*******************************************************************************
  * Builds a lexer for identifying tokens in an input string.  The lexer combines
@@ -50,86 +46,31 @@ class Lexer
     std::vector<std::unique_ptr<Regex>> exprs;
     std::vector<std::unique_ptr<Literal>> literals;
 
-  public:
-    /**
-     * State of the deterministic finite automaton.  The DFA is built by finding
-     * new states that are the possible sets of finite states of a NFA while
-     * reading input characters.  Ranges within each state map an input
-     * character to a single next state in the DFA.
-     */
-    class State {
-      public:
-        State(size_t id);
-        size_t id;
-
-        /** Adding finite states of the NFA to a single DFA state. */
-        void add_finite(Finite* finite);
-        void add_finite(std::set<Finite*>& finites);
-        
-        /** Map a range of characters to the next DFA state. */
-        void add_next(int first, int last, State* next);
-        State* get_next(int c);
-
-        /** Solving for the next states in the DFA from this state. */
-        void move(char c, std::set<Finite*>* next);
-        void solve_closure();
-        void solve_accept();
-        
-        void replace(std::map<State*, State*> prime);
-        void reduce();
-        
-        /** Writes the source code for the lexer. */
-        // TODO Move to the code class.
-        void write(std::ostream& out);
-        void write_struct(std::ostream& out);
-
-        struct is_same {
-            bool operator() (const std::unique_ptr<State>& left,
-                             const std::unique_ptr<State>& right) const {
-                return left->items < right->items;
-            }
-        };
-        
-        static bool lower(State* left, State* right);
-        
-        /** Character range for connecting states. */
-        struct Range {
-            Range(int first, int last);
-            int first;
-            int last;
-            bool operator<(const Range& other) const;
-            void write(std::ostream& out) const;
-        };
-        
-        Accept* accept;
-        std::set<Finite*> items;
-        std::map<Range, State*> nexts;
-    };
-    
+  public:    
     /** The DFA is defined by an initial state and unique sets of NFA states. */
-    std::set<std::unique_ptr<State>, State::is_same> states;
-    State* initial;
+    std::set<std::unique_ptr<Node>, Node::is_same> states;
+    Node* initial;
     
     /** Groups of states are for minimizing the number of DFA states. */
     class Group {
       public:
-        void insert(State* state);
+        void insert(Node* state);
 
-        bool belongs(State* state, const std::set<Group>& all) const;
+        bool belongs(Node* state, const std::set<Group>& all) const;
         std::vector<Group> divide(const std::set<Group>& PI) const;
         
         /** Find a state that represents all states in the group. */
-        State* represent(std::map<State*, State*>& replace, State* start);
+        Node* represent(std::map<Node*, Node*>& replace, Node* start);
 
         bool operator<(const Group& other) const;
         bool operator==(const Group& other) const;
 
       private:
-        std::set<State*> states;
-        static bool same_group(State* s1, State* s2, const std::set<Group>& all);
+        std::set<Node*> states;
+        static bool same_group(Node* s1, Node* s2, const std::set<Group>& all);
     };
     
-    std::set<State*> primes;
+    std::set<Node*> primes;
 
     /** Initial partion of the states. */
     std::set<Group> partition();

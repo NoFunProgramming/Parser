@@ -52,7 +52,7 @@ void
 Lexer::solve()
 {
     /** Build the first state from the start state of all expressions. */
-    std::unique_ptr<State> first = std::make_unique<State>(states.size());
+    std::unique_ptr<Node> first = std::make_unique<Node>(states.size());
     for (auto& expr : exprs) {
         first->add_finite(expr->start);
     }
@@ -65,12 +65,12 @@ Lexer::solve()
     initial = first.get();
     states.insert(std::move(first));
     
-    std::vector<State*> pending;
+    std::vector<Node*> pending;
     pending.push_back(initial);
     
     /** While still finding new states. */
     while (pending.size() > 0) {
-        State* current = pending.back();
+        Node* current = pending.back();
         pending.pop_back();
         
         /** Check every character for a possible new set. */
@@ -95,12 +95,12 @@ Lexer::solve()
             
             /** After searching check to see if the state was already found. */
             if (found.size() > 0) {
-                auto state = std::make_unique<State>(states.size());
+                auto state = std::make_unique<Node>(states.size());
                 state->add_finite(found);
                 state->solve_closure();
                 
                 auto inserted = states.insert(std::move(state));
-                State* next = inserted.first->get();
+                Node* next = inserted.first->get();
                 current->add_next(first, last, next);
                 
                 /** Check newly found state for other possible DFA states. */
@@ -132,12 +132,12 @@ Lexer::reduce()
         }
     }
 
-    std::map<State*, State*> replacement;
+    std::map<Node*, Node*> replacement;
     for (auto group : current) {
-        State* prime = group.represent(replacement, initial);
+        Node* prime = group.represent(replacement, initial);
         primes.insert(prime);
     }
-    for (State* prime : primes) {
+    for (Node* prime : primes) {
         prime->replace(replacement);
         prime->reduce();
     }
@@ -170,12 +170,12 @@ Lexer::partition()
 void
 Lexer::write(std::ostream& out) const
 {
-    std::vector<State*> sorted;
+    std::vector<Node*> sorted;
     for (auto& state : states) {
         sorted.push_back(state.get());
     }
     struct {
-        bool operator()(State* a, State* b) const { return a->id < b->id; }
+        bool operator()(Node* a, Node* b) const { return a->id < b->id; }
     } Compare;
     
     std::sort(sorted.begin(), sorted.end(), Compare);
@@ -193,216 +193,22 @@ Lexer::write(std::ostream& out) const
 }
 
 /******************************************************************************/
-Lexer::State::State(size_t id):
-    id(id),
-    accept(nullptr) {}
-
 void
-Lexer::State::add_finite(Finite* finite) {
-    items.insert(finite);
-}
-
-void
-Lexer::State::add_finite(std::set<Finite*>& finites) {
-    items.insert(finites.begin(), finites.end());
-}
-
-void
-Lexer::State::add_next(int first, int last, State* next) {
-    nexts[Range(first, last)] = next;
-}
-
-Lexer::State*
-Lexer::State::get_next(int c)
-{
-    for (auto next : nexts) {
-        if (c >= next.first.first && c <= next.first.last) {
-            return next.second;
-        }
-    }
-    return nullptr;
-}
-
-void
-Lexer::State::move(char c, std::set<Finite*>* found) {
-    for (Finite* item : items) {
-        item->move(c, found);
-    }
-}
-
-/**
- * After folliwng outputs that contain the input character, add the targets of
- * empty transitions to the newly found set of states.
- */
-void
-Lexer::State::solve_closure()
-{
-    std::vector<Finite*> stack;
-    stack.insert(stack.end(), items.begin(), items.end());
-    
-    while (stack.size() > 0) {
-        Finite* check = stack.back();
-        stack.pop_back();
-        check->closure(&items, &stack);
-    }
-}
-
-/**
- * Since the DFA states contain multiple finite states, determine the NFA state
- * with the lowest ranked accept to represent the pattern matched by the
- * current DFA state.
- */
-void
-Lexer::State::solve_accept()
-{
-    auto lowest = min_element(items.begin(), items.end(), Finite::lower_rank);
-    if (lowest != items.end()) {
-        accept = (*lowest)->accept;
-    }
-}
-
-void
-Lexer::State::replace(std::map<State*, State*> prime)
-{
-    for (auto& next : nexts) {
-        if (prime.count(next.second) > 0) {
-            next.second = prime[next.second];
-        }
-    }
-}
-
-void
-Lexer::State::reduce()
-{
-    std::map<State::Range, State*> updated;
-
-    auto itr = nexts.begin();
-    while (itr != nexts.end()) {
-        int first = itr->first.first;
-        int last  = itr->first.last;
-        State* next = itr->second;
-        itr++;
-
-        bool matches = true;
-        while (itr != nexts.end() && matches) {
-            matches = itr->second == next && (last + 1) == itr->first.first;
-            if (matches) {
-                last = itr->first.last;
-                itr++;
-            }
-        }
-        updated[State::Range(first, last)] = next;
-    }
-    nexts = updated;
-}
-
-bool
-Lexer::State::lower(State* left, State* right)
-{
-    if (left->accept && right->accept) {
-        return left->accept->rank < right->accept->rank;
-    } else if (left->accept) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/**
- * Writes the source code for a single state of the lexer.  The source code
- * defines a structure and a method for each state.  The method takes an input
- * character and returns either a new state in the DFA or a null pointer.
- */
-void
-Lexer::State::write(std::ostream& out)
-{
-    if (nexts.size() == 0) {
-        return;
-    }
-    
-    out << "int\n";
-    out << "scanX" << id << "(int c) {\n";
-    for (auto next : nexts) {
-        out << "    if (";
-        next.first.write(out);
-        out << ") { return " << next.second->id << "; }\n";
-    }
-    out << "    return -1;\n";
-    out << "}\n\n";
-}
-
-void
-Lexer::State::write_struct(std::ostream& out)
-{
-    if (nexts.size() > 0) {
-        out << "    {&scanX" << id;
-    } else {
-        out << "    {nullptr";
-    }
-
-    if (accept) {
-        out << ", &term" << accept->rank;
-        if (accept->scan.size() > 0) {
-            out << ", &scan" << accept->rank << "";
-        } else {
-            out << ", nullptr";
-        }
-    } else {
-        out << ", nullptr";
-        out << ", nullptr";
-    }
-    out << "},\n";
-}
-
-/******************************************************************************/
-Lexer::State::Range::Range(int first, int last):
-    first(first), last(last) {}
-
-bool
-Lexer::State::Range::operator<(const Range& other) const {
-    return last < other.first;
-}
-
-void
-Lexer::State::Range::write(std::ostream& out) const
-{
-    if (first == last) {
-        if (isprint(first) && first != '\'') {
-            out << "c == '" << (char)first << "'";
-        } else {
-            out << "c == " << first << "";
-        }
-    } else {
-        if (isprint(first) && isprint(last)
-                && first != '\'' && last != '\'') {
-            out << "(c >= '" << (char)first << "')";
-            out << " && ";
-            out << "(c <= '" << (char)last << "')";
-        } else {
-            out << "(c >= " << first << ")";
-            out << " && ";
-            out << "(c <= " << last << ")";
-        }
-    }
-}
-
-/******************************************************************************/
-void
-Lexer::Group::insert(State* state) {
+Lexer::Group::insert(Node* state) {
     states.insert(state);
 }
 
 bool
-Lexer::Group::belongs(State* state, const std::set<Group>& all) const
+Lexer::Group::belongs(Node* state, const std::set<Group>& all) const
 {
     if (states.size() < 1) {
         return false;
     }
 
-    State* check = *states.begin();
+    Node* check = *states.begin();
     for (int c = 0; c <= CHAR_MAX; c++) {
-        State* check_next = check->get_next(c);
-        State* state_next = state->get_next(c);
+        Node* check_next = check->get_next(c);
+        Node* state_next = state->get_next(c);
         if (check_next || state_next) {
             if (!check_next || !state_next) {
                 return false;
@@ -415,7 +221,7 @@ Lexer::Group::belongs(State* state, const std::set<Group>& all) const
 }
 
 bool
-Lexer::Group::same_group(State* s1, State* s2, const std::set<Group>& all)
+Lexer::Group::same_group(Node* s1, Node* s2, const std::set<Group>& all)
 {
     for (auto check : all) {
         if (check.states.count(s1) > 0) {
@@ -452,10 +258,10 @@ Lexer::Group::divide(const std::set<Group>& PI) const
     return result;
 }
 
-Lexer::State*
-Lexer::Group::represent(std::map<State*, State*>& replace, State* start)
+Node*
+Lexer::Group::represent(std::map<Node*, Node*>& replace, Node* start)
 {
-    State* result = nullptr;
+    Node* result = nullptr;
     for (auto s : states) {
         if (s == start) {
             result = s;
@@ -463,11 +269,11 @@ Lexer::Group::represent(std::map<State*, State*>& replace, State* start)
         }
     }
     if (!result) {
-        auto lowest = min_element(states.begin(), states.end(), State::lower);
+        auto lowest = min_element(states.begin(), states.end(), Node::lower);
         result = *lowest;
     }
 
-    for (State* state : states) {
+    for (Node* state : states) {
         replace[state] = result;
     }
     return result;
