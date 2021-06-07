@@ -9,6 +9,9 @@
 
 #include "grammar.hpp"
 #include <iostream>
+#include <vector>
+using std::vector;
+using std::ostream;
 
 /*******************************************************************************
  * Writes source code that defines the parse table for a grammar.  The code
@@ -24,22 +27,19 @@ class Code
     static void write(const Lexer& lexer, std::ostream& out);
 
   private:
-    static void declare_terms(Term* term, std::ostream& out);
-    static void define_term_actions(Term* term, std::ostream& out);
-    static void declare_nonterm(Nonterm* nonterm, std::ostream& out);
-    
-    static void define_scan(Node* node, std::ostream& out);
-    static void define_node(Node* node, std::ostream& out);
-    
-    static void define_action(Nonterm::Rule* rule, std::ostream& out);
-    static void define_action_cast(Nonterm::Rule* rule, std::ostream& out);
-    static void define_action_call(Nonterm::Rule* rule, std::ostream& out);
-    
-    static void define_actions(State* state, std::ostream& out);
-    
-    static void declare_rules(const Grammar& grammar, std::ostream& out);
-    static void declare_states(const Grammar& grammar, std::ostream& out);
-    static void define_gotos(State* state, std::ostream& out);
+    static void write_terms(Term* term, std::ostream& out);
+    static void write_eval(Term* term, std::ostream& out);
+    static void write_scan(Node* node, std::ostream& out);
+    static void write_node(Node* node, std::ostream& out);
+
+    static void write_nonterm(Nonterm* nonterm, std::ostream& out);
+    static void write_action(Nonterm::Rule* rule, std::ostream& out);
+    static void write_action_call(Nonterm::Rule* rule, std::ostream& out);
+    static void write_rules(const Grammar& grammar, ostream& out);
+
+    static void write_actions(vector<State*> states, ostream& out);
+    static void write_gotos(vector<State*> states, ostream& out);
+    static void write_states(vector<State*> states, ostream& out);
 };
 
 #endif

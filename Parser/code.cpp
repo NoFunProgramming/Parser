@@ -20,41 +20,47 @@ Code::write(const Grammar& grammar, std::ostream& out)
     out << "Symbol* Endmark = &endmark;\n\n";
     
     for (auto& term : grammar.terms) {
-        declare_terms(term.second.get(), out);
+        write_terms(term.second.get(), out);
     }
     out << "\n";
     
     for (auto& term : grammar.terms) {
-        define_term_actions(term.second.get(), out);
+        write_eval(term.second.get(), out);
     }
 
     write(grammar.lexer, out);
     
     for (auto& nonterm : grammar.nonterms) {
-        declare_nonterm(nonterm.second.get(), out);
+        write_nonterm(nonterm.second.get(), out);
         out << std::endl;
     }
     out << std::endl;
     
+    /** Sort the states so the data can be access by an array index. */
+    std::vector<State*> states;
+    for (auto& state : grammar.states) {
+        states.push_back(state.get());
+    }
+    
+    struct {
+        bool operator()(State* a, State* b) const {
+            return a->id < b->id;
+        }
+    } compare;
+    
+    std::sort(states.begin(), states.end(), compare);
+    
+    /** Methods that cast value pointers to user define types. */
     for (auto rule : grammar.all_rules) {
-        define_action(rule, out);
-        define_action_cast(rule, out);
-        define_action_call(rule, out);
+        write_action(rule, out);
+        write_action_call(rule, out);
     }
     
-    declare_rules(grammar, out);
+    write_rules(grammar, out);
         
-    for (auto& s : grammar.states) {
-        define_actions(s.get(), out);
-    }
-    out << std::endl;
-    
-    for (auto& s : grammar.states) {
-        define_gotos(s.get(), out);
-    }
-    out << std::endl;
-    
-    declare_states(grammar, out);
+    write_actions(states, out);
+    write_gotos(states, out);
+    write_states(states, out);
 }
 
 /**
@@ -72,33 +78,35 @@ Code::write(const Lexer& lexer, std::ostream& out)
         sorted.push_back(state.get());
     }
     struct {
-        bool operator()(Node* a, Node* b) const { return a->id < b->id; }
-    } Compare;
+        bool operator()(Node* a, Node* b) const {
+            return a->id < b->id;
+        }
+    } compare;
     
-    std::sort(sorted.begin(), sorted.end(), Compare);
+    std::sort(sorted.begin(), sorted.end(), compare);
 
-    for (auto& state : sorted) {
-        define_scan(state, out);
+    for (auto state : sorted) {
+        write_scan(state, out);
     }
     out << "\n";
     
     out << "Node nodes[] = {\n";
-    for (auto& state : sorted) {
-        define_node(state, out);
+    for (auto state : sorted) {
+        write_node(state, out);
     }
     out << "};\n";
 }
 
 /******************************************************************************/
 void
-Code::declare_terms(Term* term, std::ostream& out)
+Code::write_terms(Term* term, std::ostream& out)
 {
     out << "Symbol term" << term->rank;
     out << " = {\"" << term->name << "\"};\n";
 }
 
 void
-Code::define_term_actions(Term* term, std::ostream& out)
+Code::write_eval(Term* term, std::ostream& out)
 {
     if (term->action.empty())
         return;
@@ -114,13 +122,6 @@ Code::define_term_actions(Term* term, std::ostream& out)
     out << "}\n\n";
 }
 
-/******************************************************************************/
-void
-Code::declare_nonterm(Nonterm* nonterm, std::ostream& out)
-{
-    out << "Symbol nonterm" << nonterm->rank;
-    out << " = {\"" << nonterm->name << "\"};";
-}
 
 /**
  * Writes the source code for a single state of the lexer.  The source code
@@ -128,7 +129,7 @@ Code::declare_nonterm(Nonterm* nonterm, std::ostream& out)
  * character and returns either a new state in the DFA or a null pointer.
  */
 void
-Code::define_scan(Node* node, std::ostream& out)
+Code::write_scan(Node* node, std::ostream& out)
 {
     if (node->nexts.size() == 0) {
         return;
@@ -146,7 +147,7 @@ Code::define_scan(Node* node, std::ostream& out)
 }
 
 void
-Code::define_node(Node* node, std::ostream& out)
+Code::write_node(Node* node, std::ostream& out)
 {
     if (node->nexts.size() > 0) {
         out << "    {&scanX" << node->id;
@@ -170,7 +171,14 @@ Code::define_node(Node* node, std::ostream& out)
 
 /******************************************************************************/
 void
-Code::define_action(Nonterm::Rule* rule, std::ostream& out)
+Code::write_nonterm(Nonterm* nonterm, std::ostream& out)
+{
+    out << "Symbol nonterm" << nonterm->rank;
+    out << " = {\"" << nonterm->name << "\"};";
+}
+
+void
+Code::write_action(Nonterm::Rule* rule, std::ostream& out)
 {
     if (!rule->nonterm->type.empty()) {
         out << "unique_ptr<" << rule->nonterm->type << ">\n";
@@ -196,7 +204,7 @@ Code::define_action(Nonterm::Rule* rule, std::ostream& out)
 }
 
 void
-Code::define_action_cast(Nonterm::Rule* rule, std::ostream& out)
+Code::write_action_call(Nonterm::Rule* rule, std::ostream& out)
 {
     out << "Value*\n";
     out << rule->action << "(Table* table, vector<Value*>& values) {\n";
@@ -211,11 +219,7 @@ Code::define_action_cast(Nonterm::Rule* rule, std::ostream& out)
             out << "(values.end()[" << index << "]));\n";
         }
     }
-}
 
-void
-Code::define_action_call(Nonterm::Rule* rule, std::ostream& out)
-{
     out << "    unique_ptr<" << rule->nonterm->type << "> ";
     out << "R = "<< rule->action << "(";
     out << "table";
@@ -237,9 +241,8 @@ Code::define_action_call(Nonterm::Rule* rule, std::ostream& out)
     out << "}\n\n";
 }
 
-/******************************************************************************/
 void
-Code::declare_rules(const Grammar& grammar, std::ostream& out)
+Code::write_rules(const Grammar& grammar, std::ostream& out)
 {
     out << "Rule rules[] = {\n";
     for (auto& nonterm : grammar.all) {
@@ -257,66 +260,55 @@ Code::declare_rules(const Grammar& grammar, std::ostream& out)
     out << "};\n\n";
 }
 
+/******************************************************************************/
 void
-Code::define_actions(State* s, std::ostream& out)
+Code::write_actions(std::vector<State*> states, std::ostream& out)
 {
-    out << "struct Act act" << s->id << "[] = {";
-
-    for (auto& act : s->actions->shift) {
-        out << "{&"; act.first->write(out);
-        out << ", 'S', " << act.second->id; out << "}, ";
+    for (auto s : states) {
+        out << "struct Act act" << s->id << "[] = {";
+        for (auto& act : s->actions->shift) {
+            out << "{&"; act.first->write(out);
+            out << ", 'S', " << act.second->id; out << "}, ";
+        }
+        for (auto& act : s->actions->reduce) {
+            out << "{&"; act.first->write(out);
+            out << ", 'R', " << act.second->id << "}, ";
+        }
+        for (auto& act : s->actions->accept) {
+            out << "{&"; act.first->write(out);
+            out << ", 'A', " << act.second->id << "}, ";
+        }
+        out << "{nullptr, 0, 0}";
+        out << "};\n";
     }
-
-    for (auto& act : s->actions->reduce) {
-        out << "{&"; act.first->write(out);
-        out << ", 'R', " << act.second->id << "}, ";
-    }
-
-    for (auto& act : s->actions->accept) {
-        out << "{&"; act.first->write(out);
-        out << ", 'A', " << act.second->id << "}, ";
-    }
-
-    out << "{nullptr, 0, 0}";
-    out << "};\n";
 }
 
 void
-Code::define_gotos(State* s, std::ostream& out)
+Code::write_gotos(std::vector<State*> states, std::ostream& out)
 {
-    if (!s->gotos.size())
-        return;
-    
-    out << "struct Go go" << s->id << "[] = {";
-
-    for (auto& g : s->gotos) {
-        out << "{&";
-        g.first->write(out);
-        out << ", " << g.second->id << "}, ";
+    for (auto s : states) {
+        if (!s->gotos.size()) {
+            continue;
+        }
+        out << "struct Go go" << s->id << "[] = {";
+        for (auto& g : s->gotos) {
+            out << "{&";
+            g.first->write(out);
+            out << ", " << g.second->id << "}, ";
+        }
+        out << "{nullptr, 0}";
+        out << "};\n";
     }
-    
-    out << "{nullptr, 0}";
-    out << "};\n";
 }
 
 void
-Code::declare_states(const Grammar& grammar, std::ostream& out)
+Code::write_states(std::vector<State*> states, std::ostream& out)
 {
-    std::vector<State*> states;
-    for (auto& state : grammar.states) {
-        states.push_back(state.get());
-    }
-    struct {
-        bool operator()(State* a, State* b) const { return a->id < b->id; }
-    } Compare;
-    
-    std::sort(states.begin(), states.end(), Compare);
-    
     out << "State states[] = {\n";
-    for (auto& state : states) {
-        out << "    {act" << state->id << ", ";
-        if (state->gotos.size() > 0) {
-            out << "go" << state->id;
+    for (auto& s : states) {
+        out << "    {act" << s->id << ", ";
+        if (s->gotos.size() > 0) {
+            out << "go" << s->id;
         } else {
             out << "nullptr";
         }
