@@ -15,9 +15,6 @@ Code::write(const Grammar& grammar, std::ostream& out)
     for (auto nonterm : grammar.all) {
         nonterm->rank = id++;
     }
-
-    out << "Symbol endmark;\n";
-    out << "Symbol* Endmark = &endmark;\n\n";
     
     for (auto& term : grammar.terms) {
         write_terms(term.second.get(), out);
@@ -29,6 +26,9 @@ Code::write(const Grammar& grammar, std::ostream& out)
     }
 
     write(grammar.lexer, out);
+    
+    out << "Symbol endmark;\n";
+    out << "Symbol* Endmark = &endmark;\n\n";
     
     for (auto& nonterm : grammar.nonterms) {
         write_nonterm(nonterm.second.get(), out);
@@ -52,8 +52,8 @@ Code::write(const Grammar& grammar, std::ostream& out)
     
     /** Methods that cast value pointers to user define types. */
     for (auto rule : grammar.all_rules) {
-        write_action(rule, out);
-        write_action_call(rule, out);
+        write_rule_action(rule, out);
+        write_call_action(rule, out);
     }
     
     write_rules(grammar, out);
@@ -63,7 +63,7 @@ Code::write(const Grammar& grammar, std::ostream& out)
     write_states(states, out);
 }
 
-/**
+/*******************************************************************************
  * Writes the source code for a lexer.  The source code will define a structure
  * for each state in DFA. This structure contains a method that take a character
  * and returns either a new state in the DFA or a null pointer.  The null
@@ -88,13 +88,13 @@ Code::write(const Lexer& lexer, std::ostream& out)
     for (auto state : sorted) {
         write_scan(state, out);
     }
-    out << "\n";
     
     out << "Node nodes[] = {\n";
     for (auto state : sorted) {
         write_node(state, out);
     }
     out << "};\n";
+    out << "\n";
 }
 
 /******************************************************************************/
@@ -136,7 +136,7 @@ Code::write_scan(Node* node, std::ostream& out)
     }
     
     out << "int\n";
-    out << "scanX" << node->id << "(int c) {\n";
+    out << "next" << node->id << "(int c) {\n";
     for (auto next : node->nexts) {
         out << "    if (";
         next.first.write(out);
@@ -150,7 +150,7 @@ void
 Code::write_node(Node* node, std::ostream& out)
 {
     if (node->nexts.size() > 0) {
-        out << "    {&scanX" << node->id;
+        out << "    {&next" << node->id;
     } else {
         out << "    {nullptr";
     }
@@ -178,7 +178,7 @@ Code::write_nonterm(Nonterm* nonterm, std::ostream& out)
 }
 
 void
-Code::write_action(Nonterm::Rule* rule, std::ostream& out)
+Code::write_rule_action(Nonterm::Rule* rule, std::ostream& out)
 {
     if (!rule->nonterm->type.empty()) {
         out << "unique_ptr<" << rule->nonterm->type << ">\n";
@@ -204,7 +204,7 @@ Code::write_action(Nonterm::Rule* rule, std::ostream& out)
 }
 
 void
-Code::write_action_call(Nonterm::Rule* rule, std::ostream& out)
+Code::write_call_action(Nonterm::Rule* rule, std::ostream& out)
 {
     out << "Value*\n";
     out << rule->action << "(Table* table, vector<Value*>& values) {\n";
@@ -281,6 +281,7 @@ Code::write_actions(std::vector<State*> states, std::ostream& out)
         out << "{nullptr, 0, 0}";
         out << "};\n";
     }
+    out << "\n";
 }
 
 void
@@ -299,6 +300,7 @@ Code::write_gotos(std::vector<State*> states, std::ostream& out)
         out << "{nullptr, 0}";
         out << "};\n";
     }
+    out << "\n";
 }
 
 void

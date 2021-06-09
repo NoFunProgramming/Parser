@@ -1,5 +1,6 @@
 #include "display.hpp"
 
+/******************************************************************************/
 void
 Display::print(const Lexer& lexer, std::ostream& out)
 {
@@ -45,14 +46,9 @@ Display::print(const Node::Range& range, std::ostream& out)
     }
 }
 
+/******************************************************************************/
 void
 Display::print(const Grammar& grammar, std::ostream& out)
-{
-    
-}
-
-void
-Display::print_actions(const Grammar& grammar, std::ostream& out)
 {
     std::vector<State*> states;
     for (auto& state : grammar.states) {
@@ -143,6 +139,7 @@ Display::print_goto(Symbol* symbol, State* state, std::ostream& out)
     out << "   ";
 }
 
+/******************************************************************************/
 size_t
 Display::max_length(const Grammar& grammar)
 {
