@@ -13,7 +13,7 @@ Lexer::Lexer():
  * into a single DFA.
  */
 bool
-Lexer::add_regex(Accept* accept, const std::string& regex)
+Lexer::add_regex(Term* accept, const std::string& regex)
 {
     std::unique_ptr<Regex> expr = Regex::parse(regex, accept);
     if (!expr) {
@@ -26,7 +26,7 @@ Lexer::add_regex(Accept* accept, const std::string& regex)
 }
 
 bool
-Lexer::add_literal(Accept* accept, const std::string& series)
+Lexer::add_literal(Term* accept, const std::string& series)
 {
     std::unique_ptr<Literal> expr = Literal::build(series, accept);
     if (!expr) {
@@ -147,7 +147,7 @@ std::set<Lexer::Group>
 Lexer::partition()
 {
     //std::map<Term*, Group> split;
-    std::map<Accept*, Group> split;
+    std::map<Term*, Group> split;
     for (auto& state : nodes) {
         split[state->accept].insert(state.get());
     }

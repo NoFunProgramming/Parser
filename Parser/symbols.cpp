@@ -1,16 +1,6 @@
 #include "symbols.hpp"
 
-/******************************************************************************/
-Term::Term(const std::string& name, size_t rank):
-    name(name),
-    rank(rank){}
 
-void Term::print(std::ostream& out) const { out << "'" << name << "'"; }
-void Term::write(std::ostream& out) const { out << "term" << rank; }
-
-/******************************************************************************/
-void Endmark::print(std::ostream& out) const { out << "$"; }
-void Endmark::write(std::ostream& out) const { out << "endmark"; }
 
 /******************************************************************************/
 Nonterm::Nonterm(const std::string& name):

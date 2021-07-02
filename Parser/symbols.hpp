@@ -9,48 +9,13 @@
 #ifndef symbols_hpp
 #define symbols_hpp
 
+#include "finite.hpp"
 #include <string>
 #include <vector>
 #include <set>
 #include <iostream>
 
-/*******************************************************************************
- * Base class for all types of symbols such as terminals and nonterminals.
- */
-class Symbol
-{
-  public:
-    std::string type;
-    virtual void print(std::ostream& out) const = 0;
-    virtual void write(std::ostream& out) const = 0;
-};
 
-/*******************************************************************************
- * Terminals are the smallest unit of the grammar and often represent a specific
- * pattern of characters such as a integer.
- */
-class Term : public Symbol
-{
-  public:
-    Term(const std::string& name, size_t rank);
-    std::string name;
-    size_t rank;
-    
-    std::string action;
-    
-    virtual void print(std::ostream& out) const;
-    virtual void write(std::ostream& out) const;
-};
-
-/*******************************************************************************
- * Endmark is a special terminal and indicates the end of an input string.
- */
-class Endmark : public Symbol
-{
-  public:
-    virtual void print(std::ostream& out) const;
-    virtual void write(std::ostream& out) const;
-};
 
 /*******************************************************************************
  * Nonterminals of the grammar.  To form the language the nonterminals of the

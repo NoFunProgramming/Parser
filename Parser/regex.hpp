@@ -14,7 +14,7 @@ class Regex
 {
   public:
     /** Returns the NFA if the expression is valid, otherwise null. */
-    static std::unique_ptr<Regex> parse(const std::string& in, Accept* accept);
+    static std::unique_ptr<Regex> parse(const std::string& in, Term* accept);
 
     /** After building, call start's scan method to check for a match. */
     Finite* start;
@@ -24,7 +24,7 @@ class Regex
   private:
     std::vector<std::unique_ptr<Finite>> states;
     Finite* add_state();
-    Finite* add_state(Accept* accept);
+    Finite* add_state(Term* accept);
     
     /**
      * Recursive decent parsing methods.  Each methods returns the first state

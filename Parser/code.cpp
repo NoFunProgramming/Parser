@@ -157,7 +157,7 @@ Code::write_node(Node* node, std::ostream& out)
 
     if (node->accept) {
         out << ", &term" << node->accept->rank;
-        if (node->accept->scan.size() > 0) {
+        if (node->accept->action.size() > 0) {
             out << ", &scan" << node->accept->rank << "";
         } else {
             out << ", nullptr";

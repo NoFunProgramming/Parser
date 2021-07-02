@@ -12,7 +12,7 @@ Regex::Regex() :
  * accept condition.
  */
 std::unique_ptr<Regex>
-Regex::parse(const std::string& in, Accept* accept)
+Regex::parse(const std::string& in, Term* accept)
 {
     std::unique_ptr<Regex> result(std::make_unique<Regex>());
     
@@ -46,7 +46,7 @@ Regex::add_state() {
 }
 
 Finite*
-Regex::add_state(Accept* accept) {
+Regex::add_state(Term* accept) {
     states.emplace_back(std::make_unique<Finite>(accept));
     return states.back().get();
 }

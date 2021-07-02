@@ -30,8 +30,8 @@ class Lexer
     Lexer();
 
     /** Add patterns to match in the input string. */
-    bool add_regex(Accept* accept, const std::string& regex);
-    bool add_literal(Accept* accept, const std::string& series);
+    bool add_regex(Term* accept, const std::string& regex);
+    bool add_literal(Term* accept, const std::string& series);
     
     /** After adding all expressions, call solve to build to DFA. */
     void solve();

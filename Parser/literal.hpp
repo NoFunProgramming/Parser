@@ -17,7 +17,7 @@ class Literal
   public:
     /** Returns the NFA if the pattern is valid, otherwise null. */
     static std::unique_ptr<Literal>
-    build(const std::string& pattern, Accept* accept);
+    build(const std::string& pattern, Term* accept);
     
     Literal();
 
@@ -27,9 +27,9 @@ class Literal
   private:
     std::vector<std::unique_ptr<Finite>> states;
     Finite* add_state();
-    Finite* add_state(Accept* accept);
+    Finite* add_state(Term* accept);
 
-    Finite* parse_term(std::istream& series, Accept* accept);
+    Finite* parse_term(std::istream& series, Term* accept);
 };
 
 #endif

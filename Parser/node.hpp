@@ -52,7 +52,7 @@ class Node {
         void write(std::ostream& out) const;
     };
     
-    Accept* accept;
+    Term* accept;
     std::set<Finite*> items;
     std::map<Range, Node*> nexts;
 };

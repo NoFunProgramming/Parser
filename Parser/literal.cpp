@@ -7,7 +7,7 @@ Literal::Literal():
     start(nullptr) {}
 
 std::unique_ptr<Literal>
-Literal::build(const std::string& series, Accept* accept)
+Literal::build(const std::string& series, Term* accept)
 {
     std::unique_ptr<Literal> result = std::make_unique<Literal>();
     
@@ -35,7 +35,7 @@ Literal::add_state() {
 }
 
 Finite*
-Literal::add_state(Accept* accept) {
+Literal::add_state(Term* accept) {
     states.emplace_back(std::make_unique<Finite>(accept));
     return states.back().get();
 }
@@ -45,7 +45,7 @@ Literal::add_state(Accept* accept) {
  * build the NFA.
  */
 Finite*
-Literal::parse_term(std::istream& series, Accept* accept)
+Literal::parse_term(std::istream& series, Term* accept)
 {
     // TODO Handle the empty string.
     Finite* fact = add_state();

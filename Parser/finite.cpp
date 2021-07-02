@@ -1,6 +1,18 @@
 #include "finite.hpp"
 
 /******************************************************************************/
+Term::Term(const std::string& name, size_t rank):
+    name(name),
+    rank(rank){}
+
+void Term::print(std::ostream& out) const { out << "'" << name << "'"; }
+void Term::write(std::ostream& out) const { out << "term" << rank; }
+
+/******************************************************************************/
+void Endmark::print(std::ostream& out) const { out << "$"; }
+void Endmark::write(std::ostream& out) const { out << "endmark"; }
+
+/******************************************************************************/
 Accept::Accept(const std::string& name, size_t rank):
     name(name),
     rank(rank){}
@@ -9,7 +21,7 @@ Accept::Accept(const std::string& name, size_t rank):
 Finite::Finite():
     accept(nullptr){}
 
-Finite::Finite(Accept* accept):
+Finite::Finite(Term* accept):
     accept(accept){}
 
 /**
@@ -17,7 +29,7 @@ Finite::Finite(Accept* accept):
  * the outputs base on each character, until no new states are found.  At that
  * point scan will return of lowest ranked accept of the last found states.
  */
-Accept*
+Term*
 Finite::scan(std::istream* in)
 {
     std::set<Finite*> current;

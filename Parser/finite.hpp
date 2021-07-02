@@ -15,6 +15,44 @@
 #include <iostream>
 
 /*******************************************************************************
+ * Base class for all types of symbols such as terminals and nonterminals.
+ */
+class Symbol
+{
+  public:
+    std::string type;
+    virtual void print(std::ostream& out) const = 0;
+    virtual void write(std::ostream& out) const = 0;
+};
+
+/*******************************************************************************
+ * Terminals are the smallest unit of the grammar and often represent a specific
+ * pattern of characters such as a integer.
+ */
+class Term : public Symbol
+{
+  public:
+    Term(const std::string& name, size_t rank);
+    std::string name;
+    size_t rank;
+    
+    std::string action;
+    
+    virtual void print(std::ostream& out) const;
+    virtual void write(std::ostream& out) const;
+};
+
+/*******************************************************************************
+ * Endmark is a special terminal and indicates the end of an input string.
+ */
+class Endmark : public Symbol
+{
+  public:
+    virtual void print(std::ostream& out) const;
+    virtual void write(std::ostream& out) const;
+};
+
+/*******************************************************************************
  * Marks a state as matching a specific pattern.  The rank is required as
  * multiple final states are possible during reading and the state with the
  * lowest rank is selected as the match.
@@ -35,11 +73,11 @@ class Accept {
 class Finite {
   public:
     Finite();
-    Finite(Accept* accept);
-    Accept* accept;
+    Finite(Term* accept);
+    Term* accept;
 
     /** Checks an input stream for a pattern starting from this state. */
-    Accept* scan(std::istream* in);
+    Term* scan(std::istream* in);
     
     /**
      * Each state contains an array of outputs that determine the next states
