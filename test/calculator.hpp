@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Calculator program using a precomputed parse table define by a seperate
+ * Calculator program using a precomputed parse table defined by a seperate
  * grammar file.  To build the calculator, first call parse along with the
  * calculator's grammar file to write out a file that contains the parse table.
  * Then compile the calculator source along with the precomputed parse table to

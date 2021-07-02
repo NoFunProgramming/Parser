@@ -1,8 +1,7 @@
-/**
- * State of the deterministic finite automaton.  The DFA is built by finding
- * new states that are the possible sets of finite states of a NFA while
- * reading input characters.  Ranges within each state map an input
- * character to a single next state in the DFA.
+/*******************************************************************************
+ * State of a deterministic finite automaton (DFA).  The DFA is built by finding
+ * the next set of possible NFA states after reading an input character.  Ranges
+ * within each node map an input character to a single next node in the DFA.
  */
 #ifndef node_hpp
 #define node_hpp
@@ -19,11 +18,11 @@ class Node {
     Node(size_t id);
     size_t id;
 
-    /** Adding finite states of the NFA to a single DFA state. */
+    /** Adding finite states of the NFA to a single DFA node. */
     void add_finite(Finite* finite);
     void add_finite(std::set<Finite*>& finites);
     
-    /** Map a range of characters to the next DFA state. */
+    /** Map a range of characters to the next DFA node. */
     void add_next(int first, int last, Node* next);
     Node* get_next(int c);
 
@@ -34,7 +33,7 @@ class Node {
     
     void replace(std::map<Node*, Node*> prime);
     void reduce();
-    
+
     struct is_same {
         bool operator() (const std::unique_ptr<Node>& left,
                          const std::unique_ptr<Node>& right) const {

@@ -86,7 +86,9 @@ class Nonterm : public Symbol
     };
     
     std::vector<std::unique_ptr<Rule>> rules;
-    Nonterm::Rule* add_rule(const std::vector<Symbol*>& syms, const std::string& action);
+    
+    Nonterm::Rule* add_rule(const std::vector<Symbol*>& syms,
+                            const std::string& action);
 
     /**
      * To find all possible parse states, the first step is to solve for all
@@ -112,11 +114,14 @@ class Nonterm : public Symbol
         
   private:
     /** Called by solve for finding the set of firsts and follows. */
-    void insert_firsts(Rule* rule, bool* found);
-    void insert_follows(const std::set<Symbol*>& syms, bool* found);
+    void insert_firsts(Rule* rule,
+                       bool* found);
+    void insert_follows(const std::set<Symbol*>& syms,
+                        bool* found);
     void insert_follows(std::vector<Symbol*>::iterator symbol,
                         std::vector<Symbol*>::iterator end,
-                        bool* epsilon, bool* found);
+                        bool* epsilon,
+                        bool* found);
 };
 
 #endif

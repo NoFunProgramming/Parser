@@ -30,6 +30,38 @@ the type of token identified in the string.
 
 ## Generating source code for the parse table
 
+Program converts a user define grammar into a parse table which is then combined
+with user defined actions called while reading an input.
+
+At runtime the program will read the grammar rules from the standard input and
+write the generated source code for the parse table to the standard output.
+
+```
+'num'<Expr>   [0-9]+    &scan_num;
+
+total<Expr>: add        &reduce_total;
+
+add<Expr>: mul          &reduce_add
+    | add '+' mul       &reduce_add_mul;
+    
+mul<Expr>: 'num'        &reduce_mul
+    | mul '*' 'num'     &reduce_mul_num;
+```
+
+Allong with the user define action for each rule are cobined to build programs such as
+calculators and compilers.
+
+```
+unique_ptr<Expr>
+reduce_add_mul(Table* table, unique_ptr<Expr>& E1, unique_ptr<Expr>& E2)
+{
+    unique_ptr<Expr> result = std::move(E1);
+    result->value += E2->value;
+    return result;
+}
+```
+
+
 Solves for the parse table of a grammar.  User provided action methods for each
 grammar rule and the parse table can later be combined to build a parser or a
 compiler.

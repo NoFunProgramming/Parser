@@ -1,29 +1,25 @@
 /*******************************************************************************
- * Converts regular expressions into finite automata for finding patterns in
- * strings.
+ * Converts regular expressions into non-deterministic finite automata (NFA) for
+ * matching patterns in strings.  The newly built object contains the linked
+ * states of a NFA, call the scan from the state state to check for a match.
  */
 #ifndef regex_hpp
 #define regex_hpp
 
 #include "finite.hpp"
-
 #include <iostream>
 
-/*******************************************************************************
- * Contains a finite automaton for pattern matching.  After building, the object
- * contains a non-deterministic finite automaton (NFA).  This NFA can match
- * patterns in an input string or be converted into a deterministic finite
- * automaton (DFA) for a lexer.
- */
+/******************************************************************************/
 class Regex
 {
   public:
     /** Returns the NFA if the expression is valid, otherwise null. */
     static std::unique_ptr<Regex> parse(const std::string& in, Accept* accept);
-    Regex();
 
     /** After building, call start's scan method to check for a match. */
     Finite* start;
+ 
+    Regex();
 
   private:
     std::vector<std::unique_ptr<Finite>> states;

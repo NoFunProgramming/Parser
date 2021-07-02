@@ -19,7 +19,8 @@ Nonterm::Nonterm(const std::string& name):
     empty_first(false){}
 
 Nonterm::Rule*
-Nonterm::add_rule(const std::vector<Symbol*>& syms, const std::string& action)
+Nonterm::add_rule(const std::vector<Symbol*>& syms,
+                  const std::string& action)
 {
     rules.emplace_back(std::make_unique<Rule>(this, action));
     Rule* rule = rules.back().get();
@@ -95,7 +96,8 @@ Nonterm::solve_follows(bool *found)
 }
 
 void
-Nonterm::insert_follows(const std::set<Symbol*>& syms, bool* found)
+Nonterm::insert_follows(const std::set<Symbol*>& syms,
+                        bool* found)
 {
     for (Symbol* sym : syms) {
         auto in = follows.insert(sym);
@@ -108,7 +110,8 @@ Nonterm::insert_follows(const std::set<Symbol*>& syms, bool* found)
 void
 Nonterm::insert_follows(std::vector<Symbol*>::iterator sym,
                         std::vector<Symbol*>::iterator end,
-                        bool* epsilon, bool* found)
+                        bool* epsilon,
+                        bool* found)
 {
     for (; sym < end; sym++) {
         Nonterm* nonterm = dynamic_cast<Nonterm*>(*sym);
