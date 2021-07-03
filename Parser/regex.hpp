@@ -3,6 +3,15 @@
  * matching patterns in strings.  The newly built object contains the linked
  * states of a NFA, call the scan from the state state to check for a match.
  */
+
+/*******************************************************************************
+ * Converts regular expressions into finite automata for finding patterns in
+ * strings.  After building, the Regex object will contain a non-deterministic
+ * finite automaton (NFA).  Define a start state and connect it to the first
+ * state of each NFA.  Calling scan from this new start will return the
+ * accepted pattern, defined by a regular expession, found in the string.
+ */
+
 #ifndef regex_hpp
 #define regex_hpp
 

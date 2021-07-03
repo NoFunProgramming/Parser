@@ -27,7 +27,9 @@ class Symbol
 
 /*******************************************************************************
  * Terminals are the smallest unit of the grammar and often represent a specific
- * pattern of characters such as a integer.
+ * pattern of characters such as a integer.   The rank is required as multiple
+ * final states are possible during reading and the term with the lowest rank
+ * is selected as the match.
  */
 class Term : public Symbol
 {
@@ -50,19 +52,6 @@ class Endmark : public Symbol
   public:
     virtual void print(std::ostream& out) const;
     virtual void write(std::ostream& out) const;
-};
-
-/*******************************************************************************
- * Marks a state as matching a specific pattern.  The rank is required as
- * multiple final states are possible during reading and the state with the
- * lowest rank is selected as the match.
- */
-class Accept {
-  public:
-    Accept(const std::string& name, size_t rank);
-    std::string name;
-    std::string scan;
-    size_t rank;
 };
 
 /*******************************************************************************

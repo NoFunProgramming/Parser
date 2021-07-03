@@ -13,11 +13,6 @@ void Endmark::print(std::ostream& out) const { out << "$"; }
 void Endmark::write(std::ostream& out) const { out << "endmark"; }
 
 /******************************************************************************/
-Accept::Accept(const std::string& name, size_t rank):
-    name(name),
-    rank(rank){}
-
-/******************************************************************************/
 Finite::Finite():
     accept(nullptr){}
 

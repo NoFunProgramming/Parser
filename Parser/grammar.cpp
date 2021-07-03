@@ -153,9 +153,6 @@ Grammar::intern_term(std::istream& in)
     if (terms.count(name) == 0) {
         terms[name] = std::make_unique<Term>(name, terms.size());
         Term* term = terms[name].get();
-
-        accepts.emplace_back(std::make_unique<Accept>(name, term->rank));
-        //lexer.add_literal(accepts.back().get(), name);
         lexer.add_literal(term, name);
     }
     return terms[name].get();
@@ -208,17 +205,9 @@ Grammar::read_term(istream& in)
     term->type = type;
     term->action = action;
     
-    accepts.emplace_back(make_unique<Accept>(term->name, term->rank));
-    Accept* accept = accepts.back().get();
-    
-    // TODO Check this location.
-    accept->scan = action;
-    
     if (!regex.empty()) {
-        //lexer.add_regex(accept, regex);
         lexer.add_regex(term, regex);
     } else {
-        //lexer.add_literal(accept, term->name);
         lexer.add_literal(term, term->name);
     }
 

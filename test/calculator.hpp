@@ -12,17 +12,11 @@
 #include <vector>
 
 /*******************************************************************************
- * Classes for the terminals and nonterminals types.
+ * Required classes needed by the actions of the grammar rules.
  */
 class Value {
   public:
     virtual ~Value() = default;
-};
-
-class Expr : public Value {
-  public:
-    Expr(int value);
-    int value;
 };
 
 class Table {
@@ -74,6 +68,15 @@ extern struct State states[];
 
 char find_action(int state, Symbol* sym, int* next);
 int find_goto(int state, Symbol* sym);
+
+/*******************************************************************************
+ * User defined classes for the calculator.
+ */
+class Expr : public Value {
+  public:
+    Expr(int value);
+    int value;
+};
 
 /*******************************************************************************
  * Example calculator program.  The program maintains a stack of parse states,

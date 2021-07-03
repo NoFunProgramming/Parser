@@ -20,10 +20,7 @@ using std::ostream;
 class Code
 {
   public:
-    /**
-     * After solving for the lexer, call write to output source code for the
-     * token scanner.
-     */
+    /** After solving, call write to output source code for the scanner. */
     static void write(const Lexer& lexer, std::ostream& out);
 
     /**

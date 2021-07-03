@@ -1,14 +1,20 @@
 #include "calculator.hpp"
 
-'num'<Expr>   [0-9]+   &scan_num;
+/* Integer Values */
+'num'<Expr>  [0-9]+             &scan_num;
+'hex'<Expr>  0x([A-Z]|[0-9])+   &scan_hex;
 
-/* Comment */
-total<Expr>: add       &reduce_total
+/* Grammar Rules */
+total<Expr>: add        &reduce_total
     ;
-add<Expr>: mul         &reduce_add
-    | add '+' mul      &reduce_add_mul
+add<Expr>: mul          &reduce_add
+    | add '+' mul       &reduce_add_mul
     ;
-mul<Expr>: 'num'       &reduce_mul
-    | mul '*' 'num'    &reduce_mul_num
-    | '(' add ')'      &reduce_paren
+mul<Expr>: int          &reduce_mul
+    | mul '*' int       &reduce_mul_int
+    | '(' add ')'       &reduce_paren
     ;
+int<Expr>: 'num'        &reduce_num
+    | 'hex'             &reduce_hex
+    ;
+

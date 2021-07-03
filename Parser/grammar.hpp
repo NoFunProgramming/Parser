@@ -6,7 +6,6 @@
 #ifndef parser_hpp
 #define parser_hpp
 
-#include "symbols.hpp"
 #include "lexer.hpp"
 #include "state.hpp"
 
@@ -47,7 +46,6 @@ class Grammar
      * terminal of the same rank.
      */
     Lexer lexer;
-    std::vector<std::unique_ptr<Accept>> accepts;
 
     /** Unique parse states of the grammar. */
     struct is_same {

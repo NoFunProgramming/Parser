@@ -11,6 +11,16 @@
  * input.
  */
 
+/*******************************************************************************
+ * One application of finite states machines is the matching patterns within an
+ * input string.  To match patterns, multiple states are connected by outputs to
+ * each other.  Outputs from a state are associated with characters and
+ * determine the next active states based on the next character read from the input
+ * string.  To match a specific pattern, define the connections between states
+ * and then scan the input from the start state, moving between states while
+ * reading the input.
+ */
+
 #ifndef lexer_hpp
 #define lexer_hpp
 

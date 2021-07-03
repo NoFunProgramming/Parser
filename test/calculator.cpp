@@ -44,6 +44,16 @@ scan_num(Table* table, const std::string& text)
 }
 
 unique_ptr<Expr>
+scan_hex(Table* table, const std::string& text)
+{
+    std::stringstream stream;
+    stream << std::hex << text;
+    int num = 0;
+    stream >> num;
+    return std::make_unique<Expr>(num);
+}
+
+unique_ptr<Expr>
 reduce_total(Table* table, unique_ptr<Expr>& E1)
 {
     unique_ptr<Expr> result = std::move(E1);
@@ -72,7 +82,7 @@ reduce_mul(Table* table, unique_ptr<Expr>& E1)
 }
 
 unique_ptr<Expr>
-reduce_mul_num(Table* table, unique_ptr<Expr>& E1, unique_ptr<Expr>& E2)
+reduce_mul_int(Table* table, unique_ptr<Expr>& E1, unique_ptr<Expr>& E2)
 {
     unique_ptr<Expr> result = std::move(E1);
     result->value *= E2->value;
@@ -84,6 +94,19 @@ reduce_paren(Table* table, unique_ptr<Expr>& E1)
 {
     return std::move(E1);
 }
+
+unique_ptr<Expr>
+reduce_num(Table* table, unique_ptr<Expr>& E1)
+{
+    return std::move(E1);
+}
+
+unique_ptr<Expr>
+reduce_hex(Table* table, unique_ptr<Expr>& E1)
+{
+    return std::move(E1);
+}
+
 
 /******************************************************************************/
 Calculator::Calculator(){}
